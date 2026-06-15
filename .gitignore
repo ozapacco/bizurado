@@ -1,0 +1,18 @@
+# Dependências (reinstaláveis via npm install)
+/node_modules
+
+# Build do Next.js
+/.next
+/out
+
+# Cache incremental do TypeScript
+*.tsbuildinfo
+
+# Banco de dados e backups locais — progresso pessoal, binário e regenerável
+/data
+
+# Logs e lixo de SO/editor
+*.log
+nul
+.DS_Store
+Thumbs.db
