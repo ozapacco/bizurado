@@ -110,17 +110,22 @@ export function scanDirectory(basePath: string): ParsedTopic[] {
     const pathParts = relativePath.split(path.sep).filter(Boolean);
 
     const subjectName = pathParts[0] || "Sem Disciplina";
-    const topicName = pathParts.slice(1).join(" > ") || pathParts[0] || "Geral";
+    // Module folder(s) between the discipline and the file (may be empty).
+    const moduleParts = pathParts.slice(1);
 
     for (const file of txtFiles) {
       const filePath = path.join(dir, file.name);
       const cards = parseFile(filePath);
       if (cards.length > 0) {
+        const fileName = file.name.replace(/\.txt$/i, "");
+        // Each .txt file is its OWN topic (assunto). The module path is kept as a
+        // prefix so topics stay grouped, ordered and unique within a subject.
+        const topicName = [...moduleParts, fileName].join(" > ") || fileName;
         results.push({
           subjectName,
           topicName,
-          filePath: filePath,
-          fileName: file.name.replace(/\.txt$/i, ""),
+          filePath,
+          fileName,
           cards,
         });
       }
