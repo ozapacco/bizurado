@@ -1,0 +1,62 @@
+Frente;Verso
+O que é uma <b>potência</b>?;É uma forma abreviada de representar multiplicações repetidas de uma mesma base.<br><br>Exemplo: 2³ = 2 × 2 × 2 = 8.<br><br><i>Fonte: Aula Bônus 8 — Potenciação</i><hr><b>BIZU:</b> Potência é multiplicação repetida em versão compacta.
+Em uma potência, o que é a <b>base</b>?;É o número que será repetido na multiplicação.<br><br>Exemplo: em 5³, a base é 5.<br><br><i>Fonte: Aula Bônus 8 — Potenciação</i><hr><b>BIZU:</b> Base é o número que fica embaixo sustentando a potência.
+Em uma potência, o que é o <b>expoente</b>?;É o número que indica quantas vezes a base será usada como fator.<br><br>Exemplo: em 5³, o expoente é 3, então 5 aparece três vezes: 5 × 5 × 5.<br><br><i>Fonte: Aula Bônus 8 — Potenciação</i><hr><b>BIZU:</b> Expoente manda na repetição.
+Como calcular uma potência com <b>expoente positivo</b>?;Multiplique a base por ela mesma a quantidade de vezes indicada pelo expoente.<br><br>Exemplo: 3⁴ = 3 × 3 × 3 × 3 = 81.<br><br><i>Fonte: Aula Bônus 8 — Potenciação</i><hr><b>BIZU:</b> Expoente positivo manda multiplicar.
+Quanto é 3³?;3³ = 3 × 3 × 3 = 27.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> 3³ é cubo clássico: 27.
+Quanto é 5³?;5³ = 5 × 5 × 5 = 125.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> 5³ = 125. Decore porque aparece muito em contas com 1000.
+Quanto é 5⁴?;5⁴ = 5 × 5 × 5 × 5 = 625.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> 5⁴ = 625. Esse número conversa com raiz quadrada: √625 = 25.
+Qual é a regra do <b>expoente negativo</b>?;Quando o expoente é negativo, invertemos a base e tornamos o expoente positivo.<br><br>Exemplo: 2⁻² = 1/2² = 1/4.<br><br><i>Fonte: Aula Bônus 8 — Expoente negativo</i><hr><b>BIZU:</b> Expoente negativo não deixa o resultado automaticamente negativo. Ele manda inverter.
+Quanto é 7⁻²?;7⁻² = 1/7² = 1/49.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> Negativo no expoente vira inverso, não sinal negativo.
+Quanto é 2⁻⁵?;2⁻⁵ = 1/2⁵ = 1/32.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> 2⁵ = 32, então 2⁻⁵ = 1/32.
+Quanto é 2⁻⁴?;2⁻⁴ = 1/2⁴ = 1/16.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> Expoente negativo empurra a potência para o denominador.
+Quanto é 5⁻²?;5⁻² = 1/5² = 1/25.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> 5² = 25, logo 5⁻² = 1/25.
+Quanto é (1/2)⁻²?;(1/2)⁻² = 2² = 4.<br><br><i>Fonte: Aula Bônus 8 — Expoente negativo</i><hr><b>BIZU:</b> Fração com expoente negativo vira de cabeça para baixo.
+Quanto é 0,3⁻³?;0,3 = 3/10. Então 0,3⁻³ = (10/3)³ = 1000/27.<br><br><i>Fonte: Aula Bônus 8 — Expoente negativo</i><hr><b>BIZU:</b> Decimal com expoente negativo fica mais seguro quando vira fração.
+O que acontece quando o expoente é <b>1</b>?;A potência é a própria base.<br><br>Exemplo: 100¹ = 100.<br><br><i>Fonte: Aula Bônus 8 — Expoente igual a 1</i><hr><b>BIZU:</b> Expoente 1 não muda nada.
+Quanto é 2¹?;2¹ = 2.<br><br><i>Fonte: Aula Bônus 8 — Expoente igual a 1</i><hr><b>BIZU:</b> Todo número elevado a 1 permanece ele mesmo.
+Quanto é 4¹?;4¹ = 4.<br><br><i>Fonte: Aula Bônus 8 — Expoente igual a 1</i><hr><b>BIZU:</b> Expoente 1 é identidade.
+O que acontece quando o expoente é <b>0</b>?;Toda base diferente de zero elevada a 0 vale 1.<br><br>Exemplo: 7⁰ = 1.<br><br><i>Fonte: Aula Bônus 8 — Expoente igual a 0</i><hr><b>BIZU:</b> Qualquer base não nula elevada a zero vira 1.
+Quanto é 4⁰?;4⁰ = 1.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> Expoente zero zera o esforço, mas o resultado é 1.
+Quanto é 60⁰?;60⁰ = 1.<br><br><i>Fonte: Aula Bônus 8 — Expoente igual a 0</i><hr><b>BIZU:</b> O tamanho da base não importa. Se a base não é zero e o expoente é zero, o resultado é 1.
+Quanto é 1⁹?;1⁹ = 1.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> Potência de 1 sempre dá 1.
+O que acontece quando a <b>base é zero</b> e o expoente é diferente de zero?;O resultado é zero.<br><br>Exemplo: 0⁷ = 0.<br><br><i>Fonte: Aula Bônus 8 — Base zero</i><hr><b>BIZU:</b> Zero elevado a expoente positivo continua zero.
+Quanto é 0⁷?;0⁷ = 0.<br><br><i>Fonte: Aula Bônus 8 — Base zero</i><hr><b>BIZU:</b> Zero multiplicado por zero continua zero.
+Quanto é 0⁰ segundo o material?;0⁰ não existe valor definido no material.<br><br><i>Fonte: Aula Bônus 8 — Base zero</i><hr><b>BIZU:</b> Armadilha clássica: base zero e expoente zero não entra na regra do expoente zero.
+O que significa expoente fracionário?;Significa raiz.<br><br>Exemplo: 9^(1/2) = √9 = 3.<br><br><i>Fonte: Aula Bônus 8 — Expoente fracionário</i><hr><b>BIZU:</b> Expoente em forma de fração acende alerta de raiz.
+Quanto é 49^(1/2)?;49^(1/2) = √49 = 7.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> Expoente 1/2 é raiz quadrada.
+Quanto é 64^(1/2)?;64^(1/2) = √64 = 8.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> 8² = 64, então √64 = 8.
+Quanto é 100^(1/2)?;100^(1/2) = √100 = 10.<br><br><i>Fonte: Aula Bônus 8 — Exercícios de Potenciação</i><hr><b>BIZU:</b> Raiz quadrada pergunta: qual número ao quadrado dá isso?
+Qual é a regra para produto de potências de mesma base?;Conserva a base e soma os expoentes.<br><br>Exemplo: aⁿ × aᵐ = aⁿ⁺ᵐ.<br><br><i>Fonte: Aula Bônus 8 — Propriedades de Potenciação</i><hr><b>BIZU:</b> Mesma base multiplicando, expoentes somando.
+Quanto é 2⁵ × 2³?;2⁵ × 2³ = 2⁸ = 256.<br><br><i>Fonte: Aula Bônus 8 — Produto de potências de mesma base</i><hr><b>BIZU:</b> Base igual na multiplicação: soma os expoentes.
+Quanto é 3⁵ × 3²?;3⁵ × 3² = 3⁷ = 2187.<br><br><i>Fonte: Aula Bônus 8 — Produto de potências de mesma base</i><hr><b>BIZU:</b> Não multiplique as bases. Preserve a base e some expoentes.
+Qual é a regra para divisão de potências de mesma base?;Conserva a base e subtrai os expoentes.<br><br>Exemplo: aⁿ ÷ aᵐ = aⁿ⁻ᵐ.<br><br><i>Fonte: Aula Bônus 8 — Divisão de potências de mesma base</i><hr><b>BIZU:</b> Mesma base dividindo, expoentes subtraindo.
+Quanto é 5⁶ ÷ 5²?;5⁶ ÷ 5² = 5⁴ = 625.<br><br><i>Fonte: Aula Bônus 8 — Divisão de potências de mesma base</i><hr><b>BIZU:</b> Subtraia os expoentes: 6 - 2 = 4.
+Quanto é 3² ÷ 3⁵?;3² ÷ 3⁵ = 3⁻³ = 1/27.<br><br><i>Fonte: Aula Bônus 8 — Divisão de potências de mesma base</i><hr><b>BIZU:</b> Se o expoente final fica negativo, transforme em fração.
+Qual é a regra para potência de potência?;Multiplique os expoentes.<br><br>Exemplo: (aⁿ)ᵐ = aⁿˣᵐ.<br><br><i>Fonte: Aula Bônus 8 — Potência de potência</i><hr><b>BIZU:</b> Potência em cima de potência: expoentes multiplicam.
+Quanto é (3⁴)²?;(3⁴)² = 3⁸ = 6561.<br><br><i>Fonte: Aula Bônus 8 — Potência de potência</i><hr><b>BIZU:</b> Não some 4 e 2. Em potência de potência, multiplica.
+Quanto é (5³)²?;(5³)² = 5⁶ = 15625.<br><br><i>Fonte: Aula Bônus 8 — Potência de potência</i><hr><b>BIZU:</b> Expoentes empilhados multiplicam.
+Qual é a regra para potência de um produto?;O expoente vale para todos os fatores do produto.<br><br>Exemplo: (a × b)ⁿ = aⁿ × bⁿ.<br><br><i>Fonte: Aula Bônus 8 — Potência de um produto</i><hr><b>BIZU:</b> Expoente fora do parêntese distribui para os fatores.
+Quanto é (2 × 3)²?;(2 × 3)² = 2² × 3² = 4 × 9 = 36.<br><br><i>Fonte: Aula Bônus 8 — Potência de um produto</i><hr><b>BIZU:</b> Também poderia fazer 6² = 36.
+Quanto é (5 × 7)³?;(5 × 7)³ = 35³ = 42875.<br><br><i>Fonte: Aula Bônus 8 — Potência de um produto</i><hr><b>BIZU:</b> Se o produto for fácil, multiplique primeiro. Se não for, distribua o expoente.
+Qual é a regra para multiplicação de potências com o mesmo expoente?;Conserva o expoente e multiplica as bases.<br><br>Exemplo: aⁿ × bⁿ = (a × b)ⁿ.<br><br><i>Fonte: Aula Bônus 8 — Multiplicação de potências com mesmo expoente</i><hr><b>BIZU:</b> Mesmo expoente pode juntar as bases.
+Quanto é 2² × 3²?;2² × 3² = (2 × 3)² = 6² = 36.<br><br><i>Fonte: Aula Bônus 8 — Multiplicação com mesmo expoente</i><hr><b>BIZU:</b> Mesmo expoente, junta as bases.
+Quanto é 5³ × 7³?;5³ × 7³ = (5 × 7)³ = 35³ = 42875.<br><br><i>Fonte: Aula Bônus 8 — Multiplicação com mesmo expoente</i><hr><b>BIZU:</b> Mesmo expoente pode virar potência de um produto.
+Qual é a ordem da potenciação dentro de expressões numéricas?;A potenciação vem antes da divisão, multiplicação, soma e subtração.<br><br><i>Fonte: Aula Bônus 13 — Expressões Numéricas</i><hr><b>BIZU:</b> Em expressão numérica, potência tem prioridade alta.
+O que é uma <b>raiz quadrada</b>?;É a operação que procura qual número elevado ao quadrado gera o valor dentro da raiz.<br><br>Exemplo: √25 = 5, porque 5² = 25.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> Raiz quadrada é pergunta inversa da potência ao quadrado.
+Quanto é √625?;√625 = 25.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> 25² = 625.
+Quanto é √729?;√729 = 27.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> 27² = 729.
+Quanto é √576?;√576 = 24.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> 24² = 576.
+Quanto é √0,16?;√0,16 = 0,4.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> 0,4 × 0,4 = 0,16.
+Quanto é √1,44?;√1,44 = 1,2.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> 1,2 × 1,2 = 1,44.
+Quanto é √0,0025?;√0,0025 = 0,05.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> 0,05 × 0,05 = 0,0025.
+Como simplificar √60?;√60 = √(4 × 15) = 2√15.<br><br><i>Fonte: Aula Bônus 5 — Raízes não perfeitas</i><hr><b>BIZU:</b> Procure um quadrado perfeito dentro da raiz.
+Como simplificar √48?;√48 = √(16 × 3) = 4√3.<br><br><i>Fonte: Aula Bônus 5 — Raízes não perfeitas</i><hr><b>BIZU:</b> 16 sai da raiz como 4.
+Como simplificar √50?;√50 = √(25 × 2) = 5√2.<br><br><i>Fonte: Aula Bônus 5 — Raízes não perfeitas</i><hr><b>BIZU:</b> 25 sai da raiz como 5.
+Qual é a estratégia para simplificar uma raiz não exata?;Procure um fator que seja quadrado perfeito, separe esse fator e extraia sua raiz.<br><br><i>Fonte: Aula Bônus 5 — Cálculo de raízes quadradas</i><hr><b>BIZU:</b> Dentro da raiz, procure 4, 9, 16, 25, 36, 49, 64.
+Qual é a raiz cúbica de 4096?;A raiz cúbica de 4096 é 16, pois 16³ = 4096.<br><br><i>Fonte: Resolução de problemas envolvendo números reais — questão FAUEL</i><hr><b>BIZU:</b> 4096 também é 2¹². A raiz cúbica vira 2⁴ = 16.
+Qual é a ponte entre <b>fatoração</b> e <b>raízes</b>?;A fatoração ajuda a simplificar raízes porque mostra quais fatores podem sair da raiz em grupos perfeitos.<br><br><i>Fonte: Aula Bônus 4 — Fatoração e Aula Bônus 5 — Raízes</i><hr><b>BIZU:</b> Fatoração é o raio-X da raiz.
+Qual é a ponte entre <b>potenciação</b> e <b>radiciação</b>?;Radiciação é a operação inversa da potenciação.<br><br>Exemplo: 5² = 25 e √25 = 5.<br><br><i>Fonte: Aula Bônus 8 — Potenciação e Aula Bônus 5 — Raízes</i><hr><b>BIZU:</b> Potência vai. Raiz volta.
+Qual é a principal armadilha do expoente negativo?;Achar que o resultado fica negativo. Na verdade, o expoente negativo manda inverter a base.<br><br><i>Fonte: Aula Bônus 8 — Expoente negativo</i><hr><b>BIZU:</b> Negativo no expoente não é sinal negativo no resultado.
+Qual é a principal armadilha do expoente zero?;Aplicar a regra a 0⁰. A regra de que algo elevado a zero vale 1 vale para base diferente de zero. No material, 0⁰ não existe valor.<br><br><i>Fonte: Aula Bônus 8 — Base zero</i><hr><b>BIZU:</b> Base zero com expoente zero é exceção crítica.
+Qual é a principal armadilha em potência de potência?;Somar os expoentes em vez de multiplicar.<br><br><i>Fonte: Aula Bônus 8 — Potência de potência</i><hr><b>BIZU:</b> Base igual multiplicando soma expoente. Potência de potência multiplica expoente.

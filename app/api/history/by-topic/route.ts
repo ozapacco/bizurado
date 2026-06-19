@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 // "What did I study, and when, per topic." Each row is one (day, topic) pair
-// drawn from review_log JOIN cards JOIN topics JOIN subjects, grouped by
-// date(review_date) and topic. Only days that actually had reviews appear.
+// from review_log JOIN cards JOIN topics JOIN subjects, grouped by the UTC date
+// of review_date and topic. Only days that actually had reviews appear.
 interface HistoryRow {
   day: string;
   subjectId: number;
@@ -30,7 +32,6 @@ interface HistoryDay {
 }
 
 export async function GET(request: NextRequest) {
-  const db = getDb();
   const { searchParams } = new URL(request.url);
 
   // days window: default 30, clamp to [1, 365].
@@ -51,41 +52,44 @@ export async function GET(request: NextRequest) {
     const parsed = parseInt(subjectIdParam, 10);
     if (!Number.isNaN(parsed)) subjectFilterId = parsed;
   } else if (subjectNameParam) {
-    const row = db
-      .prepare("SELECT id FROM subjects WHERE name = ?")
-      .get(subjectNameParam) as { id: number } | undefined;
+    const row = (await queryOne("SELECT id FROM subjects WHERE name = $1", [
+      subjectNameParam,
+    ])) as { id: number } | undefined;
     subjectFilterId = row ? row.id : -1;
   }
 
-  // Window: reviews on or after (today - (days-1)), so days=1 means just today.
-  const params: Record<string, unknown> = { days: days - 1 };
+  // Window: reviews on or after (today - (days-1)) in UTC, so days=1 = today.
+  const cutoffDay = new Date(Date.now() - (days - 1) * 86400000)
+    .toISOString()
+    .slice(0, 10);
+
+  const params: unknown[] = [cutoffDay];
   let subjectClause = "";
   if (subjectFilterId !== null) {
-    subjectClause = "AND s.id = @subjectId";
-    params.subjectId = subjectFilterId;
+    params.push(subjectFilterId);
+    subjectClause = `AND s.id = $${params.length}`;
   }
 
-  const rows = db
-    .prepare(
-      `SELECT
-         date(rl.review_date) AS day,
-         s.id   AS subjectId,
-         s.name AS subjectName,
-         t.id   AS topicId,
-         t.name AS topicName,
-         COUNT(DISTINCT rl.card_id) AS cardsEstudados,
-         COUNT(*)                   AS revisoes,
-         SUM(CASE WHEN rl.rating >= 3 THEN 1 ELSE 0 END) AS goodRevs
-       FROM review_log rl
-       JOIN cards c    ON c.id = rl.card_id
-       JOIN topics t   ON t.id = c.topic_id
-       JOIN subjects s ON s.id = t.subject_id
-       WHERE date(rl.review_date) >= date('now', '-' || @days || ' days')
-         ${subjectClause}
-       GROUP BY day, t.id
-       ORDER BY day DESC, cardsEstudados DESC`
-    )
-    .all(params) as HistoryRow[];
+  const rows = (await query(
+    `SELECT
+       left(rl.review_date, 10)   AS day,
+       s.id   AS "subjectId",
+       s.name AS "subjectName",
+       t.id   AS "topicId",
+       t.name AS "topicName",
+       COUNT(DISTINCT rl.card_id)::int AS "cardsEstudados",
+       COUNT(*)::int                   AS "revisoes",
+       SUM(CASE WHEN rl.rating >= 3 THEN 1 ELSE 0 END)::int AS "goodRevs"
+     FROM review_log rl
+     JOIN cards c    ON c.id = rl.card_id
+     JOIN topics t   ON t.id = c.topic_id
+     JOIN subjects s ON s.id = t.subject_id
+     WHERE left(rl.review_date, 10) >= $1
+       ${subjectClause}
+     GROUP BY left(rl.review_date, 10), s.id, s.name, t.id, t.name
+     ORDER BY day DESC, "cardsEstudados" DESC`,
+    params
+  )) as HistoryRow[];
 
   // Group flat rows into days (already ordered date desc, then cards desc).
   const dayMap = new Map<string, HistoryDay>();

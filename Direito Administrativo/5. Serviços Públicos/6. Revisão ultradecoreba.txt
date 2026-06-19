@@ -1,0 +1,184 @@
+Qual é a frase-mãe de serviços públicos no art. 175 da CF?;<b>Incumbe ao Poder Público prestar serviços públicos diretamente ou sob regime de concessão ou permissão, sempre por licitação.</b><br><br><i>Fonte: CF/88, art. 175</i><hr><b>BIZU:</b> Decore a espinha dorsal: <font color="#ffeb3b">direto ou delegado, concessão ou permissão, sempre com licitação</font>.
+Na delegação de serviço público, o Estado transfere titularidade ou execução?;Transfere apenas a <font color="#00e676">execução</font>. A titularidade do serviço permanece com o Poder Público.<br><br><i>Fonte: regime de delegação</i><hr><b>BIZU:</b> Titularidade fica. Execução vai.
+Qual é a escola adotada no Brasil para definir serviço público?;A escola <font color="#00e676">formalista ou legalista</font>. Serviço público é aquilo que a Constituição ou a lei colocam sob regime jurídico de serviço público.<br><br><i>Fonte: doutrina majoritária</i><hr><b>BIZU:</b> Não é a importância social que decide. Quem decide é o ordenamento.
+Serviço público varia no tempo e no espaço?;<b>Sim</b>. Uma atividade pode ser serviço público em um país ou época e não ser em outro contexto.<br><br><i>Fonte: doutrina de serviços públicos</i><hr><b>BIZU:</b> Serviço público não é fotografia. É filme histórico e jurídico.
+Quais são os elementos de serviço público segundo Di Pietro?;São três: <font color="#00e676">subjetivo</font>, <font color="#00e676">material</font> e <font color="#00e676">formal</font>.<br><br><i>Fonte: Maria Sylvia Zanella Di Pietro</i><hr><b>BIZU:</b> Mnemônico: <font color="#ffeb3b">SuMaFor</font>, sujeito, matéria, forma.
+Quais são os elementos de serviço público segundo Celso Antônio Bandeira de Mello?;São dois: <font color="#00e676">material</font> e <font color="#00e676">formal</font>.<br><br><i>Fonte: Celso Antônio Bandeira de Mello</i><hr><b>BIZU:</b> Celso é mais enxuto: matéria + regime.
+Qual é a diferença entre serviço público uti universi e uti singuli?;Serviço <font color="#00e676">uti universi</font> atende a coletividade de forma geral e indivisível. Serviço <font color="#00e676">uti singuli</font> tem usuários determinados e utilização mensurável.<br><br><i>Fonte: classificação dos serviços públicos</i><hr><b>BIZU:</b> Universi = todo mundo. Singuli = usuário individualizado.
+Serviço uti universi pode ser remunerado por taxa?;<b>Não</b>. Taxa exige serviço específico e divisível. Serviço uti universi é geral e indivisível.<br><br><i>Fonte: CF/88, art. 145, II</i><hr><b>BIZU:</b> Sem divisão, sem taxa.
+Iluminação pública é uti universi ou uti singuli?;<b>Uti universi</b>. Ela beneficia a coletividade de modo indistinto e não permite mensurar consumo individual.<br><br><i>Fonte: SV 41</i><hr><b>BIZU:</b> Iluminação pública ilumina todos, não mede ninguém.
+Iluminação pública pode ser remunerada por taxa?;<b>Não</b>. A Súmula Vinculante 41 afirma que iluminação pública não pode ser remunerada mediante taxa.<br><br><i>Fonte: SV 41</i><hr><b>BIZU:</b> Luz pública e taxa não combinam.
+Taxa de lixo domiciliar é constitucional?;<b>Sim</b>, quando cobrada exclusivamente pela coleta, remoção, tratamento ou destinação de lixo ou resíduos provenientes de imóveis.<br><br><i>Fonte: SV 19</i><hr><b>BIZU:</b> Lixo pode taxa. Luz pública não pode taxa.
+Qual é o mnemônico das modalidades de delegação?;<font color="#ffeb3b"><b>CPA</b></font>: concessão, permissão e autorização.<br><br><i>Fonte: doutrina e legislação</i><hr><b>BIZU:</b> CPA salva questão básica.
+Concessão é contrato ou ato?;<b>Contrato administrativo</b>.<br><br><i>Fonte: Lei 8.987/1995</i><hr><b>BIZU:</b> Concessão contrata.
+Permissão é contrato ou ato na Lei 8.987/1995?;<b>Contrato de adesão</b>, com precariedade e revogabilidade unilateral pelo poder concedente.<br><br><i>Fonte: Lei 8.987/1995, art. 40</i><hr><b>BIZU:</b> Pegadinha clássica: permissão na Lei 8.987 é contrato de adesão.
+Autorização é contrato ou ato?;<b>Ato administrativo unilateral</b>, em regra discricionário e precário.<br><br><i>Fonte: doutrina</i><hr><b>BIZU:</b> Autorização não contrata. Autorização autoriza.
+Concessão pode ser feita a pessoa física?;<b>Não</b>. Concessão é feita a pessoa jurídica ou consórcio de empresas.<br><br><i>Fonte: Lei 8.987/1995, art. 2º, II</i><hr><b>BIZU:</b> PF não entra na concessão.
+Permissão pode ser feita a pessoa física?;<b>Sim</b>. Permissão pode ser feita a pessoa física ou jurídica.<br><br><i>Fonte: Lei 8.987/1995, art. 2º, IV</i><hr><b>BIZU:</b> Pessoa física lembra permissão.
+Autorização pode ser feita a pessoa física?;<b>Sim</b>. A autorização pode alcançar pessoa física ou jurídica, conforme a hipótese legal ou administrativa.<br><br><i>Fonte: doutrina</i><hr><b>BIZU:</b> Autorização é a mais simples e flexível.
+Concessão exige qual modalidade de licitação como regra?;Exige <font color="#00e676">concorrência</font> ou <font color="#00e676">diálogo competitivo</font>, ressalvadas hipóteses legais específicas.<br><br><i>Fonte: Lei 8.987/1995, art. 2º, II</i><hr><b>BIZU:</b> Concessão é pesada, licitação robusta.
+Permissão exige licitação?;<b>Sim</b>. A permissão exige licitação, mas a Lei 8.987/1995 não fixa modalidade específica.<br><br><i>Fonte: Lei 8.987/1995, art. 2º, IV</i><hr><b>BIZU:</b> Permissão é precária, mas não é sem licitação.
+Autorização exige licitação?;<b>Não</b>, como regra.<br><br><i>Fonte: doutrina</i><hr><b>BIZU:</b> Concessão e permissão licitam. Autorização não.
+Qual é a diferença central entre concessão e permissão quanto ao delegatário?;Concessão: pessoa jurídica ou consórcio. Permissão: pessoa física ou jurídica.<br><br><i>Fonte: Lei 8.987/1995</i><hr><b>BIZU:</b> Consórcio puxa concessão. Pessoa física puxa permissão.
+Qual é a diferença central entre concessão e permissão quanto à precariedade?;Concessão não tem precariedade como marca. Permissão é delegada a título precário.<br><br><i>Fonte: Lei 8.987/1995</i><hr><b>BIZU:</b> P de permissão, P de precária.
+Qual é a diferença central entre concessão comum, patrocinada e administrativa?;Concessão comum: remuneração pela tarifa ou exploração do serviço. Patrocinada: tarifa do usuário mais contraprestação pública. Administrativa: remuneração básica pelo parceiro público.<br><br><i>Fonte: Lei 8.987/1995 e Lei 11.079/2004</i><hr><b>BIZU:</b> Comum = usuário. Patrocinada = usuário + Estado. Administrativa = Estado.
+Concessão patrocinada é modalidade de PPP?;<b>Sim</b>. Ela envolve tarifa do usuário e contraprestação pecuniária do parceiro público.<br><br><i>Fonte: Lei 11.079/2004</i><hr><b>BIZU:</b> Patrocinada tem dois bolsos pagando.
+Concessão administrativa é modalidade de PPP?;<b>Sim</b>. Nela, a remuneração básica do parceiro privado vem da Administração Pública.<br><br><i>Fonte: Lei 11.079/2004</i><hr><b>BIZU:</b> Administrativa = Administração paga.
+Serviço público sem tarifa individual ao usuário combina com qual PPP?;<b>Concessão administrativa</b>.<br><br><i>Fonte: Lei 11.079/2004</i><hr><b>BIZU:</b> Sem tarifa ao usuário, pense em Administração pagando.
+Serviço deficitário com tarifa do usuário e complemento estatal combina com qual PPP?;<b>Concessão patrocinada</b>.<br><br><i>Fonte: Lei 11.079/2004</i><hr><b>BIZU:</b> Tarifa + patrocínio público = patrocinada.
+Qual é o mnemônico do serviço adequado?;<font color="#ffeb3b"><b>ReConEfiSeAtGeCorMo</b></font>: regularidade, continuidade, eficiência, segurança, atualidade, generalidade, cortesia e modicidade.<br><br><i>Fonte: Lei 8.987/1995, art. 6º</i><hr><b>BIZU:</b> Repita até virar automático: ReConEfiSeAtGeCorMo.
+O que é atualidade no serviço adequado?;É modernidade das técnicas, equipamentos e instalações, conservação, melhoria e expansão do serviço.<br><br><i>Fonte: Lei 8.987/1995, art. 6º, §2º</i><hr><b>BIZU:</b> Atualidade = moderniza, conserva, melhora e expande.
+O que é modicidade tarifária?;É a exigência de tarifa acessível e razoável, sem afastar parcela significativa da população do serviço.<br><br><i>Fonte: Lei 8.987/1995</i><hr><b>BIZU:</b> Módico não é grátis. Módico é suportável.
+Modicidade significa gratuidade?;<b>Não</b>. Modicidade significa preço razoável e acessível, não ausência de cobrança.<br><br><i>Fonte: princípio da modicidade</i><hr><b>BIZU:</b> Gratuidade é uma coisa. Modicidade é outra.
+Quais interrupções não caracterizam descontinuidade?;<font color="#ffeb3b"><b>ETI</b></font>: emergência, razões técnicas ou segurança das instalações, e inadimplemento do usuário com prévio aviso e interesse da coletividade.<br><br><i>Fonte: Lei 8.987/1995, art. 6º, §3º</i><hr><b>BIZU:</b> ETI = emergência, técnica, inadimplência.
+Emergência exige aviso prévio para interrupção do serviço?;<b>Não</b>. Emergência permite interrupção sem aviso prévio.<br><br><i>Fonte: Lei 8.987/1995, art. 6º, §3º</i><hr><b>BIZU:</b> Emergência não avisa.
+Interrupção por razões técnicas ou segurança exige aviso prévio?;<b>Sim</b>. É necessário aviso prévio.<br><br><i>Fonte: Lei 8.987/1995, art. 6º, §3º</i><hr><b>BIZU:</b> Técnica e segurança avisam.
+Interrupção por inadimplemento exige aviso prévio?;<b>Sim</b>. Também deve considerar o interesse da coletividade.<br><br><i>Fonte: Lei 8.987/1995, art. 6º, §3º</i><hr><b>BIZU:</b> Dívida pode cortar, mas com aviso e limites.
+Corte por inadimplência pode iniciar sexta, sábado, domingo, feriado ou véspera de feriado?;<b>Não</b>. A lei veda o início da interrupção nesses dias.<br><br><i>Fonte: Lei 8.987/1995, art. 6º, §4º</i><hr><b>BIZU:</b> Corte por dívida não começa em dia ruim para resolver.
+Quantas datas de vencimento a concessionária deve oferecer ao usuário dentro do mês?;<b>No mínimo seis datas</b>.<br><br><i>Fonte: Lei 8.987/1995, art. 7º-A</i><hr><b>BIZU:</b> Número seco de prova: <font color="#ffeb3b">6</font>.
+O usuário só tem direitos ou também tem deveres?;Tem direitos e deveres. Recebe serviço adequado, obtém informações, comunica irregularidades e ilícitos, e deve conservar bens públicos ligados ao serviço.<br><br><i>Fonte: Lei 8.987/1995, art. 7º</i><hr><b>BIZU:</b> Usuário é destinatário e fiscal social.
+Qual é o principal encargo da concessionária?;Prestar <font color="#00e676">serviço adequado</font>.<br><br><i>Fonte: Lei 8.987/1995, art. 31</i><hr><b>BIZU:</b> Tudo volta ao serviço adequado.
+Contratações feitas pela concessionária seguem direito público ou privado?;Seguem <font color="#00e676">direito privado</font> e legislação trabalhista, sem vínculo entre terceiros contratados e o poder concedente.<br><br><i>Fonte: Lei 8.987/1995, art. 31, parágrafo único</i><hr><b>BIZU:</b> Concessionária presta serviço público, mas contrata como particular.
+A fiscalização estatal exclui responsabilidade da concessionária por prejuízos?;<b>Não</b>. A fiscalização não exclui nem atenua a responsabilidade da concessionária.<br><br><i>Fonte: Lei 8.987/1995, art. 25</i><hr><b>BIZU:</b> Fiscalização não é escudo.
+Quem responde por prejuízos causados ao poder concedente, usuários ou terceiros?;A <font color="#00e676">concessionária</font> responde por esses prejuízos.<br><br><i>Fonte: Lei 8.987/1995, art. 25</i><hr><b>BIZU:</b> Executou, respondeu.
+Quem é o poder concedente?;É União, Estado, Distrito Federal ou Município em cuja competência se encontre o serviço público delegado.<br><br><i>Fonte: Lei 8.987/1995, art. 2º, I</i><hr><b>BIZU:</b> Poder concedente é o ente titular do serviço.
+O poder concedente pode regulamentar e fiscalizar o serviço?;<b>Sim</b>. Essa é uma de suas incumbências centrais.<br><br><i>Fonte: Lei 8.987/1995, art. 29</i><hr><b>BIZU:</b> Delegou, mas não abandonou.
+O poder concedente pode aplicar penalidades, intervir e extinguir a concessão?;<b>Sim</b>. Essas são prerrogativas ligadas ao regime público da concessão.<br><br><i>Fonte: Lei 8.987/1995, art. 29</i><hr><b>BIZU:</b> Fiscaliza, pune, intervém e extingue quando cabível.
+Qual prazo para cientificar usuário sobre providências em reclamação?;<b>Até 30 dias</b>.<br><br><i>Fonte: Lei 8.987/1995, art. 29, VII</i><hr><b>BIZU:</b> Reclamação do usuário = 30 dias.
+Quem declara utilidade pública para desapropriação ligada à concessão?;O <font color="#00e676">poder concedente</font>. A concessionária pode executar a desapropriação se receber poderes para isso.<br><br><i>Fonte: Lei 8.987/1995, art. 29</i><hr><b>BIZU:</b> Poder público declara. Concessionária pode executar e indenizar.
+O que é intervenção na concessão?;É assunção temporária do serviço pelo poder concedente para assegurar prestação adequada e cumprimento das normas.<br><br><i>Fonte: Lei 8.987/1995, art. 32</i><hr><b>BIZU:</b> Intervenção é temporária, não é extinção automática.
+Intervenção ocorre por lei ou decreto?;Por <font color="#00e676">decreto do poder concedente</font>.<br><br><i>Fonte: Lei 8.987/1995, art. 32</i><hr><b>BIZU:</b> Decreto = intervenção.
+O decreto de intervenção deve indicar o quê?;Deve indicar interventor, prazo, objetivos e limites da medida.<br><br><i>Fonte: Lei 8.987/1995, art. 32</i><hr><b>BIZU:</b> Intervenção = interventor, prazo, objetivo, limite.
+Após intervenção, em quanto tempo deve ser instaurado processo administrativo?;<b>Em até 30 dias</b>.<br><br><i>Fonte: Lei 8.987/1995, art. 33</i><hr><b>BIZU:</b> Intervenção tem número 30 para abrir processo.
+O processo administrativo da intervenção deve terminar em quanto tempo?;<b>Em até 180 dias</b>, sob pena de invalidade da intervenção.<br><br><i>Fonte: Lei 8.987/1995, art. 33</i><hr><b>BIZU:</b> Intervenção tem número 180 para fechar processo.
+Na intervenção, a defesa vem antes ou depois do decreto?;Pode vir <font color="#00e676">depois</font>, no procedimento administrativo instaurado após a decretação.<br><br><i>Fonte: Lei 8.987/1995 e STJ</i><hr><b>BIZU:</b> Primeiro protege o serviço. Depois apura com defesa.
+Quais são as formas de extinção da concessão?;<font color="#ffeb3b"><b>A E C R A F</b></font>: advento do termo, encampação, caducidade, rescisão, anulação e falência ou extinção da empresa, incluindo falecimento ou incapacidade do titular em empresa individual.<br><br><i>Fonte: Lei 8.987/1995, art. 35</i><hr><b>BIZU:</b> A E C R A F fecha extinção.
+O que é advento do termo contratual?;É o fim natural da concessão pelo término do prazo contratual.<br><br><i>Fonte: Lei 8.987/1995, art. 35</i><hr><b>BIZU:</b> Acabou o prazo, acabou a concessão.
+O que é reversão?;É o retorno dos bens reversíveis ao poder concedente após a extinção da concessão, para assegurar continuidade do serviço.<br><br><i>Fonte: Lei 8.987/1995, art. 35</i><hr><b>BIZU:</b> Reversão = bens voltam.
+Há indenização por bens reversíveis não amortizados?;<b>Sim</b>, quando houver parcelas de investimentos ainda não amortizadas ou depreciadas vinculadas a bens reversíveis necessários à continuidade e atualidade.<br><br><i>Fonte: Lei 8.987/1995, art. 36</i><hr><b>BIZU:</b> Bem volta, investimento não amortizado pode indenizar.
+O que é encampação?;É a retomada do serviço pelo poder concedente durante o prazo da concessão, por interesse público, com lei autorizativa específica e indenização prévia.<br><br><i>Fonte: Lei 8.987/1995, art. 37</i><hr><b>BIZU:</b> Encampação = interesse público + lei específica + indenização prévia.
+Encampação exige culpa da concessionária?;<b>Não</b>. O fundamento é interesse público, não inadimplemento da concessionária.<br><br><i>Fonte: Lei 8.987/1995, art. 37</i><hr><b>BIZU:</b> Sem culpa, com interesse público, encampação.
+O que é caducidade?;É a extinção da concessão por inexecução total ou parcial do contrato pela concessionária.<br><br><i>Fonte: Lei 8.987/1995, art. 38</i><hr><b>BIZU:</b> Culpa da concessionária = caducidade.
+Caducidade exige indenização prévia?;<b>Não</b>. A caducidade é declarada independentemente de indenização prévia, com cálculo no processo e desconto de multas e danos.<br><br><i>Fonte: Lei 8.987/1995, art. 38</i><hr><b>BIZU:</b> Prévia é encampação, não caducidade.
+Caducidade é declarada por qual instrumento?;Por <font color="#00e676">decreto do poder concedente</font>, após processo administrativo com ampla defesa.<br><br><i>Fonte: Lei 8.987/1995, art. 38</i><hr><b>BIZU:</b> Decreto também aparece na caducidade.
+Transferir concessão ou controle societário sem anuência gera o quê?;Gera <font color="#ff4444">caducidade</font>.<br><br><i>Fonte: Lei 8.987/1995, art. 27</i><hr><b>BIZU:</b> Sem anuência, caduca.
+Transferir concessão ou controle societário com anuência é constitucional?;<b>Sim</b>, segundo o STF, desde que observados os requisitos legais e preservada a continuidade e as condições da concessão.<br><br><i>Fonte: STF, ADI 2.946</i><hr><b>BIZU:</b> Transferir pode. Esconder do poder concedente não pode.
+O que é rescisão na Lei 8.987/1995?;É a extinção por descumprimento do poder concedente, por iniciativa da concessionária, mediante ação judicial.<br><br><i>Fonte: Lei 8.987/1995, art. 39</i><hr><b>BIZU:</b> Rescisão = concessionária processa o poder concedente.
+Na rescisão, a concessionária pode parar o serviço antes do trânsito em julgado?;<b>Não</b>. O serviço não pode ser interrompido ou paralisado até decisão judicial transitada em julgado.<br><br><i>Fonte: Lei 8.987/1995, art. 39</i><hr><b>BIZU:</b> Mesmo processando, continua prestando.
+O que é anulação da concessão?;É a extinção por ilegalidade na licitação ou no contrato.<br><br><i>Fonte: Lei 8.987/1995, art. 35</i><hr><b>BIZU:</b> Vício de legalidade = anulação.
+Falência ou extinção da empresa concessionária gera o quê?;Gera extinção da concessão, com retorno dos bens reversíveis ao poder concedente.<br><br><i>Fonte: Lei 8.987/1995, art. 35</i><hr><b>BIZU:</b> Quebrou a concessionária, o serviço não pode ficar sem dono.
+Qual é a comparação ultradecoreba entre encampação, caducidade e rescisão?;Encampação: interesse público do poder concedente. Caducidade: culpa da concessionária. Rescisão: culpa do poder concedente e ação judicial da concessionária.<br><br><i>Fonte: Lei 8.987/1995</i><hr><b>BIZU:</b> Interesse público = encampação. Culpa da empresa = caducidade. Culpa do poder concedente = rescisão.
+Qual é a diferença entre reajuste e revisão?;Reajuste é atualização ordinária periódica. Revisão é recomposição extraordinária do equilíbrio econômico-financeiro.<br><br><i>Fonte: Lei 8.987/1995</i><hr><b>BIZU:</b> Reajuste = calendário. Revisão = desequilíbrio.
+Alteração de tributo ou encargo legal após a proposta pode gerar revisão?;<b>Sim</b>, para mais ou para menos, quando houver impacto comprovado, exceto impostos sobre a renda.<br><br><i>Fonte: Lei 8.987/1995, art. 9º</i><hr><b>BIZU:</b> Tributo impactou, revisa. Imposto de renda fica fora.
+Alteração unilateral que afeta o equilíbrio exige o quê?;Exige restabelecimento concomitante do equilíbrio econômico-financeiro.<br><br><i>Fonte: Lei 8.987/1995, art. 9º</i><hr><b>BIZU:</b> Administração mexeu e desequilibrou, recompõe junto.
+Tarifas diferenciadas são sempre proibidas?;<b>Não</b>. A lei permite tarifas diferenciadas conforme características técnicas e custos específicos de segmentos de usuários.<br><br><i>Fonte: Lei 8.987/1995, art. 13</i><hr><b>BIZU:</b> Tarifa diferente pode, se houver justificativa técnica ou custo específico.
+Fontes alternativas de receita servem para quê?;Servem para favorecer a modicidade tarifária e podem integrar a equação econômico-financeira inicial do contrato.<br><br><i>Fonte: Lei 8.987/1995, art. 11</i><hr><b>BIZU:</b> Receita extra ajuda a tarifa a ficar menor.
+Subconcessão exige quais requisitos?;Exige previsão no contrato, autorização do poder concedente e licitação na modalidade concorrência.<br><br><i>Fonte: Lei 8.987/1995, art. 26</i><hr><b>BIZU:</b> Subconcessão = contrato prevê, poder autoriza, concorrência escolhe.
+Contratação de terceiro pela concessionária é sempre subconcessão?;<b>Não</b>. A concessionária pode contratar terceiros para atividades inerentes, acessórias ou complementares, sob direito privado, sem vínculo com o poder concedente.<br><br><i>Fonte: Lei 8.987/1995, art. 25</i><hr><b>BIZU:</b> Terceiro contratado não é automaticamente subconcessionário.
+Prorrogar permissão vencida sem licitação é constitucional?;<b>Não</b>. O STF entende que isso viola o art. 175 da CF/88.<br><br><i>Fonte: STF, ADI 7.241</i><hr><b>BIZU:</b> Permissão vencida não ressuscita sem licitação.
+Concessionária de rodovia pode cobrar autarquia de saneamento por uso de faixa de domínio?;<b>Não</b>. O STJ decidiu que a cobrança é indevida nesse caso.<br><br><i>Fonte: STJ, IAC 8</i><hr><b>BIZU:</b> Faixa de domínio contra saneamento estatal = não cobra.
+Rodovia concedida deixa de ser bem de uso comum do povo?;<b>Não</b>. A concessão muda a gestão, mas não elimina a natureza pública da via.<br><br><i>Fonte: STJ, IAC 8</i><hr><b>BIZU:</b> Concessão não privatiza a natureza do bem.
+Transporte coletivo pressupõe licitação?;<b>Sim</b>, salvo situações excepcionais devidamente comprovadas.<br><br><i>Fonte: STF, Tema 854</i><hr><b>BIZU:</b> Transporte coletivo público chama licitação.
+Processos sancionadores de agências reguladoras contra concessionárias devem ser públicos?;<b>Sim</b>, durante toda a tramitação, salvo sigilo legal ou constitucional.<br><br><i>Fonte: STF, ADI 5.371</i><hr><b>BIZU:</b> Regra é publicidade. Sigilo é exceção.
+Corte de serviço essencial por inadimplência atual é sempre proibido?;<b>Não</b>. É legítimo com notificação prévia e observância dos limites legais e jurisprudenciais.<br><br><i>Fonte: Lei 8.987/1995 e jurisprudência do STJ</i><hr><b>BIZU:</b> Continuidade não é salvo-conduto para inadimplência atual.
+Corte por débito pretérito é legítimo?;<b>Não</b>. Corte por dívida antiga é ilegítimo.<br><br><i>Fonte: jurisprudência do STJ</i><hr><b>BIZU:</b> Corte é para conta atual, não para cobrança histórica.
+Corte por débito de usuário anterior é legítimo?;<b>Não</b>. A dívida é pessoal e não pode prejudicar novo usuário.<br><br><i>Fonte: jurisprudência do STJ</i><hr><b>BIZU:</b> Dívida acompanha a pessoa, não o imóvel em abstrato.
+Corte por débito irrisório é legítimo?;<b>Não</b>. Pode configurar abuso de direito e violação à proporcionalidade.<br><br><i>Fonte: jurisprudência do STJ</i><hr><b>BIZU:</b> Dívida mínima não justifica medida máxima.
+Corte que afeta unidade de saúde é legítimo?;<b>Não</b>, pois prevalecem vida, saúde e continuidade de serviço essencial indispensável.<br><br><i>Fonte: jurisprudência do STJ</i><hr><b>BIZU:</b> Saúde derruba corte.
+Qual é o resumo final das pegadinhas de serviços públicos?;Taxa de lixo pode, taxa de iluminação não. Concessão é PJ ou consórcio, permissão é PF ou PJ. Permissão é contrato de adesão. Autorização é ato unilateral. Encampação tem lei e indenização prévia. Caducidade é culpa da concessionária. Rescisão é judicial por culpa do poder concedente. Reajuste não é revisão. Corte por inadimplência tem limites.<br><br><i>Fonte: revisão geral</i><hr><b>BIZU:</b> Leia esse card antes da prova.
+Serviço público é definido no Brasil por qual critério?;<b>Critério formalista ou legalista.</b><br><br><b>BIZU:</b> É serviço público porque a Constituição ou a lei colocou sob regime público.
+Serviço público depende só da importância social da atividade?;<b>Não.</b><br><br><b>BIZU:</b> Importância social ajuda a entender, mas quem define é o ordenamento jurídico.
+O Estado pode prestar serviço público diretamente?;<b>Sim.</b><br><br><b>BIZU:</b> Direto = Administração presta.
+O Estado pode prestar serviço público indiretamente?;<b>Sim.</b><br><br><b>BIZU:</b> Indireto = concessão ou permissão.
+Na concessão, o Estado transfere a titularidade?;<b>Não.</b><br><br><b>BIZU:</b> Transfere execução. Titularidade fica com o Poder Público.
+Art. 175 da CF fala em quais formas delegadas?;<b>Concessão e permissão.</b><br><br><b>BIZU:</b> Art. 175 = concessão ou permissão, sempre por licitação.
+Concessão exige licitação?;<b>Sim.</b><br><br><b>BIZU:</b> Concessão sem licitação é alerta vermelho.
+Permissão exige licitação?;<b>Sim.</b><br><br><b>BIZU:</b> Permissão é precária, mas licitada.
+Autorização exige licitação como regra?;<b>Não.</b><br><br><b>BIZU:</b> Autorização é ato administrativo, não contrato licitado.
+Concessão é contrato ou ato?;<b>Contrato administrativo.</b><br><br><b>BIZU:</b> Concessão contrata.
+Permissão é contrato ou ato na Lei 8.987?;<b>Contrato de adesão.</b><br><br><b>BIZU:</b> Pegadinha clássica. Permissão não é mero ato na Lei 8.987.
+Autorização é contrato ou ato?;<b>Ato administrativo unilateral.</b><br><br><b>BIZU:</b> Autorização autoriza.
+Concessão pode ser para pessoa física?;<b>Não.</b><br><br><b>BIZU:</b> Concessão = pessoa jurídica ou consórcio.
+Permissão pode ser para pessoa física?;<b>Sim.</b><br><br><b>BIZU:</b> Pessoa física lembra permissão.
+Concessão pode ser para consórcio?;<b>Sim.</b><br><br><b>BIZU:</b> Consórcio aparece na concessão.
+Permissão tem previsão para consórcio?;<b>Não como regra da Lei 8.987.</b><br><br><b>BIZU:</b> Permissão = pessoa física ou jurídica.
+Concessão é por prazo determinado?;<b>Sim.</b><br><br><b>BIZU:</b> Delegação por colaboração não é eterna.
+Permissão é precária?;<b>Sim.</b><br><br><b>BIZU:</b> P de permissão, P de precária.
+Autorização é precária?;<b>Sim, como regra.</b><br><br><b>BIZU:</b> Pode ser revogada conforme interesse público.
+Autorização é discricionária sempre?;<b>Não.</b><br><br><b>BIZU:</b> Regra é discricionária, mas telecomunicações traz autorização vinculada.
+Concessão comum é remunerada basicamente por quem?;<b>Pelo usuário, via tarifa, ou pela exploração do serviço.</b><br><br><b>BIZU:</b> Comum = usuário paga.
+Concessão patrocinada tem quais pagamentos?;<b>Tarifa do usuário mais contraprestação pública.</b><br><br><b>BIZU:</b> Patrocinada = dois bolsos.
+Concessão administrativa é paga basicamente por quem?;<b>Pela Administração Pública.</b><br><br><b>BIZU:</b> Administrativa = Administração paga.
+Serviço sem tarifa individual combina com qual PPP?;<b>Concessão administrativa.</b><br><br><b>BIZU:</b> Sem usuário pagando, Administração remunera.
+Serviço deficitário com tarifa mais complemento estatal combina com qual PPP?;<b>Concessão patrocinada.</b><br><br><b>BIZU:</b> Tarifa insuficiente + Estado complementa.
+Serviço adequado tem quantos atributos principais na Lei 8.987?;<b>Oito.</b><br><br><b>BIZU:</b> Regularidade, continuidade, eficiência, segurança, atualidade, generalidade, cortesia e modicidade.
+Qual atributo lembra modernização do serviço?;<b>Atualidade.</b><br><br><b>BIZU:</b> Atualidade = modernizar, conservar, melhorar e expandir.
+Qual atributo lembra tarifa acessível?;<b>Modicidade.</b><br><br><b>BIZU:</b> Módico não é gratuito. É suportável.
+Qual atributo impede interrupção indevida?;<b>Continuidade.</b><br><br><b>BIZU:</b> Continuidade é regra, mas tem exceções.
+Emergência autoriza interrupção sem aviso?;<b>Sim.</b><br><br><b>BIZU:</b> Emergência não espera aviso.
+Razão técnica autoriza interrupção com aviso?;<b>Sim.</b><br><br><b>BIZU:</b> Técnica exige prévio aviso.
+Inadimplência autoriza interrupção com aviso?;<b>Sim.</b><br><br><b>BIZU:</b> Dívida atual pode cortar, mas com limites.
+Corte por inadimplência pode começar em sexta-feira?;<b>Não.</b><br><br><b>BIZU:</b> Sexta, sábado, domingo, feriado e véspera são proibidos para iniciar o corte.
+Usuário tem direito a serviço adequado?;<b>Sim.</b><br><br><b>BIZU:</b> Direito número um do usuário.
+Usuário pode exigir informação do poder concedente e da concessionária?;<b>Sim.</b><br><br><b>BIZU:</b> Informação protege interesses individuais e coletivos.
+Usuário deve comunicar irregularidades?;<b>Sim.</b><br><br><b>BIZU:</b> Usuário também fiscaliza.
+Usuário deve comunicar ilícitos da concessionária?;<b>Sim.</b><br><br><b>BIZU:</b> Ilícito vai às autoridades competentes.
+Concessionária deve oferecer quantas datas de vencimento?;<b>No mínimo seis.</b><br><br><b>BIZU:</b> Número seco: 6.
+Concessionária responde por danos ao poder concedente?;<b>Sim.</b><br><br><b>BIZU:</b> Responde ao Estado, usuários e terceiros.
+Fiscalização estatal reduz responsabilidade da concessionária?;<b>Não.</b><br><br><b>BIZU:</b> Fiscalização não é escudo.
+Contratos da concessionária com terceiros seguem direito público?;<b>Não.</b><br><br><b>BIZU:</b> Seguem direito privado e legislação trabalhista.
+Terceiro contratado pela concessionária cria vínculo com o poder concedente?;<b>Não.</b><br><br><b>BIZU:</b> Não há relação jurídica com o Estado.
+Subconcessão é igual a contratar terceiro?;<b>Não.</b><br><br><b>BIZU:</b> Subconcessão transfere parcela do serviço e exige requisitos próprios.
+Subconcessão exige previsão contratual?;<b>Sim.</b><br><br><b>BIZU:</b> Sem previsão, não há subconcessão regular.
+Subconcessão exige autorização do poder concedente?;<b>Sim.</b><br><br><b>BIZU:</b> Poder concedente controla.
+Subconcessão exige qual licitação?;<b>Concorrência.</b><br><br><b>BIZU:</b> Subconcessão = contrato prevê, poder autoriza, concorrência escolhe.
+Quem é o poder concedente?;<b>União, Estado, Distrito Federal ou Município competente pelo serviço.</b><br><br><b>BIZU:</b> É o ente titular do serviço.
+Poder concedente pode fiscalizar?;<b>Sim.</b><br><br><b>BIZU:</b> Delegou, mas não abandonou.
+Poder concedente pode aplicar penalidade?;<b>Sim.</b><br><br><b>BIZU:</b> Concessionária descumpriu, poder concedente sanciona.
+Poder concedente pode intervir?;<b>Sim.</b><br><br><b>BIZU:</b> Intervenção protege o serviço.
+Poder concedente pode extinguir concessão?;<b>Sim, nas hipóteses legais.</b><br><br><b>BIZU:</b> Extinção depende de fundamento legal.
+Intervenção extingue automaticamente a concessão?;<b>Não.</b><br><br><b>BIZU:</b> Intervenção é temporária.
+Intervenção ocorre por qual instrumento?;<b>Decreto do poder concedente.</b><br><br><b>BIZU:</b> Decreto = intervenção.
+Decreto de intervenção deve indicar o quê?;<b>Interventor, prazo, objetivos e limites.</b><br><br><b>BIZU:</b> Sem esses elementos, desconfie.
+Após intervenção, processo administrativo deve abrir em quanto tempo?;<b>Até 30 dias.</b><br><br><b>BIZU:</b> 30 para abrir.
+Processo de intervenção deve terminar em quanto tempo?;<b>Até 180 dias.</b><br><br><b>BIZU:</b> 180 para concluir.
+Se intervenção for ilegal, o serviço volta para a concessionária?;<b>Sim.</b><br><br><b>BIZU:</b> Devolução imediata e possível indenização.
+Extinção da concessão faz os bens reversíveis voltarem?;<b>Sim.</b><br><br><b>BIZU:</b> Reversão protege a continuidade.
+Extinta a concessão, o poder concedente assume imediatamente o serviço?;<b>Sim.</b><br><br><b>BIZU:</b> O usuário não pode ficar sem serviço.
+Advento do termo é o quê?;<b>Fim natural do prazo contratual.</b><br><br><b>BIZU:</b> Acabou o prazo, acabou a concessão.
+Encampação é o quê?;<b>Retomada por interesse público durante o prazo da concessão.</b><br><br><b>BIZU:</b> Interesse público puxa encampação.
+Encampação exige lei específica?;<b>Sim.</b><br><br><b>BIZU:</b> Lei específica é palavra-chave.
+Encampação exige indenização prévia?;<b>Sim.</b><br><br><b>BIZU:</b> Prévia = encampação.
+Encampação exige culpa da concessionária?;<b>Não.</b><br><br><b>BIZU:</b> É por interesse público.
+Caducidade é o quê?;<b>Extinção por inexecução total ou parcial pela concessionária.</b><br><br><b>BIZU:</b> Culpa da concessionária = caducidade.
+Caducidade exige indenização prévia?;<b>Não.</b><br><br><b>BIZU:</b> Pode haver indenização depois, com descontos.
+Caducidade ocorre por decreto?;<b>Sim.</b><br><br><b>BIZU:</b> Decreto após processo administrativo.
+Caducidade exige ampla defesa?;<b>Sim.</b><br><br><b>BIZU:</b> Processo administrativo com defesa.
+Transferência sem anuência gera o quê?;<b>Caducidade.</b><br><br><b>BIZU:</b> Sem anuência, caduca.
+Transferência com anuência pode ser constitucional?;<b>Sim.</b><br><br><b>BIZU:</b> STF admitiu, preservados requisitos e continuidade.
+Rescisão é por culpa de quem?;<b>Do poder concedente.</b><br><br><b>BIZU:</b> Culpa da Administração = rescisão.
+Quem pede a rescisão?;<b>A concessionária.</b><br><br><b>BIZU:</b> Concessionária vai ao Judiciário.
+Rescisão é judicial?;<b>Sim.</b><br><br><b>BIZU:</b> Ação judicial específica.
+Na rescisão, concessionária pode parar antes do trânsito em julgado?;<b>Não.</b><br><br><b>BIZU:</b> Continua prestando até decisão final.
+Anulação decorre de quê?;<b>Ilegalidade na licitação ou no contrato.</b><br><br><b>BIZU:</b> Vício jurídico = anulação.
+Falência da concessionária extingue a concessão?;<b>Sim.</b><br><br><b>BIZU:</b> Serviço não fica preso a empresa falida.
+Reajuste é ordinário ou extraordinário?;<b>Ordinário.</b><br><br><b>BIZU:</b> Reajuste segue índice e periodicidade.
+Revisão é ordinária ou extraordinária?;<b>Extraordinária.</b><br><br><b>BIZU:</b> Revisão recompõe desequilíbrio.
+Alteração de tributo pode gerar revisão para menos?;<b>Sim.</b><br><br><b>BIZU:</b> Equilíbrio vale nos dois sentidos.
+Imposto sobre renda gera revisão pela regra do art. 9º?;<b>Não.</b><br><br><b>BIZU:</b> Renda é exceção.
+Tarifa diferenciada é sempre proibida?;<b>Não.</b><br><br><b>BIZU:</b> Pode se houver característica técnica ou custo específico.
+Fontes alternativas ajudam em qual princípio?;<b>Modicidade tarifária.</b><br><br><b>BIZU:</b> Receita extra pode aliviar a tarifa.
+Iluminação pública pode ser taxa?;<b>Não.</b><br><br><b>BIZU:</b> SV 41.
+Lixo domiciliar pode ser taxa?;<b>Sim.</b><br><br><b>BIZU:</b> SV 19.
+Permissão vencida pode ser prorrogada automaticamente sem licitação?;<b>Não.</b><br><br><b>BIZU:</b> ADI 7.241.
+Concessionária de rodovia pode cobrar autarquia de saneamento por faixa de domínio?;<b>Não.</b><br><br><b>BIZU:</b> IAC 8 do STJ.
+Rodovia concedida perde natureza de bem de uso comum do povo?;<b>Não.</b><br><br><b>BIZU:</b> Concessão muda gestão, não natureza.
+Transporte coletivo pressupõe licitação?;<b>Sim, salvo exceções comprovadas.</b><br><br><b>BIZU:</b> Tema 854.
+Processo sancionador de agência reguladora contra concessionária é público?;<b>Sim, salvo sigilo legal ou constitucional.</b><br><br><b>BIZU:</b> Publicidade é regra.
+Corte por débito pretérito é legítimo?;<b>Não.</b><br><br><b>BIZU:</b> Débito antigo não justifica corte.
+Corte por usuário anterior é legítimo?;<b>Não.</b><br><br><b>BIZU:</b> Dívida é pessoal.
+Corte por débito irrisório é legítimo?;<b>Não.</b><br><br><b>BIZU:</b> Proporcionalidade.
+Corte em unidade de saúde é legítimo?;<b>Não.</b><br><br><b>BIZU:</b> Saúde prevalece.
+Corte pode atingir imóvel diferente do que gerou o débito?;<b>Não.</b><br><br><b>BIZU:</b> Débito fica no imóvel de origem.
+Qual comparação mais cobrada: encampação, caducidade e rescisão?;<b>Encampação = interesse público. Caducidade = culpa da concessionária. Rescisão = culpa do poder concedente.</b><br><br><b>BIZU:</b> Esse card vale ouro.
+Qual comparação mais cobrada: concessão, permissão e autorização?;<b>Concessão = contrato com PJ ou consórcio. Permissão = contrato de adesão com PF ou PJ. Autorização = ato unilateral.</b><br><br><b>BIZU:</b> Esse é o tripé da matéria.

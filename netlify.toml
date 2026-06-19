@@ -1,0 +1,12 @@
+# Configuração de deploy na Netlify (Next.js 14 App Router + rotas de API + middleware).
+# O plugin oficial transforma as rotas em Netlify Functions e o middleware em Edge Function.
+
+[build]
+  command = "npm run build"
+
+# Node 20: estável no runtime de Functions da Netlify e compatível com o driver Neon.
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

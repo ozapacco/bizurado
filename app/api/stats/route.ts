@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
 import {
   todayStr,
   dayStrOf,
@@ -13,42 +13,40 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const db = getDb();
-
   const totalCards = (
-    db.prepare("SELECT COUNT(*) as count FROM cards").get() as { count: number }
+    (await queryOne("SELECT COUNT(*)::int as count FROM cards")) as {
+      count: number;
+    }
   ).count;
 
   const reviewedToday = (
-    db.prepare(
-      "SELECT COUNT(DISTINCT card_id) as count FROM review_log WHERE review_date >= ?"
-    ).get(startOfTodayISO()) as { count: number }
+    (await queryOne(
+      "SELECT COUNT(DISTINCT card_id)::int as count FROM review_log WHERE review_date >= $1",
+      [startOfTodayISO()]
+    )) as { count: number }
   ).count;
 
   const dueToday = (
-    db.prepare(
-      "SELECT COUNT(*) as count FROM card_states WHERE due < ? AND COALESCE(suspended, 0) = 0"
-    ).get(startOfNextDayISO()) as { count: number }
+    (await queryOne(
+      "SELECT COUNT(*)::int as count FROM card_states WHERE due < $1 AND COALESCE(suspended, 0) = 0",
+      [startOfNextDayISO()]
+    )) as { count: number }
   ).count;
 
-  const subjects = db
-    .prepare(
-      `SELECT s.id, s.name, COUNT(c.id) as cardCount
-       FROM subjects s
-       LEFT JOIN topics t ON t.subject_id = s.id
-       LEFT JOIN cards c ON c.topic_id = t.id
-       GROUP BY s.id
-       ORDER BY s.name`
-    )
-    .all() as { id: number; name: string; cardCount: number }[];
+  const subjects = (await query(
+    `SELECT s.id, s.name, COUNT(c.id)::int as "cardCount"
+     FROM subjects s
+     LEFT JOIN topics t ON t.subject_id = s.id
+     LEFT JOIN cards c ON c.topic_id = t.id
+     GROUP BY s.id
+     ORDER BY s.name`
+  )) as { id: number; name: string; cardCount: number }[];
 
-  // Bucket every logged review into its LOCAL study day (rollover-aware), so the
-  // streak uses the same "day" rule as the rest of the app. review_date may be an
-  // ISO-Z instant (new rows) or legacy SQLite UTC text ("YYYY-MM-DD HH:MM:SS");
-  // normalize the latter to UTC before parsing.
-  const reviewRows = db
-    .prepare("SELECT review_date FROM review_log")
-    .all() as { review_date: string | null }[];
+  // Bucket every logged review into its LOCAL study day (rollover-aware).
+  // review_date may be an ISO-Z instant (new rows) or legacy text; normalize.
+  const reviewRows = (await query(
+    "SELECT review_date FROM review_log"
+  )) as { review_date: string | null }[];
   const reviewDaySet = new Set<string>();
   for (const row of reviewRows) {
     if (!row.review_date) continue;
@@ -70,15 +68,17 @@ export async function GET() {
   }
 
   const totalReviews = (
-    db.prepare("SELECT COUNT(*) as count FROM review_log").get() as { count: number }
+    (await queryOne("SELECT COUNT(*)::int as count FROM review_log")) as {
+      count: number;
+    }
   ).count;
 
   let accuracy = 0;
   if (totalReviews > 0) {
     const goodReviews = (
-      db.prepare(
-        "SELECT COUNT(*) as count FROM review_log WHERE rating >= 3"
-      ).get() as { count: number }
+      (await queryOne(
+        "SELECT COUNT(*)::int as count FROM review_log WHERE rating >= 3"
+      )) as { count: number }
     ).count;
     accuracy = Math.round((goodReviews / totalReviews) * 100);
   }

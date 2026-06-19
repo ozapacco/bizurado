@@ -11,6 +11,10 @@
 # Banco de dados e backups locais — progresso pessoal, binário e regenerável
 /data
 
+# Variáveis de ambiente com segredos (DATABASE_URL, APP_PASSWORD) — NUNCA commitar
+.env*.local
+.env
+
 # Logs e lixo de SO/editor
 *.log
 nul

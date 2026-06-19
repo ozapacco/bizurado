@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { query } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const db = getDb();
+  // review_date is text ISO-8601 'Z'; left(.,10) is its UTC date. Window cutoff
+  // computed in JS to avoid SQLite-only datetime('now', ...) helpers.
+  const cutoff = new Date(Date.now() - 14 * 86400000).toISOString();
 
-  const history = db
-    .prepare(
-      `SELECT date(review_date) as date, COUNT(*) as count
-       FROM review_log
-       WHERE review_date >= datetime('now', '-14 days')
-       GROUP BY date(review_date)
-       ORDER BY date ASC`
-    )
-    .all() as { date: string; count: number }[];
+  const history = (await query(
+    `SELECT left(review_date, 10) as date, COUNT(*)::int as count
+     FROM review_log
+     WHERE review_date >= $1
+     GROUP BY left(review_date, 10)
+     ORDER BY date ASC`,
+    [cutoff]
+  )) as { date: string; count: number }[];
 
   const filled: { date: string; count: number }[] = [];
   for (let i = 13; i >= 0; i--) {

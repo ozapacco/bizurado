@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Local-only app run with `next start`. (Do NOT use output: "standalone"
-  // here — it breaks `next start` with "Cannot find module './NNN.js'".)
+  // Keep the Neon driver and `ws` OUT of webpack's server bundle. Bundling `ws`
+  // mangles its internal frame masking ("t.mask is not a function") and breaks
+  // the WebSocket path used by interactive transactions. Externalized, they are
+  // require()d intact at runtime.
+  experimental: {
+    serverComponentsExternalPackages: ["@neondatabase/serverless", "ws"],
+  },
 };
 
 export default nextConfig;

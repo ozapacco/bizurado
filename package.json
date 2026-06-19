@@ -7,23 +7,22 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "parse": "tsx lib/parse-files.ts",
     "seed": "tsx lib/seed.ts",
-    "backup": "node lib/backup.js"
+    "db:init": "tsx scripts/db-init.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^12.10.1",
+    "@neondatabase/serverless": "^1.1.0",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "recharts": "^2.12.0",
-    "sql.js": "^1.10.0"
+    "ws": "^8.21.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@types/ws": "^8.18.1",
     "autoprefixer": "^10.0.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.2.0",

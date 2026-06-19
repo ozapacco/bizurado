@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { query, queryOne, tx } from "@/lib/db";
 import { schedule, createInitialState, Rating } from "@/lib/fsrs";
 import { startOfNextDayISO } from "@/lib/day";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
-  const db = getDb();
   const { searchParams } = new URL(request.url);
 
   const subjectId = searchParams.get("subjectId");
@@ -15,13 +16,19 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get("limit") || "30"), 100);
   const mode = searchParams.get("mode") || "due";
 
-  let query = `
+  const params: unknown[] = [];
+  const ph = (v: unknown) => {
+    params.push(v);
+    return `$${params.length}`;
+  };
+
+  let sql = `
     SELECT
-      c.id, c.question, c.answer, c.bizu, c.source, c.tags, c.card_type as cardType,
-      s.name as subjectName, t.name as topicName,
-      cs.stability, cs.difficulty, cs.due, cs.elapsed_days as elapsedDays,
-      cs.scheduled_days as scheduledDays, cs.reps, cs.lapses,
-      cs.last_review as lastReview, cs.state, cs.learning_step as learningStep
+      c.id, c.question, c.answer, c.bizu, c.source, c.tags, c.card_type as "cardType",
+      s.name as "subjectName", t.name as "topicName",
+      cs.stability, cs.difficulty, cs.due, cs.elapsed_days as "elapsedDays",
+      cs.scheduled_days as "scheduledDays", cs.reps, cs.lapses,
+      cs.last_review as "lastReview", cs.state, cs.learning_step as "learningStep"
     FROM cards c
     JOIN topics t ON t.id = c.topic_id
     JOIN subjects s ON s.id = t.subject_id
@@ -29,59 +36,45 @@ export async function GET(request: NextRequest) {
     WHERE 1=1
   `;
 
-  const params: unknown[] = [];
-
   if (cardId) {
-    query += " AND c.id = ?";
-    params.push(parseInt(cardId));
+    sql += ` AND c.id = ${ph(parseInt(cardId))}`;
   }
   if (subjectId) {
     const numId = parseInt(subjectId);
     if (!isNaN(numId)) {
-      query += " AND s.id = ?";
-      params.push(numId);
+      sql += ` AND s.id = ${ph(numId)}`;
     } else {
-      query += " AND s.name = ?";
-      params.push(subjectId);
+      sql += ` AND s.name = ${ph(subjectId)}`;
     }
   }
   if (topicId) {
-    query += " AND t.id = ?";
-    params.push(parseInt(topicId));
+    sql += ` AND t.id = ${ph(parseInt(topicId))}`;
   }
   if (tag) {
-    query += " AND c.tags LIKE ?";
-    params.push(`%${tag}%`);
+    sql += ` AND c.tags LIKE ${ph(`%${tag}%`)}`;
   }
   if (cardType) {
-    query += " AND c.card_type = ?";
-    params.push(cardType);
+    sql += ` AND c.card_type = ${ph(cardType)}`;
   }
 
   if (mode === "due") {
-    query += " AND cs.due < ?";
-    params.push(startOfNextDayISO());
+    sql += ` AND cs.due < ${ph(startOfNextDayISO())}`;
   } else if (mode === "new") {
-    query += " AND cs.reps = 0";
-  } else if (mode === "all") {
+    sql += ` AND cs.reps = 0`;
   }
 
-  // Exclude "dominado" (suspended) cards from the rotation, unless a specific
-  // card was requested directly (e.g. opened from search).
+  // Exclude "dominado" (suspended) cards, unless a specific card was requested.
   if (!cardId) {
-    query += " AND COALESCE(cs.suspended, 0) = 0";
+    sql += ` AND COALESCE(cs.suspended, 0) = 0`;
   }
 
-  query += " ORDER BY cs.due ASC LIMIT ?";
-  params.push(limit);
+  sql += ` ORDER BY cs.due ASC LIMIT ${ph(limit)}`;
 
-  const cards = db.prepare(query).all(...params) as any[];
-
+  const cards = await query(sql, params);
   return NextResponse.json({ cards });
 }
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
   const body = await request.json();
   const { cardId, rating } = body;
 
@@ -89,79 +82,80 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "cardId and rating (1-4) required" }, { status: 400 });
   }
 
-  const card = db.prepare("SELECT id FROM cards WHERE id = ?").get(cardId);
+  const card = await queryOne("SELECT id FROM cards WHERE id = $1", [cardId]);
   if (!card) {
     return NextResponse.json({ error: "card not found" }, { status: 404 });
   }
 
-  const existing = db.prepare("SELECT * FROM card_states WHERE card_id = ?").get(cardId) as any;
+  const existing = (await queryOne(
+    "SELECT * FROM card_states WHERE card_id = $1",
+    [cardId]
+  )) as Record<string, unknown> | undefined;
 
   const state = existing
     ? {
-        stability: existing.stability,
-        difficulty: existing.difficulty,
-        due: existing.due,
-        elapsed_days: existing.elapsed_days,
-        scheduled_days: existing.scheduled_days,
-        reps: existing.reps,
-        lapses: existing.lapses,
-        last_review: existing.last_review,
-        state: existing.state ?? (existing.reps > 0 ? "review" : "new"),
-        learning_step: existing.learning_step ?? 0,
+        stability: existing.stability as number,
+        difficulty: existing.difficulty as number,
+        due: existing.due as string,
+        elapsed_days: existing.elapsed_days as number,
+        scheduled_days: existing.scheduled_days as number,
+        reps: existing.reps as number,
+        lapses: existing.lapses as number,
+        last_review: existing.last_review as string | null,
+        state:
+          (existing.state as string) ??
+          ((existing.reps as number) > 0 ? "review" : "new"),
+        learning_step: (existing.learning_step as number) ?? 0,
       }
     : createInitialState();
 
   const newState = schedule(state, rating as Rating);
 
-  const upsertState = db.prepare(
-    `INSERT INTO card_states
-      (card_id, stability, difficulty, due, elapsed_days, scheduled_days, reps, lapses, last_review, state, learning_step)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(card_id) DO UPDATE SET
-      stability = excluded.stability,
-      difficulty = excluded.difficulty,
-      due = excluded.due,
-      elapsed_days = excluded.elapsed_days,
-      scheduled_days = excluded.scheduled_days,
-      reps = excluded.reps,
-      lapses = excluded.lapses,
-      last_review = excluded.last_review,
-      state = excluded.state,
-      learning_step = excluded.learning_step`
-  );
-
-  const insertLog = db.prepare(
-    `INSERT INTO review_log (card_id, rating, review_date, elapsed_days, scheduled_days, stability, difficulty)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  );
-
-  const persist = db.transaction(() => {
-    upsertState.run(
-      cardId,
-      newState.stability,
-      newState.difficulty,
-      newState.due,
-      newState.elapsed_days,
-      newState.scheduled_days,
-      newState.reps,
-      newState.lapses,
-      newState.last_review,
-      newState.state,
-      newState.learning_step
+  await tx(async (client) => {
+    await client.query(
+      `INSERT INTO card_states
+        (card_id, stability, difficulty, due, elapsed_days, scheduled_days, reps, lapses, last_review, state, learning_step)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       ON CONFLICT (card_id) DO UPDATE SET
+        stability = EXCLUDED.stability,
+        difficulty = EXCLUDED.difficulty,
+        due = EXCLUDED.due,
+        elapsed_days = EXCLUDED.elapsed_days,
+        scheduled_days = EXCLUDED.scheduled_days,
+        reps = EXCLUDED.reps,
+        lapses = EXCLUDED.lapses,
+        last_review = EXCLUDED.last_review,
+        state = EXCLUDED.state,
+        learning_step = EXCLUDED.learning_step`,
+      [
+        cardId,
+        newState.stability,
+        newState.difficulty,
+        newState.due,
+        newState.elapsed_days,
+        newState.scheduled_days,
+        newState.reps,
+        newState.lapses,
+        newState.last_review,
+        newState.state,
+        newState.learning_step,
+      ]
     );
 
-    insertLog.run(
-      cardId,
-      rating,
-      new Date().toISOString(),
-      newState.elapsed_days,
-      newState.scheduled_days,
-      newState.stability,
-      newState.difficulty
+    await client.query(
+      `INSERT INTO review_log (card_id, rating, review_date, elapsed_days, scheduled_days, stability, difficulty)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        cardId,
+        rating,
+        new Date().toISOString(),
+        newState.elapsed_days,
+        newState.scheduled_days,
+        newState.stability,
+        newState.difficulty,
+      ]
     );
   });
-
-  persist();
 
   return NextResponse.json({ success: true, state: newState });
 }

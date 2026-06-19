@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { queryOne, tx } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 // Marcar/desmarcar um card como "dominado" (suspended). Cards dominados saem da
 // rotação de revisão (ver app/api/review e os contadores de pendências), mas
 // continuam acessíveis diretamente por cardId (busca).
 export async function POST(req: NextRequest) {
-  const db = getDb();
   const body = (await req.json().catch(() => ({}))) as {
     cardId?: number;
     suspended?: boolean;
@@ -19,21 +20,23 @@ export async function POST(req: NextRequest) {
   // Default: marcar como dominado. Passe { suspended: false } para reativar.
   const suspended = body.suspended === false ? 0 : 1;
 
-  const card = db
-    .prepare("SELECT id FROM cards WHERE id = ?")
-    .get(cardId) as { id: number } | undefined;
+  const card = (await queryOne("SELECT id FROM cards WHERE id = $1", [
+    cardId,
+  ])) as { id: number } | undefined;
   if (!card) {
     return NextResponse.json({ error: "card not found" }, { status: 404 });
   }
 
-  const apply = db.transaction(() => {
-    db.prepare("INSERT OR IGNORE INTO card_states (card_id) VALUES (?)").run(cardId);
-    db.prepare("UPDATE card_states SET suspended = ? WHERE card_id = ?").run(
-      suspended,
-      cardId
+  await tx(async (client) => {
+    await client.query(
+      "INSERT INTO card_states (card_id) VALUES ($1) ON CONFLICT (card_id) DO NOTHING",
+      [cardId]
+    );
+    await client.query(
+      "UPDATE card_states SET suspended = $1 WHERE card_id = $2",
+      [suspended, cardId]
     );
   });
-  apply();
 
   return NextResponse.json({ cardId, suspended: suspended === 1 });
 }

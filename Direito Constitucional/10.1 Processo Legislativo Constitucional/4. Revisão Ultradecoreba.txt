@@ -1,0 +1,148 @@
+Art. 59 da CF traz quais espécies normativas?;Emendas constitucionais, leis complementares, leis ordinárias, leis delegadas, medidas provisórias, decretos legislativos e resoluções.<br><br><b>BIZU:</b> Mnemônico: <font color="#ffeb3b">ELO LD MP DL R</font>.
+Decretos regulamentares e portarias entram no art. 59?;Não. Decretos regulamentares e portarias são atos secundários e não integram o processo legislativo constitucional do art. 59.<br><br><b>BIZU:</b> Art. 59 não é lista de todo ato normativo.
+Decreto autônomo é ato primário?;Sim. Decreto autônomo é ato normativo primário, mas não está no art. 59 da CF.<br><br><b>BIZU:</b> Primário fora do art. 59 existe.
+Desrespeito ao processo legislativo gera qual inconstitucionalidade?;Gera inconstitucionalidade formal, também chamada de nomodinâmica.<br><br><b>BIZU:</b> Erro no caminho de nascimento da norma = vício formal.
+Sanção presidencial convalida vício de iniciativa?;Não. A sanção presidencial não convalida vício de iniciativa.<br><br><b>BIZU:</b> Nasceu errado, sanção não cura.
+Sanção presidencial convalida vício de emenda?;Não. A sanção presidencial também não convalida vício de emenda parlamentar.<br><br><b>BIZU:</b> Sanção não passa borracha em vício formal.
+Quem pode impetrar MS preventivo contra vício no processo legislativo?;O congressista da Casa em que a proposição estiver tramitando.<br><br><b>BIZU:</b> Tramita na Câmara = deputado. Tramita no Senado = senador.
+Cabe ADI contra projeto de lei ou PEC em tramitação?;Não. Projeto em tramitação não é objeto de ADI. O caminho preventivo é mandado de segurança por congressista.<br><br><b>BIZU:</b> Antes de nascer = MS. Depois de nascer = ADI.
+O que acontece com o MS preventivo se o processo legislativo termina?;O MS fica prejudicado por perda de objeto.<br><br><b>BIZU:</b> Acabou a tramitação, acabou o objeto preventivo.
+Iniciativa privativa pode ser delegada?;Não. Iniciativa privativa, exclusiva ou reservada não pode ser delegada.<br><br><b>BIZU:</b> Quem recebeu da Constituição deve iniciar pessoalmente.
+Matéria tributária é iniciativa privativa do Presidente?;Não em regra. Matéria tributária geral tem iniciativa comum. A iniciativa presidencial privativa aparece para matéria tributária dos Territórios.<br><br><b>BIZU:</b> Palavra mágica: <font color="#ff4444">Territórios</font>.
+Senador pode propor projeto criando taxa federal?;Sim. Matéria tributária federal em geral não é reservada ao Presidente.<br><br><b>BIZU:</b> Tributo não é automaticamente Executivo.
+Regime jurídico de servidores federais é iniciativa de quem?;Do Presidente da República.<br><br><b>BIZU:</b> Servidor da União = Presidente.
+Regime jurídico de servidores estaduais é iniciativa de quem?;Do Governador, por simetria.<br><br><b>BIZU:</b> Servidor estadual = Governador.
+Regime jurídico de servidores municipais é iniciativa de quem?;Do Prefeito, por simetria.<br><br><b>BIZU:</b> Servidor municipal = Prefeito.
+Lei parlamentar sobre anistia disciplinar de policiais estaduais tem vício?;Sim. Envolve regime jurídico de servidores e é de iniciativa do Chefe do Executivo.<br><br><b>BIZU:</b> Sanção disciplinar de servidor = Executivo.
+Lei parlamentar que cria política pública com despesa é sempre inconstitucional?;Não. Geração de despesa, sozinha, não gera vício de iniciativa. O problema surge quando invade estrutura administrativa, atribuições de órgãos ou regime de servidores.<br><br><b>BIZU:</b> Despesa não é palavra mágica.
+Organização do MPU e da DPU é iniciativa de quem?;Do Presidente da República.<br><br><b>BIZU:</b> MPU e DPU aparecem no art. 61, §1º.
+Normas gerais de organização do MP e DP dos Estados são iniciativa de quem?;Do Presidente da República.<br><br><b>BIZU:</b> Normas gerais nacionais = Presidente.
+Organização específica de cada MP estadual é iniciativa de quem?;Do respectivo Procurador-Geral de Justiça.<br><br><b>BIZU:</b> MP estadual específico = PGJ.
+Organização do MPU pode ter iniciativa de quem?;Pode ter iniciativa concorrente do Presidente da República e do Procurador-Geral da República.<br><br><b>BIZU:</b> MPU = Presidente + PGR.
+Criação e extinção de Ministérios é iniciativa de quem?;Do Presidente da República.<br><br><b>BIZU:</b> Estrutura do Executivo federal = Presidente.
+PPA, LDO e LOA são iniciativa de quem?;Do Chefe do Executivo.<br><br><b>BIZU:</b> Orçamento nasce no Executivo.
+Iniciativa das leis orçamentárias é vinculada?;Sim. O Chefe do Executivo deve apresentar os projetos orçamentários nos prazos constitucionais.<br><br><b>BIZU:</b> Orçamento não é faculdade.
+Judiciário pode obrigar o Executivo a incluir despesa no projeto de LOA?;Não. O Judiciário não substitui o Executivo na elaboração do orçamento.<br><br><b>BIZU:</b> Juiz não escreve LOA no lugar do Executivo.
+Tribunais têm iniciativa para organização judiciária?;Sim. Tribunais têm iniciativa sobre organização e divisão judiciárias, criação de varas, cargos e estrutura própria, nos termos constitucionais.<br><br><b>BIZU:</b> Judiciário organiza sua casa.
+Serventias judiciais e extrajudiciais são iniciativa de quem?;Do Poder Judiciário, conforme entendimento cobrado no material.<br><br><b>BIZU:</b> Judicial e extrajudicial andam juntos.
+Estatuto da Magistratura é iniciativa de quem?;Do Supremo Tribunal Federal, por lei complementar.<br><br><b>BIZU:</b> Magistratura = STF + LC.
+Criação de cargos na Câmara e no Senado depende de lei?;Não. Criação e extinção de cargos dependem de resolução da própria Casa.<br><br><b>BIZU:</b> Cargo = resolução.
+Remuneração dos servidores da Câmara e do Senado depende de quê?;Depende de lei de iniciativa da respectiva Casa.<br><br><b>BIZU:</b> Remuneração = lei.
+Iniciativa popular federal serve para PEC?;Não. Iniciativa popular federal serve para projeto de lei, não para proposta de emenda constitucional.<br><br><b>BIZU:</b> Povo inicia lei, não PEC federal.
+Projeto de iniciativa popular federal entra por qual Casa?;Entra pela Câmara dos Deputados.<br><br><b>BIZU:</b> Iniciativa popular federal = Câmara.
+Requisitos da iniciativa popular federal?;No mínimo 1% do eleitorado nacional, distribuído por pelo menos 5 Estados, com não menos de 0,3% dos eleitores de cada um deles.<br><br><b>BIZU:</b> Fórmula: <font color="#ffeb3b">1%, 5 Estados, 0,3%</font>.
+Iniciativa popular municipal exige quanto?;Exige manifestação de pelo menos 5% do eleitorado municipal.<br><br><b>BIZU:</b> Município = 5%.
+Regra geral de deliberação do art. 47?;Maioria dos votos, presente a maioria absoluta dos membros, salvo disposição constitucional em contrário.<br><br><b>BIZU:</b> Presença = maioria absoluta. Aprovação = maioria dos votos.
+Maioria absoluta na Câmara dos Deputados?;257 deputados.<br><br><b>BIZU:</b> Câmara tem 513. Maioria absoluta = 257.
+Maioria absoluta no Senado Federal?;41 senadores.<br><br><b>BIZU:</b> Senado tem 81. Maioria absoluta = 41.
+PEC precisa de quantos votos na Câmara?;Precisa de 308 votos em cada turno.<br><br><b>BIZU:</b> PEC na Câmara = 308.
+PEC precisa de quantos votos no Senado?;Precisa de 49 votos em cada turno.<br><br><b>BIZU:</b> PEC no Senado = 49.
+Projeto de lei rejeitado pode voltar na mesma sessão legislativa?;Sim, se houver proposta da maioria absoluta dos membros de qualquer das Casas do Congresso Nacional.<br><br><b>BIZU:</b> Irrepetibilidade do PL é relativa.
+PEC rejeitada pode voltar na mesma sessão legislativa?;Não. A irrepetibilidade da PEC é absoluta na mesma sessão legislativa.<br><br><b>BIZU:</b> PEC rejeitada não ressuscita na mesma sessão.
+MP rejeitada pode ser reeditada na mesma sessão legislativa?;Não. É vedada a reedição de MP rejeitada ou que perdeu eficácia na mesma sessão legislativa.<br><br><b>BIZU:</b> MP rejeitada não reencarna.
+Casa Revisora aprovou projeto com emenda substancial. O que acontece?;O projeto volta à Casa Iniciadora para apreciação das emendas.<br><br><b>BIZU:</b> Mudou conteúdo, volta.
+Emenda só de redação precisa voltar à outra Casa?;Não, se não houver alteração substancial de sentido.<br><br><b>BIZU:</b> Forma não volta. Conteúdo volta.
+Em projeto de iniciativa privativa pode haver emenda parlamentar?;Sim, desde que haja pertinência temática e respeito às vedações de aumento de despesa.<br><br><b>BIZU:</b> Pode emendar, mas não pode bagunçar.
+Emenda parlamentar sem pertinência temática é válida?;Não. Emenda deve ter relação com a matéria do projeto.<br><br><b>BIZU:</b> Emenda precisa conversar com o projeto.
+Emenda em projeto de iniciativa privativa do Executivo pode aumentar despesa?;Em regra, não, salvo hipóteses constitucionais orçamentárias.<br><br><b>BIZU:</b> Projeto reservado + aumento de despesa = perigo.
+Sanção transforma o quê em quê?;Transforma projeto de lei em lei.<br><br><b>BIZU:</b> Presidente sanciona projeto, não lei pronta.
+Sanção pode ser expressa e tácita?;Sim. Expressa quando há concordância formal. Tácita quando há silêncio por 15 dias úteis.<br><br><b>BIZU:</b> Silêncio presidencial sanciona.
+Existe veto tácito no Brasil?;Não. Veto deve ser expresso e motivado.<br><br><b>BIZU:</b> Silêncio nunca veta.
+Prazo para sanção ou veto presidencial?;15 dias úteis, contados do recebimento do projeto.<br><br><b>BIZU:</b> Sanção ou veto = 15 dias úteis.
+Prazo para comunicar os motivos do veto?;48 horas ao Presidente do Senado Federal.<br><br><b>BIZU:</b> Vetou, justifica em 48 horas.
+Veto pode ser jurídico e político?;Sim. Jurídico por inconstitucionalidade. Político por contrariedade ao interesse público.<br><br><b>BIZU:</b> Veto tem duas portas: Constituição e interesse público.
+Veto parcial pode atingir palavra isolada?;Não. Veto parcial deve abranger texto integral de artigo, parágrafo, inciso ou alínea.<br><br><b>BIZU:</b> APIA = artigo, parágrafo, inciso, alínea.
+Quem aprecia veto presidencial?;O Congresso Nacional, em sessão conjunta.<br><br><b>BIZU:</b> Veto volta para o Congresso inteiro.
+Prazo para apreciação do veto?;30 dias contados do recebimento.<br><br><b>BIZU:</b> Veto no Congresso = 30 dias.
+Quórum para derrubar veto?;Maioria absoluta dos deputados e senadores.<br><br><b>BIZU:</b> Derrubar veto exige força alta.
+Votação do veto é aberta ou secreta?;Aberta.<br><br><b>BIZU:</b> Pegadinha antiga: hoje é aberta.
+Se o veto for derrubado, quem promulga primeiro?;O Presidente da República deve promulgar em 48 horas.<br><br><b>BIZU:</b> Derrubou veto, primeiro volta ao Presidente.
+Se o Presidente não promulgar após derrubada do veto, quem promulga?;O Presidente do Senado em 48 horas. Se ele não o fizer, o Vice-Presidente do Senado.<br><br><b>BIZU:</b> Fila: Presidente, Presidente do Senado, Vice do Senado.
+Parte não vetada pode ser promulgada antes da análise do veto parcial?;Sim. A parte não vetada pode ser promulgada e publicada sem aguardar a apreciação do veto.<br><br><b>BIZU:</b> Parte limpa não espera parte vetada.
+Promulgação é o quê?;É o ato que atesta a existência da lei.<br><br><b>BIZU:</b> Promulgação = certidão de nascimento.
+Publicação é o quê?;É a divulgação oficial da lei, condição de eficácia.<br><br><b>BIZU:</b> Publicação = aviso ao mundo.
+Procedimento sumário depende de quem?;Depende de solicitação de urgência do Presidente da República em projetos de sua iniciativa.<br><br><b>BIZU:</b> Sumário = urgência presidencial.
+Procedimento sumário vale só para iniciativa privativa do Presidente?;Não. Vale para projetos de iniciativa do Presidente, ainda que a matéria não seja privativa.<br><br><b>BIZU:</b> O critério é quem apresentou.
+Prazo máximo do procedimento sumário?;100 dias, sendo 45 na Câmara, 45 no Senado e 10 para a Câmara apreciar emendas do Senado.<br><br><b>BIZU:</b> 45 + 45 + 10 = 100.
+Procedimento sumário corre no recesso?;Não. Os prazos não correm durante recesso do Congresso.<br><br><b>BIZU:</b> Recesso pausa.
+Procedimento sumário cabe para códigos?;Não. Projetos de códigos não seguem procedimento sumário.<br><br><b>BIZU:</b> Código exige debate maior.
+Procedimento abreviado é o quê?;É o rito em que comissões discutem e votam projeto, dispensando Plenário, salvo recurso.<br><br><b>BIZU:</b> Abreviado = comissão decide.
+No procedimento abreviado, qual recurso leva ao Plenário?;Recurso de 1 décimo dos membros da Casa.<br><br><b>BIZU:</b> 1 décimo chama o Plenário.
+Lei complementar difere da ordinária por quais critérios?;Por critério material, pois trata matérias reservadas pela Constituição, e formal, pois exige maioria absoluta.<br><br><b>BIZU:</b> LC = matéria reservada + maioria absoluta.
+Quórum de lei complementar?;Maioria absoluta.<br><br><b>BIZU:</b> LC = MA.
+Medida provisória exige quais pressupostos?;Relevância e urgência.<br><br><b>BIZU:</b> MP = RU.
+Judiciário pode controlar relevância e urgência de MP?;Sim, excepcionalmente, quando a ausência for evidente.<br><br><b>BIZU:</b> Controle existe, mas é excepcional.
+MP pode tratar de matéria reservada à lei complementar?;Não. Matéria de LC não cabe em MP.<br><br><b>BIZU:</b> Onde a CF pede LC, MP não entra.
+MP pode tratar de direito penal, processual penal ou processual civil?;Não. Essas matérias são vedadas.<br><br><b>BIZU:</b> Penal e processo ficam fora da MP.
+MP pode tratar de partidos políticos e direito eleitoral?;Não. Nacionalidade, cidadania, direitos políticos, partidos e direito eleitoral são matérias vedadas.<br><br><b>BIZU:</b> Política sensível não vai por MP.
+MP pode tratar de orçamento?;Em regra, não. A exceção é crédito extraordinário para despesas imprevisíveis e urgentes.<br><br><b>BIZU:</b> Crédito extraordinário é a exceção.
+MP pode abrir crédito especial?;Não. A exceção constitucional é para crédito extraordinário, não crédito especial.<br><br><b>BIZU:</b> Especial não é extraordinário.
+Prazo de vigência da MP?;60 dias, prorrogáveis uma vez por igual período.<br><br><b>BIZU:</b> MP = 60 + 60.
+Prorrogação da MP é automática?;Sim. Ocorre automaticamente uma vez, se a votação não tiver sido encerrada nas duas Casas.<br><br><b>BIZU:</b> Não precisa novo ato presidencial.
+MP é votada primeiro em qual Casa?;Na Câmara dos Deputados.<br><br><b>BIZU:</b> MP sempre começa na Câmara.
+MP é votada em sessão conjunta?;Não. Há comissão mista, mas a votação ocorre separadamente nas Casas.<br><br><b>BIZU:</b> Comissão mista não é votação conjunta.
+MP aprovada sem alteração vai para sanção?;Não. É promulgada pelo Presidente do Senado.<br><br><b>BIZU:</b> MP intacta = sem sanção.
+MP alterada pelo Congresso vira o quê?;Vira projeto de lei de conversão, que segue para sanção ou veto presidencial.<br><br><b>BIZU:</b> MP alterada = PLV.
+Se MP cair e Congresso não editar decreto legislativo, o que acontece?;As relações jurídicas constituídas durante sua vigência permanecem regidas pela MP.<br><br><b>BIZU:</b> Omissão do Congresso gera ultratividade.
+MP revoga lei anterior incompatível?;Não imediatamente. A MP suspende a eficácia da lei incompatível. A revogação definitiva ocorre se a MP for convertida em lei.<br><br><b>BIZU:</b> MP suspende, lei de conversão revoga.
+Contrabando legislativo em MP é o quê?;É a inclusão de emenda parlamentar sem pertinência temática com o texto original da MP.<br><br><b>BIZU:</b> MP não é carona para tema estranho.
+MP pode ser retirada pelo Presidente depois de enviada ao Congresso?;Não. O STF não admite retirada de MP já submetida ao Congresso.<br><br><b>BIZU:</b> Enviou, não puxa.
+Presidente pode revogar MP por outra MP?;Sim. O STF admite revogação de MP por outra medida provisória.<br><br><b>BIZU:</b> Retirar não pode, revogar por nova MP pode.
+Lei delegada é elaborada por quem?;Pelo Presidente da República, mediante delegação do Congresso Nacional.<br><br><b>BIZU:</b> Congresso autoriza, Presidente elabora.
+Delegação para lei delegada é feita por qual ato?;Por resolução do Congresso Nacional.<br><br><b>BIZU:</b> Lei delegada = resolução, não decreto legislativo.
+Delegação legislativa pode ser genérica?;Não. A resolução deve especificar conteúdo e termos do exercício da delegação.<br><br><b>BIZU:</b> Delegação em branco é inconstitucional.
+Na delegação atípica, Congresso pode emendar o projeto?;Não. O Congresso aprova ou rejeita em votação única, vedada qualquer emenda.<br><br><b>BIZU:</b> Atípica = confere, mas não emenda.
+Lei delegada pode tratar de matéria de lei complementar?;Não. Matéria reservada à LC não pode ser objeto de delegação.<br><br><b>BIZU:</b> LC não vira lei delegada.
+Lei delegada pode tratar de Judiciário e MP?;Não. Organização do Judiciário e MP, carreira e garantias de seus membros são matérias vedadas.<br><br><b>BIZU:</b> Judiciário e MP não se delegam ao Presidente.
+Decreto legislativo sofre sanção ou veto?;Não. Decreto legislativo não se submete à sanção nem ao veto presidencial.<br><br><b>BIZU:</b> Competência exclusiva do Congresso não pede sanção.
+Resolução sofre sanção ou veto?;Não. Resolução também não se submete à sanção nem ao veto presidencial.<br><br><b>BIZU:</b> Resolução é ato do Legislativo.
+Autorização de referendo e convocação de plebiscito são feitas por qual espécie?;Por decreto legislativo.<br><br><b>BIZU:</b> Plebiscito e referendo = decreto legislativo.
+Suspensão pelo Senado de lei declarada inconstitucional pelo STF é feita por quê?;Por resolução do Senado Federal.<br><br><b>BIZU:</b> Art. 52, X = resolução do Senado.
+PPA, LDO e LOA significam o quê?;Plano Plurianual, Lei de Diretrizes Orçamentárias e Lei Orçamentária Anual.<br><br><b>BIZU:</b> PPA planeja, LDO orienta, LOA executa.
+Lei 4.320 de 1964 foi recepcionada com qual status?;Foi recepcionada com status de lei complementar para normas gerais de direito financeiro.<br><br><b>BIZU:</b> Antiga, mas forte.
+Emendas à LOA devem ser compatíveis com quê?;Devem ser compatíveis com o PPA e a LDO.<br><br><b>BIZU:</b> LOA obedece ao planejamento.
+Emenda à LOA deve indicar recursos?;Sim, em regra por anulação de despesa, ressalvadas hipóteses constitucionais.<br><br><b>BIZU:</b> Colocou gasto, mostre de onde tira.
+Quais despesas não podem ser anuladas para financiar emenda à LOA?;Pessoal e encargos, serviço da dívida e transferências tributárias constitucionais.<br><br><b>BIZU:</b> Protegidos: pessoal, dívida e transferências.
+Sessão legislativa pode ser interrompida sem aprovar a LDO?;Não. A sessão legislativa não será interrompida sem aprovação da LDO.<br><br><b>BIZU:</b> LDO segura o recesso.
+Orçamento brasileiro é totalmente impositivo?;Não. Tradicionalmente é autorizativo, com emendas parlamentares impositivas nos limites constitucionais.<br><br><b>BIZU:</b> Não confunda emenda impositiva com orçamento todo impositivo.
+EC 86 de 2015 tornou impositivas quais emendas?;As emendas parlamentares individuais.<br><br><b>BIZU:</b> EC 86 = individuais.
+EC 100 de 2019 tornou impositivas quais emendas?;As emendas de bancada.<br><br><b>BIZU:</b> EC 100 = bancada.
+Execução de emenda impositiva pode ser afastada por quê?;Por impedimento de ordem técnica.<br><br><b>BIZU:</b> Impositiva não vence impossibilidade técnica.
+Emenda individual impositiva exige destinação mínima à saúde?;Sim. Metade do total deve ser destinada a ações e serviços públicos de saúde.<br><br><b>BIZU:</b> Saúde recebe metade, não tudo.
+PEC federal pode ser apresentada por quem?;Por 1 terço dos membros da Câmara ou do Senado, pelo Presidente da República, ou por mais da metade das Assembleias Legislativas, cada uma pela maioria relativa de seus membros.<br><br><b>BIZU:</b> PEC = 1 terço, Presidente, Assembleias.
+Existe iniciativa popular de PEC federal?;Não. A CF não prevê iniciativa popular para PEC federal.<br><br><b>BIZU:</b> Lei sim, PEC não.
+PEC tem iniciativa reservada por matéria?;Não. Qualquer legitimado do art. 60 pode apresentar PEC sobre matéria não vedada.<br><br><b>BIZU:</b> PEC tem limite de conteúdo, não reserva de autor.
+PEC é votada em quantos turnos?;Em dois turnos em cada Casa do Congresso Nacional.<br><br><b>BIZU:</b> Duas Casas, dois turnos.
+PEC exige qual quórum?;3 quintos dos votos dos respectivos membros em cada Casa e em cada turno.<br><br><b>BIZU:</b> PEC = 3 quintos.
+PEC sofre sanção ou veto?;Não. Emenda constitucional não se submete a sanção nem veto presidencial.<br><br><b>BIZU:</b> Presidente propõe, mas não sanciona EC.
+Quem promulga emenda constitucional comum?;As Mesas da Câmara dos Deputados e do Senado Federal.<br><br><b>BIZU:</b> EC comum = duas Mesas.
+Mesa do Congresso promulga emenda constitucional comum?;Não. Mesa do Congresso promulgou emendas de revisão, não emendas constitucionais comuns.<br><br><b>BIZU:</b> EC comum = Mesas da Câmara e do Senado.
+Revisão constitucional aconteceu quando?;Após cinco anos da promulgação da CF de 1988, conforme art. 3º do ADCT.<br><br><b>BIZU:</b> Revisão = janela excepcional de 1993.
+Revisão constitucional ainda pode ocorrer?;Não. Foi procedimento único e já encerrado.<br><br><b>BIZU:</b> Hoje só emenda constitucional.
+Revisão constitucional foi bicameral ou unicameral?;Foi unicameral, com deputados e senadores deliberando conjuntamente.<br><br><b>BIZU:</b> Revisão = Congresso unido.
+Quórum da revisão constitucional?;Maioria absoluta dos membros do Congresso Nacional.<br><br><b>BIZU:</b> Revisão = maioria absoluta, não 3 quintos.
+Promulgação das emendas de revisão foi feita por quem?;Pela Mesa do Congresso Nacional.<br><br><b>BIZU:</b> Revisão = Mesa do Congresso.
+Mutação constitucional altera o texto?;Não. Altera o sentido, alcance ou interpretação da Constituição sem mudar a redação.<br><br><b>BIZU:</b> Mutação muda a leitura, não a letra.
+Mutação constitucional é processo formal?;Não. É processo informal de alteração constitucional.<br><br><b>BIZU:</b> Formal = emenda. Informal = mutação.
+Poder Constituinte Difuso se relaciona a quê?;Relaciona-se à mutação constitucional, isto é, alteração informal do sentido da Constituição.<br><br><b>BIZU:</b> Difuso = interpretação que atualiza.
+Quais são as limitações ao poder de reforma?;Materiais, formais, circunstanciais e temporais.<br><br><b>BIZU:</b> MaFoCiTe.
+Quais são as cláusulas pétreas expressas?;Forma federativa de Estado, voto direto, secreto, universal e periódico, separação dos Poderes e direitos e garantias individuais.<br><br><b>BIZU:</b> FeVoPoDi.
+Forma republicana de governo é cláusula pétrea expressa?;Não. A cláusula pétrea expressa é a forma federativa de Estado.<br><br><b>BIZU:</b> Pegadinha: Federação, não República.
+Voto obrigatório é cláusula pétrea?;Não. São pétreos o voto direto, secreto, universal e periódico.<br><br><b>BIZU:</b> Obrigatório não entra no DSUP.
+Cláusula pétrea pode ser alterada?;Sim, desde que não haja tendência de abolição do núcleo essencial.<br><br><b>BIZU:</b> Pétrea não é intocável, é não abolível.
+Emenda pode criar nova cláusula pétrea?;Não. Somente o Poder Constituinte Originário pode criar cláusulas pétreas.<br><br><b>BIZU:</b> Derivado não cria eternidade.
+Direitos e garantias individuais protegidos como cláusula pétrea ficam só no art. 5º?;Não. Podem estar espalhados pela Constituição.<br><br><b>BIZU:</b> Não olhe só o endereço, olhe a natureza.
+Anterioridade tributária pode ser cláusula pétrea?;Sim. O STF reconhece a anterioridade tributária como garantia individual protegida.<br><br><b>BIZU:</b> Garantia tributária pode ser pétrea.
+Anterioridade eleitoral pode ser cláusula pétrea?;Sim. O STF reconhece sua proteção como garantia fundamental.<br><br><b>BIZU:</b> Estabilidade do jogo eleitoral.
+Limitações circunstanciais são quais?;Intervenção federal, estado de defesa e estado de sítio.<br><br><b>BIZU:</b> IF, ED, ES.
+Grave comoção nacional é limitação circunstancial automática?;Não. A CF fala em intervenção federal, estado de defesa e estado de sítio.<br><br><b>BIZU:</b> Comoção não basta.
+Durante intervenção federal, estado de defesa ou estado de sítio, PEC pode tramitar?;Segundo o material, pode ser apresentada, discutida e votada, mas não pode ser promulgada.<br><br><b>BIZU:</b> A trava recai na promulgação.
+CF de 1988 tem limitação temporal ao poder de reforma?;Não. A CF de 1988 não estabeleceu período inicial de imutabilidade.<br><br><b>BIZU:</b> Sem quarentena constitucional.
+Exemplo histórico de limitação temporal no Brasil?;Constituição de 1824, que só permitia reforma após quatro anos de vigência.<br><br><b>BIZU:</b> Temporal clássica = 1824.
+PEC tendente a abolir cláusula pétrea pode ser deliberada?;Não. O art. 60, §4º, diz que não será objeto de deliberação.<br><br><b>BIZU:</b> Nem deveria entrar no jogo.
+Controle preventivo de PEC ocorre por qual instrumento?;Mandado de segurança impetrado por congressista perante o STF.<br><br><b>BIZU:</b> PEC em tramitação = MS.
+Emenda constitucional promulgada pode ser declarada inconstitucional?;Sim. Emenda constitucional pode ser controlada repressivamente se violar limites do poder de reforma.<br><br><b>BIZU:</b> Emenda também pode ser inconstitucional.
+ADI pode atacar emenda constitucional já promulgada?;Sim. Após promulgada, a emenda pode ser objeto de controle abstrato por legitimado do art. 103.<br><br><b>BIZU:</b> Depois de nascer, cabe controle repressivo.
+Tratado internacional comum tem qual status?;Em regra, status de lei ordinária federal.<br><br><b>BIZU:</b> Tratado comum = lei ordinária.
+Tratado de direitos humanos sem rito do art. 5º, §3º, tem qual status?;Status supralegal, segundo o STF.<br><br><b>BIZU:</b> DH sem rito especial = acima da lei, abaixo da Constituição.
+Tratado de direitos humanos aprovado pelo rito do art. 5º, §3º, tem qual status?;Status equivalente ao de emenda constitucional.<br><br><b>BIZU:</b> DH + 2 turnos + 3 quintos = status constitucional.

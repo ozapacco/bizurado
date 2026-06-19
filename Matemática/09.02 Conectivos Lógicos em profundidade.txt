@@ -1,0 +1,82 @@
+Frente;Verso
+O que é um <b>conectivo lógico</b>?;É o elemento que liga proposições simples para formar proposições compostas.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Conectivo é a cola entre frases lógicas.
+Quais são os principais conectivos lógicos?;Negação, conjunção, disjunção inclusiva, disjunção exclusiva, condicional e bicondicional.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Não, e, ou, ou...ou, se...então, se e somente se.
+Qual conectivo corresponde ao <b>não</b>?;A negação.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Não troca o valor lógico.
+Qual conectivo corresponde ao <b>e</b>?;A conjunção.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> E exige verdade dos dois lados.
+Qual conectivo corresponde ao <b>ou</b> inclusivo?;A disjunção inclusiva.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Ou inclusivo aceita um ou os dois.
+Qual conectivo corresponde ao <b>ou...ou</b>?;A disjunção exclusiva.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Ou exclusivo aceita só um lado verdadeiro.
+Qual conectivo corresponde ao <b>se...então</b>?;O condicional.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Condicional é a seta lógica.
+Qual conectivo corresponde ao <b>se e somente se</b>?;O bicondicional.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Bicondicional exige ida e volta.
+Qual é o símbolo mais comum da <b>negação</b>?;<b>¬</b> ou <b>~</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Negação é o sinal do “não”.
+Qual é o símbolo da <b>conjunção</b>?;<b>∧</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> ∧ significa “e”.
+Qual é o símbolo da <b>disjunção inclusiva</b>?;<b>∨</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> ∨ significa “ou”.
+Qual é o símbolo da <b>disjunção exclusiva</b>?;<b>⊻</b> ou símbolo equivalente usado para “ou...ou”.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Exclusiva quer diferença entre os lados.
+Qual é o símbolo do <b>condicional</b>?;<b>→</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> A seta vai da condição para a consequência.
+Qual é o símbolo do <b>bicondicional</b>?;<b>↔</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> ↔ é seta de ida e volta.
+O que a <b>negação</b> faz com o valor lógico de uma proposição?;Ela inverte o valor lógico. Se a proposição é verdadeira, sua negação é falsa. Se é falsa, sua negação é verdadeira.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Negação é interruptor lógico.
+Se <b>p</b> é verdadeira, qual é o valor de <b>¬p</b>?;<b>Falso</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Negar verdadeiro dá falso.
+Se <b>p</b> é falsa, qual é o valor de <b>¬p</b>?;<b>Verdadeiro</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Negar falso dá verdadeiro.
+Qual é a regra central da <b>conjunção</b>?;A conjunção só é verdadeira quando todas as proposições ligadas por “e” são verdadeiras.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> No E, um falso derruba tudo.
+Quando <b>p ∧ q</b> é verdadeira?;Somente quando p é verdadeira e q é verdadeira.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> E exige dupla verdade.
+Quando <b>p ∧ q</b> é falsa?;Quando pelo menos uma das proposições é falsa.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Basta um falso para o E cair.
+Qual é a leitura de <b>p ∧ q</b>?;<b>p e q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> ∧ é o “e” da lógica.
+A palavra <b>mas</b> costuma representar qual conectivo lógico?;<b>Conjunção</b>, pois logicamente funciona como “e”.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Mas tem contraste no português, mas valor de E na lógica.
+A palavra <b>entretanto</b> pode funcionar como qual conectivo lógico?;<b>Conjunção</b>, pois une duas afirmações como o “e”.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Entretanto, porém, contudo e mas geralmente juntam proposições.
+A palavra <b>porém</b> pode funcionar como qual conectivo lógico?;<b>Conjunção</b>, quando une duas proposições afirmadas simultaneamente.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Em lógica, contraste não muda a tabela do E.
+A frase <b>“João estudou, mas não passou”</b> tem qual estrutura lógica?;<b>p ∧ ¬q</b>. João estudou e João não passou.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Mas vira E. O “não” fica na segunda proposição.
+A frase <b>“Maria é médica e Ana é advogada”</b> tem qual estrutura lógica?;<b>p ∧ q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Duas afirmações ligadas por E.
+Qual é a regra central da <b>disjunção inclusiva</b>?;A disjunção inclusiva é verdadeira quando pelo menos uma das proposições é verdadeira.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> No OU inclusivo, um verdadeiro salva.
+Quando <b>p ∨ q</b> é falsa?;Somente quando p e q são ambas falsas.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> OU inclusivo só cai no F ou F.
+Quando <b>p ∨ q</b> é verdadeira?;Quando p é verdadeira, ou q é verdadeira, ou ambas são verdadeiras.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Inclusivo aceita os dois verdadeiros.
+Qual é a leitura de <b>p ∨ q</b>?;<b>p ou q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> ∨ é o OU comum da lógica.
+Na lógica proposicional, o <b>ou</b> comum geralmente é inclusivo ou exclusivo?;<b>Inclusivo</b>, salvo quando o enunciado indicar exclusividade com expressões como “ou...ou”, “mas não ambos” ou “exatamente um”.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Ou simples geralmente aceita os dois.
+A frase <b>“Pedro é policial ou Ana é bombeira”</b> normalmente tem qual estrutura?;<b>p ∨ q</b>, uma disjunção inclusiva.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Ou simples é ∨.
+A frase <b>“Pedro é policial ou Ana é bombeira, ou ambos”</b> reforça qual conectivo?;<b>Disjunção inclusiva</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> “Ou ambos” deixa claro que os dois podem ser verdadeiros.
+Qual é a regra central da <b>disjunção exclusiva</b>?;Ela é verdadeira quando exatamente uma das proposições é verdadeira.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Exclusiva não aceita empate.
+Quando <b>p ⊻ q</b> é verdadeira?;Quando p e q têm valores lógicos diferentes.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> V com F ou F com V.
+Quando <b>p ⊻ q</b> é falsa?;Quando p e q têm valores lógicos iguais.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> V com V ou F com F derruba o exclusivo.
+Qual é a leitura de <b>p ⊻ q</b>?;<b>Ou p ou q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Ou...ou é exclusividade.
+A frase <b>“Ou João viaja ou Maria viaja”</b> geralmente indica qual conectivo?;<b>Disjunção exclusiva</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Ou...ou indica um ou outro.
+A expressão <b>“mas não ambos”</b> transforma o ou em quê?;Em disjunção exclusiva.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> “Não ambos” fecha a porta para os dois verdadeiros.
+A expressão <b>“exatamente um”</b> indica qual conectivo?;<b>Disjunção exclusiva</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Exatamente um é OU exclusivo.
+Qual é a regra central do <b>condicional</b>?;O condicional só é falso quando o antecedente é verdadeiro e o consequente é falso.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> V então F é o único falso.
+Na estrutura <b>p → q</b>, como se chama <b>p</b>?;<b>Antecedente</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Antecedente vem antes da seta.
+Na estrutura <b>p → q</b>, como se chama <b>q</b>?;<b>Consequente</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Consequente vem depois da seta.
+Na estrutura <b>p → q</b>, o que é condição suficiente?;<b>p</b> é condição suficiente para q.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Quem vem depois do “se” é suficiente.
+Na estrutura <b>p → q</b>, o que é condição necessária?;<b>q</b> é condição necessária para p.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Quem vem depois do “então” é necessário.
+Na frase <b>“Se estudo, então passo”</b>, estudar é condição suficiente ou necessária para passar?;<b>Condição suficiente</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Estudo está no antecedente.
+Na frase <b>“Se estudo, então passo”</b>, passar é condição suficiente ou necessária para estudar?;<b>Condição necessária</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Passar está no consequente.
+Qual é a leitura direta de <b>p → q</b>?;<b>Se p, então q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Seta é “se...então”.
+A frase <b>“Quando p, q”</b> pode ser traduzida como quê?;<b>p → q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> “Quando p” funciona como condição.
+A frase <b>“Sempre que p, q”</b> pode ser traduzida como quê?;<b>p → q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Sempre que aponta antecedente.
+A frase <b>“q se p”</b> pode ser traduzida como quê?;<b>p → q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> “q se p” significa “se p, então q”.
+A frase <b>“p somente se q”</b> pode ser traduzida como quê?;<b>p → q</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Somente se aponta condição necessária.
+A frase <b>“p é suficiente para q”</b> pode ser traduzida como quê?;<b>p → q</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Suficiente fica antes da seta.
+A frase <b>“q é necessário para p”</b> pode ser traduzida como quê?;<b>p → q</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Necessário fica depois da seta.
+Qual é a pegadinha da expressão <b>somente se</b>?;Ela aponta o consequente, isto é, a condição necessária. Em “p somente se q”, a forma correta é p → q.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Somente se não é igual a se.
+Qual é o único caso falso do condicional <b>p → q</b>?;<b>p verdadeiro e q falso</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Prometeu p, não entregou q, falso.
+Por que o condicional pode ser pensado como uma promessa?;Porque ele afirma que, se o antecedente ocorrer, o consequente deve ocorrer. A promessa só é quebrada quando o antecedente ocorre e o consequente não ocorre.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Condicional falso é promessa quebrada.
+Qual é a regra central do <b>bicondicional</b>?;O bicondicional é verdadeiro quando as duas proposições têm o mesmo valor lógico.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Bicondicional gosta de igualdade.
+Quando <b>p ↔ q</b> é verdadeiro?;Quando p e q são ambas verdadeiras ou ambas falsas.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> V com V e F com F.
+Quando <b>p ↔ q</b> é falso?;Quando p e q têm valores lógicos diferentes.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Diferença derruba o bicondicional.
+Qual é a leitura de <b>p ↔ q</b>?;<b>p se e somente se q</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Se e somente se é ↔.
+O bicondicional pode ser entendido como quais dois condicionais juntos?;<b>p → q</b> e <b>q → p</b>.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Bicondicional é ida e volta.
+Na frase <b>“Estudo se e somente se passo”</b>, qual é a estrutura lógica?;<b>p ↔ q</b>, em que p é “estudo” e q é “passo”.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Se e somente se liga os dois lados em equivalência.
+Qual é a diferença entre <b>condicional</b> e <b>bicondicional</b>?;O condicional exige apenas a ida de p para q. O bicondicional exige ida e volta, p para q e q para p.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Condicional é uma seta. Bicondicional são duas.
+Qual é a diferença entre <b>disjunção exclusiva</b> e <b>bicondicional</b>?;A disjunção exclusiva é verdadeira quando os valores são diferentes. O bicondicional é verdadeiro quando os valores são iguais.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Exclusivo ama diferença. Bicondicional ama igualdade.
+Se p e q são verdadeiras, qual conectivo entre eles dá falso entre os principais binários?;<b>Disjunção exclusiva</b>, pois no OU exclusivo os dois não podem ser verdadeiros ao mesmo tempo.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> V e V derruba o OU exclusivo.
+Se p é verdadeira e q é falsa, quais conectivos dão verdadeiro?;<b>Disjunção inclusiva</b> e <b>disjunção exclusiva</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> V ou F salva os dois tipos de OU, mas derruba o então e o bicondicional.
+Se p é falsa e q é verdadeira, quais conectivos dão verdadeiro?;<b>Disjunção inclusiva</b>, <b>disjunção exclusiva</b> e <b>condicional</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> F então V é verdadeiro.
+Se p e q são falsas, quais conectivos dão verdadeiro?;<b>Condicional</b> e <b>bicondicional</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> F então F é V. F se e somente se F também é V.
+Qual conectivo é mais exigente para ser verdadeiro?;<b>Conjunção</b>, pois exige que todos os lados sejam verdadeiros.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> E é o mais rigoroso.
+Qual conectivo é mais fácil de ser verdadeiro entre E e OU inclusivo?;<b>OU inclusivo</b>, pois basta uma proposição verdadeira.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> OU inclusivo é permissivo.
+Qual conectivo tem como único caso falso <b>V para F</b>?;<b>Condicional</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Vera Fischer é falsa.
+Qual conectivo tem como único caso falso <b>F com F</b>?;<b>Disjunção inclusiva</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> OU inclusivo só morre com dois falsos.
+Qual conectivo tem como único caso verdadeiro <b>V com V</b>?;<b>Conjunção</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> E só vive com dois verdadeiros.
+Qual conectivo é verdadeiro com <b>valores diferentes</b>?;<b>Disjunção exclusiva</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Diferentes ativam o exclusivo.
+Qual conectivo é verdadeiro com <b>valores iguais</b>?;<b>Bicondicional</b>.<br><br><i>Fonte: Estruturas Lógicas</i><hr><b>BIZU:</b> Iguais ativam o bicondicional.
+Qual é a ordem de leitura em fórmulas com parênteses?;Primeiro leia e resolva o que está dentro dos parênteses, depois aplique os conectivos externos.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Parêntese manda.
+Por que os parênteses são importantes em lógica?;Porque mudam o alcance dos conectivos e da negação, podendo alterar completamente o valor lógico da proposição composta.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Parêntese pequeno, estrago grande.
+Qual é a diferença entre <b>¬p ∧ q</b> e <b>¬(p ∧ q)</b>?;Em ¬p ∧ q, apenas p é negado. Em ¬(p ∧ q), a conjunção inteira é negada.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Veja o alcance do não.
+Qual é a diferença entre <b>¬p ∨ q</b> e <b>¬(p ∨ q)</b>?;Em ¬p ∨ q, apenas p é negado. Em ¬(p ∨ q), a disjunção inteira é negada.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Negação fora do parêntese pega o bloco todo.
+Qual é a defesa anti-erro em <b>conectivos lógicos</b>?;Identifique o conectivo principal, veja o alcance da negação, respeite os parênteses e aplique a regra específica de cada conectivo.<br><br><i>Fonte: Complemento didático autoral</i><hr><b>BIZU:</b> Conectivo principal, negação, parênteses e tabela mental.

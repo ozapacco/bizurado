@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
 import { startOfNextDayISO } from "@/lib/day";
 
-// Aggregates computed per topic from cards + card_states.
-// Anki-anchored definitions:
-//   novo    = reps = 0 (never studied)
-//   visto   = reps > 0
-//   maduro  = scheduled_days >= 21 (mature card)
-//   jovem   = reps > 0 AND scheduled_days < 21
-//   dueNow  = date(due) <= date('now')
+export const dynamic = "force-dynamic";
+
+// Aggregates per topic from cards + card_states. Anki-anchored:
+//   novo = reps 0, visto = reps>0, maduro = scheduled_days>=21,
+//   jovem = reps>0 & scheduled_days<21, dueNow = due < startOfNextDay.
 interface TopicAggRow {
   topicId: number;
   topicName: string;
@@ -51,85 +49,82 @@ function pct(part: number, total: number): number {
 }
 
 export async function GET(request: NextRequest) {
-  const db = getDb();
   const { searchParams } = new URL(request.url);
   const subjectIdParam = searchParams.get("subjectId");
   const subjectNameParam = searchParams.get("subject");
 
-  // Resolve optional subject filter to an id (null = all subjects).
   let subjectFilterId: number | null = null;
   if (subjectIdParam) {
     const parsed = parseInt(subjectIdParam, 10);
     if (!Number.isNaN(parsed)) subjectFilterId = parsed;
   } else if (subjectNameParam) {
-    const row = db
-      .prepare("SELECT id FROM subjects WHERE name = ?")
-      .get(subjectNameParam) as { id: number } | undefined;
-    // Unknown subject name -> no match; return empty subject list.
+    const row = (await queryOne("SELECT id FROM subjects WHERE name = $1", [
+      subjectNameParam,
+    ])) as { id: number } | undefined;
     subjectFilterId = row ? row.id : -1;
   }
 
-  const filterClause =
-    subjectFilterId !== null ? "WHERE s.id = @subjectId" : "";
-
-  // Exclusive upper bound for "due today" — absolute-instant, timezone-correct.
   const dueBoundary = startOfNextDayISO();
 
-  // One pass: card-level aggregates grouped by topic. LEFT JOIN card_states so
-  // cards without a state row still count as novos (reps treated as 0).
-  const aggRows = db
-    .prepare(
-      `SELECT
-         t.id              AS topicId,
-         t.name            AS topicName,
-         s.id              AS subjectId,
-         s.name            AS subjectName,
-         COUNT(c.id)       AS total,
-         SUM(CASE WHEN COALESCE(cs.reps, 0) = 0 THEN 1 ELSE 0 END) AS novos,
-         SUM(CASE WHEN COALESCE(cs.reps, 0) > 0 THEN 1 ELSE 0 END) AS vistos,
-         SUM(CASE WHEN COALESCE(cs.reps, 0) > 0
-                   AND COALESCE(cs.scheduled_days, 0) < 21 THEN 1 ELSE 0 END) AS jovens,
-         SUM(CASE WHEN COALESCE(cs.scheduled_days, 0) >= 21 THEN 1 ELSE 0 END) AS maduros,
-         SUM(CASE WHEN cs.due IS NOT NULL AND cs.due < @dueBoundary
-                   AND COALESCE(cs.suspended, 0) = 0
-                  THEN 1 ELSE 0 END) AS dueNow
-       FROM subjects s
-       JOIN topics t ON t.subject_id = s.id
-       LEFT JOIN cards c ON c.topic_id = t.id
-       LEFT JOIN card_states cs ON cs.card_id = c.id
-       ${filterClause}
-       GROUP BY t.id
-       ORDER BY s.name, t."order", t.name`
-    )
-    .all(
-      subjectFilterId !== null
-        ? { subjectId: subjectFilterId, dueBoundary }
-        : { dueBoundary }
-    ) as TopicAggRow[];
+  // --- Card-level aggregates grouped by topic. $1 = dueBoundary; $2 = subject. -
+  const aggParams: unknown[] = [dueBoundary];
+  let aggFilter = "";
+  if (subjectFilterId !== null) {
+    aggParams.push(subjectFilterId);
+    aggFilter = "WHERE s.id = $2";
+  }
 
-  // Accuracy (controle/acerto%) and last-study date from review_log, per topic.
-  const accRows = db
-    .prepare(
-      `SELECT
-         t.id AS topicId,
-         COUNT(*) AS totalRevs,
-         SUM(CASE WHEN rl.rating >= 3 THEN 1 ELSE 0 END) AS goodRevs,
-         MAX(rl.review_date) AS ultimoEstudo
-       FROM review_log rl
-       JOIN cards c ON c.id = rl.card_id
-       JOIN topics t ON t.id = c.topic_id
-       JOIN subjects s ON s.id = t.subject_id
-       ${filterClause}
-       GROUP BY t.id`
-    )
-    .all(
-      subjectFilterId !== null ? { subjectId: subjectFilterId } : {}
-    ) as AccuracyRow[];
+  const aggRows = (await query(
+    `SELECT
+       t.id              AS "topicId",
+       t.name            AS "topicName",
+       s.id              AS "subjectId",
+       s.name            AS "subjectName",
+       COUNT(c.id)::int  AS total,
+       SUM(CASE WHEN COALESCE(cs.reps, 0) = 0 THEN 1 ELSE 0 END)::int AS novos,
+       SUM(CASE WHEN COALESCE(cs.reps, 0) > 0 THEN 1 ELSE 0 END)::int AS vistos,
+       SUM(CASE WHEN COALESCE(cs.reps, 0) > 0
+                 AND COALESCE(cs.scheduled_days, 0) < 21 THEN 1 ELSE 0 END)::int AS jovens,
+       SUM(CASE WHEN COALESCE(cs.scheduled_days, 0) >= 21 THEN 1 ELSE 0 END)::int AS maduros,
+       SUM(CASE WHEN cs.due IS NOT NULL AND cs.due < $1
+                 AND COALESCE(cs.suspended, 0) = 0
+                THEN 1 ELSE 0 END)::int AS "dueNow"
+     FROM subjects s
+     JOIN topics t ON t.subject_id = s.id
+     LEFT JOIN cards c ON c.topic_id = t.id
+     LEFT JOIN card_states cs ON cs.card_id = c.id
+     ${aggFilter}
+     GROUP BY t.id, t.name, s.id, s.name, t."order"
+     ORDER BY s.name, t."order", t.name`,
+    aggParams
+  )) as TopicAggRow[];
+
+  // --- Accuracy + last-study date from review_log, per topic. $1 = subject. ---
+  const accParams: unknown[] = [];
+  let accFilter = "";
+  if (subjectFilterId !== null) {
+    accParams.push(subjectFilterId);
+    accFilter = "WHERE s.id = $1";
+  }
+
+  const accRows = (await query(
+    `SELECT
+       t.id AS "topicId",
+       COUNT(*)::int AS "totalRevs",
+       SUM(CASE WHEN rl.rating >= 3 THEN 1 ELSE 0 END)::int AS "goodRevs",
+       MAX(rl.review_date) AS "ultimoEstudo"
+     FROM review_log rl
+     JOIN cards c ON c.id = rl.card_id
+     JOIN topics t ON t.id = c.topic_id
+     JOIN subjects s ON s.id = t.subject_id
+     ${accFilter}
+     GROUP BY t.id`,
+    accParams
+  )) as AccuracyRow[];
 
   const accByTopic = new Map<number, AccuracyRow>();
   for (const a of accRows) accByTopic.set(a.topicId, a);
 
-  // Group topics under their subject and roll up subject-level aggregates.
   interface SubjectAcc {
     id: number;
     name: string;

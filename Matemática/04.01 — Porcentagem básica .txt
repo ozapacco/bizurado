@@ -1,0 +1,49 @@
+Frente;Verso
+O que é <b>porcentagem</b>?;Porcentagem é uma razão com denominador 100.<br><br><i>Fonte: Teoria e Exercício — Porcentagem — Partes 01 e 02</i><hr><b>BIZU:</b> Porcentagem significa “por cento”, ou seja, por 100.
+O que significa <b>1%</b>?;1% significa 1/100, ou 0,01.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 1% é uma parte em cada 100.
+O que significa <b>10%</b>?;10% significa 10/100 = 1/10 = 0,10.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 10% é a décima parte.
+O que significa <b>25%</b>?;25% significa 25/100 = 1/4 = 0,25.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 25% é um quarto. Decore porque cai muito.
+O que significa <b>50%</b>?;50% significa 50/100 = 1/2 = 0,5.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 50% é metade.
+O que significa <b>75%</b>?;75% significa 75/100 = 3/4 = 0,75.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 75% é três quartos.
+Como transformar uma porcentagem em fração?;Coloque o número percentual sobre 100 e simplifique se possível.<br><br>Exemplo: 40% = 40/100 = 2/5.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> O símbolo % já carrega o denominador 100.
+Como transformar uma porcentagem em decimal?;Divida o percentual por 100.<br><br>Exemplo: 35% = 35/100 = 0,35.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Tirou o %, anda duas casas para a esquerda.
+Como transformar um decimal em porcentagem?;Multiplique o decimal por 100 e coloque o símbolo de porcentagem.<br><br>Exemplo: 0,52 = 52%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Decimal para %, anda duas casas para a direita.
+Como transformar uma fração em porcentagem?;Transforme a fração em decimal ou em denominador 100 e depois escreva em porcentagem.<br><br>Exemplo: 1/4 = 0,25 = 25%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Fração vira porcentagem quando conversa com o 100.
+Como calcular <b>x% de uma quantidade</b>?;Multiplique a quantidade por x/100.<br><br>Exemplo: 20% de 300 = 300 × 20/100 = 60.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> A palavra “de” em porcentagem indica multiplicação.
+Quanto é <b>20% de 300</b>?;20% de 300 = 60.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 20% é 1/5. Um quinto de 300 é 60.
+Quanto é <b>30% de 200</b>?;30% de 200 = 60.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 10% de 200 é 20. Então 30% é 3 × 20.
+Quanto é <b>5% de 400</b>?;5% de 400 = 20.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 5% é metade de 10%. Como 10% de 400 é 40, 5% é 20.
+Quanto é <b>1% de 800</b>?;1% de 800 = 8.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 1% é dividir por 100.
+Quanto é <b>15% de 200</b>?;15% de 200 = 30.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 10% de 200 é 20 e 5% de 200 é 10. Some: 30.
+Quanto é <b>12% de 50</b>?;12% de 50 = 6.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 50 × 12/100 = 6.
+Quanto é <b>200%</b> de uma quantidade?;É o dobro da quantidade.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 100% é o próprio valor. 200% é duas vezes o valor.
+Quanto é <b>300%</b> de uma quantidade?;É o triplo da quantidade.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 300% = 300/100 = 3.
+Quanto é <b>0,5%</b> em forma decimal?;0,5% = 0,005.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Cuidado com percentual com vírgula. Divida por 100 do mesmo jeito.
+Quanto é <b>0,65%</b> em fração?;0,65% = 0,65/100 = 65/10000 = 13/2000.<br><br><i>Fonte: Questões de números reais e porcentagem</i><hr><b>BIZU:</b> Percentual com vírgula tem dupla conversão: vírgula e depois por 100.
+Quanto é <b>81%</b> em forma decimal?;81% = 0,81.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 4</i><hr><b>BIZU:</b> 81% não é 81 e não é 9. É 0,81.
+Por que <b>81%</b> não é igual a 9?;Porque porcentagem é divisão por 100. Assim, 81% = 81/100 = 0,81.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 4</i><hr><b>BIZU:</b> O símbolo % diminui o número 100 vezes.
+A fração <b>13/25</b> equivale a qual porcentagem?;13/25 = 52/100 = 52%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 7</i><hr><b>BIZU:</b> Para chegar em 100, multiplique 25 por 4. Então 13 também vira 52.
+A fração <b>1/5</b> equivale a qual porcentagem?;1/5 = 20/100 = 20%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Quintos são clássicos: 1/5 = 20%.
+A fração <b>2/5</b> equivale a qual porcentagem?;2/5 = 40/100 = 40%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Se 1/5 é 20%, então 2/5 é 40%.
+A fração <b>3/5</b> equivale a qual porcentagem?;3/5 = 60/100 = 60%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Quintos andam de 20 em 20%.
+A fração <b>4/5</b> equivale a qual porcentagem?;4/5 = 80/100 = 80%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 4/5 é quase tudo: 80%.
+O que significa <b>porcentagem sobre porcentagem</b>?;Significa calcular um percentual de outro percentual ou aplicar percentuais sucessivos sobre uma base.<br><br><i>Fonte: Teoria e Exercício — Porcentagem sobre porcentagem</i><hr><b>BIZU:</b> Percentual de percentual multiplica os fatores.
+Quanto é <b>30% de 25%</b> de uma quantidade?;30% de 25% = 0,30 × 0,25 = 0,075 = 7,5%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 3</i><hr><b>BIZU:</b> A palavra “de” manda multiplicar. 30% de 25% não é 55%.
+Por que <b>30% de 25%</b> não é 55%?;Porque “de” indica multiplicação, não soma. Então 30% de 25% = 7,5%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 3</i><hr><b>BIZU:</b> Em porcentagem, “e” pode somar, mas “de” multiplica.
+Quanto é <b>10%²</b>?;10%² = 10% × 10% = 0,10 × 0,10 = 0,01 = 1%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 6</i><hr><b>BIZU:</b> Elevar percentual ao quadrado exige transformar em decimal ou fração.
+Quanto vale a expressão <b>25% + (10%)²</b>?;Vale 26%.<br><br>25% + 1% = 26%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 6</i><hr><b>BIZU:</b> A pegadinha é achar que 10%² = 100%. Na verdade, 10%² = 1%.
+Quanto é <b>(25%) ÷ (5%)</b>?;O resultado é 5.<br><br>25% ÷ 5% = 0,25 ÷ 0,05 = 5.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 5</i><hr><b>BIZU:</b> Percentual dividido por percentual cancela a ideia de “por cento” e pode virar número puro.
+Por que <b>(25%) ÷ (5%)</b> não é 5%?;Porque estamos dividindo dois percentuais. 25% é cinco vezes 5%, então o resultado é 5, não 5%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem, questão 5</i><hr><b>BIZU:</b> Pergunta mental: quantas vezes 5% cabe em 25%?
+Qual é o atalho para calcular <b>10%</b> de um número?;Divida o número por 10.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 10% é uma casa decimal para a esquerda.
+Qual é o atalho para calcular <b>1%</b> de um número?;Divida o número por 100.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 1% é duas casas decimais para a esquerda.
+Qual é o atalho para calcular <b>5%</b> de um número?;Calcule 10% e divida por 2.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 5% é metade de 10%.
+Qual é o atalho para calcular <b>25%</b> de um número?;Divida o número por 4.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 25% = 1/4.
+Qual é o atalho para calcular <b>50%</b> de um número?;Divida o número por 2.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 50% é metade.
+Qual é o atalho para calcular <b>75%</b> de um número?;Calcule 3/4 do número, ou calcule 50% + 25%.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> 75% = 50% + 25% = 3/4.
+Qual é a principal armadilha em porcentagem básica?;Esquecer que porcentagem sempre está relacionada ao 100.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Viu %, pense imediatamente em dividir por 100.
+Qual é a armadilha em percentual com vírgula, como <b>0,5%</b>?;Achar que 0,5% é 0,5. Na verdade, 0,5% = 0,005.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Mesmo pequeno, o percentual ainda divide por 100.
+Qual é a ponte entre <b>porcentagem</b> e <b>frações</b>?;Porcentagem é uma fração com denominador 100.<br><br>Exemplo: 25% = 25/100 = 1/4.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Porcentagem é fração vestida com símbolo %.
+Qual é a ponte entre <b>porcentagem</b> e <b>decimais</b>?;Toda porcentagem pode ser escrita como decimal ao dividir por 100.<br><br>Exemplo: 52% = 0,52.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Porcentagem, fração e decimal são três línguas do mesmo valor.
+Qual é a ponte entre <b>porcentagem</b> e <b>razão</b>?;Porcentagem é uma razão em relação a 100.<br><br><i>Fonte: Teoria e Exercício — Porcentagem e Razão</i><hr><b>BIZU:</b> Quando digo 30%, digo 30 partes em cada 100.
+Qual é a ponte entre <b>porcentagem</b> e <b>regra de três simples</b>?;Muitos cálculos de porcentagem podem ser resolvidos por regra de três diretamente proporcional, relacionando valor e percentual.<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Valor total está para 100%, assim como parte está para x%.
+Qual é o checklist mental para porcentagem básica?;Pergunte:<br>1. O percentual deve virar fração ou decimal?<br>2. A palavra “de” indica multiplicação?<br>3. O resultado pedido é valor, fração, decimal ou porcentagem?<br>4. Há percentual com vírgula?<br><br><i>Fonte: Teoria e Exercício — Porcentagem</i><hr><b>BIZU:</b> Primeiro traduza o %, depois calcule.
