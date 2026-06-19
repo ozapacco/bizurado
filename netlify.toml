@@ -3,6 +3,10 @@
 
 [build]
   command = "npm run build"
+  # O runtime do Next (@netlify/plugin-nextjs) publica a pasta .next. Sem isto,
+  # a UI deixou publish = raiz do repo e o deploy falha ("publish dir cannot be
+  # the same as base dir").
+  publish = ".next"
 
 # Node 20: estável no runtime de Functions da Netlify e compatível com o driver Neon.
 [build.environment]
