@@ -57,8 +57,6 @@ Scripts úteis:
 2. **Settings → Environment Variables**: definir `DATABASE_URL` (e `APP_PASSWORD`) para **Production, Preview e Development**.
 3. **Redeploy** após qualquer mudança de env var — variáveis novas **não** se aplicam a deploys já existentes.
 
-> Observação: o arquivo `netlify.toml` é resíduo de um teste antigo na Netlify e **não tem efeito na Vercel**. Pode ser ignorado/removido.
-
 ---
 
 ## Como o banco é acessado (arquitetura)
