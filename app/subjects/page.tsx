@@ -15,6 +15,10 @@ type Topic = {
   name: string;
   cardCount: number;
   filePath: string;
+  voltas: number;
+  dueNow: number;
+  novos: number;
+  maduros: number;
 };
 
 function SubjectsContent() {
@@ -89,25 +93,65 @@ function SubjectsContent() {
           )}
 
           <div className="space-y-2">
-            {topics.map((t) => (
-              <div
-                key={t.id}
-                className="p-4 bg-slate-800 rounded-lg border border-slate-700"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{t.name}</p>
-                    <p className="text-sm text-slate-400">{t.cardCount} cards</p>
+            {topics.map((t) => {
+              const memoriaPct =
+                t.cardCount > 0
+                  ? Math.round((t.maduros / t.cardCount) * 100)
+                  : 0;
+              return (
+                <div
+                  key={t.id}
+                  className="p-4 bg-slate-800 rounded-lg border border-slate-700"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-medium">{t.name}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-sm">
+                        <span
+                          className="inline-flex items-center gap-1 font-semibold text-cyan-300"
+                          title="Quantas vezes você girou este baralho inteiro"
+                        >
+                          🔁 {t.voltas} {t.voltas === 1 ? "volta" : "voltas"}
+                        </span>
+                        <span className="text-slate-500">·</span>
+                        <span className="text-slate-400">{t.cardCount} cards</span>
+                        {t.dueNow > 0 && (
+                          <>
+                            <span className="text-slate-500">·</span>
+                            <span className="text-amber-300">
+                              {t.dueNow} para reativar
+                            </span>
+                          </>
+                        )}
+                        {t.novos > 0 && (
+                          <>
+                            <span className="text-slate-500">·</span>
+                            <span className="text-slate-400">{t.novos} novos</span>
+                          </>
+                        )}
+                        <span className="text-slate-500">·</span>
+                        <span className="text-emerald-300">
+                          {memoriaPct}% na memória
+                        </span>
+                      </div>
+                      {/* Barra de memória do baralho */}
+                      <div className="mt-2 h-1.5 w-full max-w-xs rounded-full bg-slate-700 overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-400/80"
+                          style={{ width: `${memoriaPct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <Link
+                      href={`/study?topicId=${t.id}`}
+                      className="shrink-0 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg text-sm transition-colors"
+                    >
+                      Estudar
+                    </Link>
                   </div>
-                  <Link
-                    href={`/review?topicId=${t.id}`}
-                    className="text-sm text-cyan-400 hover:underline"
-                  >
-                    Revisar
-                  </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
