@@ -54,6 +54,8 @@ function StudyContent() {
   const [reviewed, setReviewed] = useState(0);
   const [nextDeck, setNextDeck] = useState<NextDeck>(null);
   const sessionIdRef = useRef<number | null>(null);
+  const flippedRef = useRef(false);
+  flippedRef.current = flipped;
 
   const current = cards[index];
 
@@ -142,6 +144,9 @@ function StudyContent() {
     [current, advance]
   );
 
+  const handleRatingRef = useRef(handleRating);
+  handleRatingRef.current = handleRating;
+
   const handleMarkMastered = useCallback(() => {
     if (!current) return;
     fetch("/api/cards/suspend", {
@@ -162,7 +167,7 @@ function StudyContent() {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
-      if (!flipped) {
+      if (!flippedRef.current) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           setFlipped(true);
@@ -171,24 +176,24 @@ function StudyContent() {
       }
       if (e.key === "1") {
         e.preventDefault();
-        handleRating(1);
+        handleRatingRef.current(1);
       } else if (e.key === "2") {
         e.preventDefault();
-        handleRating(2);
+        handleRatingRef.current(2);
       } else if (e.key === "3") {
         e.preventDefault();
-        handleRating(3);
+        handleRatingRef.current(3);
       } else if (e.key === "4") {
         e.preventDefault();
-        handleRating(4);
+        handleRatingRef.current(4);
       } else if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        handleRating(3);
+        handleRatingRef.current(3);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [flipped, current, done, loading, handleRating]);
+  }, [loading, done, current]);
 
   if (!topicId) {
     return (
