@@ -54,6 +54,7 @@ function StudyContent() {
   const [reviewed, setReviewed] = useState(0);
   const [nextDeck, setNextDeck] = useState<NextDeck>(null);
   const sessionIdRef = useRef<number | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   // Live snapshot read by the (bind-once) keyboard handler. Updated on every
   // render so the listener never sees a stale `flipped`/`loading`/`done`.
@@ -222,6 +223,12 @@ function StudyContent() {
     return () => window.removeEventListener("keydown", onKey);
   }, [goPrev]);
 
+  // Ao entrar no card (ou trocar de card), joga o foco no overlay de estudo —
+  // tira o foco da busca global do topo para os atalhos responderem na hora.
+  useEffect(() => {
+    if (!loading && !done && current) overlayRef.current?.focus();
+  }, [loading, done, current]);
+
   if (!topicId) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -305,28 +312,40 @@ function StudyContent() {
   const progressPct = deck ? Math.round(((index + 1) / deck.total) * 100) : 0;
 
   return (
-    <div className="min-h-screen p-4 md:p-6 max-w-3xl mx-auto">
-      <header className="mb-4">
-        <div className="flex items-center justify-between">
-          <Link href="/subjects" className="text-cyan-400 hover:underline text-sm">
-            ← Baralhos
-          </Link>
-          <div className="flex items-center gap-3">
+    <div
+      ref={overlayRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex flex-col bg-slate-900 text-slate-100 outline-none"
+    >
+      {/* Barra superior enxuta — só o essencial, para o card dominar a tela */}
+      <header
+        className="shrink-0 px-3 pt-3 pb-2 border-b border-slate-800/60"
+        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={() => router.push("/subjects")}
+            title="Sair do estudo"
+            className="text-sm px-2.5 py-1.5 rounded text-slate-300 hover:bg-slate-800 transition-colors"
+          >
+            ← Sair
+          </button>
+          <div className="flex items-center gap-2">
             {deck && (
-              <span className="text-sm text-cyan-300 font-semibold">
-                🔁 {deck.voltas} {deck.voltas === 1 ? "volta" : "voltas"}
+              <span className="text-sm text-cyan-300 font-semibold" title={`${deck.voltas} voltas`}>
+                🔁 {deck.voltas}
               </span>
             )}
             <button
               onClick={handleMarkMastered}
               title="Tira o card do baralho (dominado) e avança"
-              className="text-sm px-3 py-1.5 rounded border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+              className="text-xs px-2.5 py-1.5 rounded border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition-colors"
             >
               ✓ Dominado
             </button>
             <button
               onClick={() => void finishVolta()}
-              className="text-sm px-3 py-1.5 rounded border border-slate-600 text-slate-300 hover:bg-slate-700 transition-colors"
+              className="text-xs px-2.5 py-1.5 rounded border border-slate-600 text-slate-300 hover:bg-slate-700 transition-colors"
             >
               Encerrar
             </button>
@@ -334,16 +353,16 @@ function StudyContent() {
         </div>
 
         {/* Progresso nesta volta */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-            <span>
+        <div className="mt-2">
+          <div className="flex items-center justify-between text-[0.7rem] text-slate-400 mb-1">
+            <span className="truncate pr-2">
               {deck?.subjectName} · {deck?.topicName}
             </span>
-            <span>
-              {index + 1} / {deck?.total} nesta volta
+            <span className="shrink-0">
+              {index + 1} / {deck?.total}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden">
+          <div className="h-1 w-full rounded-full bg-slate-700 overflow-hidden">
             <div
               className="h-full bg-cyan-400/80 transition-all"
               style={{ width: `${progressPct}%` }}
@@ -352,18 +371,12 @@ function StudyContent() {
         </div>
       </header>
 
-      {isFast && (
-        <div className="mb-3 text-center text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg py-1.5">
-          ⚡ Já na sua memória — confirme rápido. Se hesitar, marque{" "}
-          <b>Again/Hard</b> e ele volta ao fluxo.
-        </div>
-      )}
-
+      {/* O card ocupa toda a área livre; toque/clique vira */}
       <div
-        onClick={() => setFlipped(!flipped)}
-        className="cursor-pointer min-h-[55vh] flex flex-col"
+        onClick={() => setFlipped((f) => !f)}
+        className="flex-1 min-h-0 overflow-y-auto cursor-pointer px-4 py-4 flex flex-col"
       >
-        <div className="text-xs text-slate-500 mb-2 space-x-2">
+        <div className="text-xs text-slate-500 mb-2 space-x-2 shrink-0">
           <span className={difficultyColor}>D: {current.difficulty.toFixed(1)}</span>
           {current.reps === 0 && (
             <>
@@ -383,24 +396,26 @@ function StudyContent() {
               <span className="text-yellow-400">Bizu</span>
             </>
           )}
+          {isFast && (
+            <>
+              <span>·</span>
+              <span className="text-emerald-300">⚡ Rápido</span>
+            </>
+          )}
         </div>
 
-        <div
-          className={`flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-800 rounded-xl border ${
-            isFast ? "border-emerald-500/30" : "border-slate-700"
-          }`}
-        >
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-2 md:p-6">
           {!flipped ? (
             <>
               <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider">
                 Pergunta
               </p>
               <div
-                className="text-xl md:text-2xl leading-relaxed"
+                className="text-xl md:text-3xl leading-relaxed max-w-2xl"
                 dangerouslySetInnerHTML={{ __html: current.question }}
               />
               <p className="text-sm text-slate-500 mt-8 animate-pulse">
-                Clique para ver a resposta
+                Toque para ver a resposta
               </p>
             </>
           ) : (
@@ -409,11 +424,11 @@ function StudyContent() {
                 Resposta
               </p>
               <div
-                className="text-lg md:text-xl leading-relaxed"
+                className="text-lg md:text-2xl leading-relaxed max-w-2xl"
                 dangerouslySetInnerHTML={{ __html: current.answer }}
               />
               {current.bizu && (
-                <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg max-w-2xl">
                   <p className="text-xs text-yellow-400 font-semibold mb-1">BIZU</p>
                   <p className="text-yellow-200 text-sm">{current.bizu}</p>
                 </div>
@@ -428,47 +443,53 @@ function StudyContent() {
         </div>
       </div>
 
-      {flipped ? (
-        <>
-          <div className="flex gap-2 md:gap-3 justify-center mt-6">
-            <RatingButton label="Again" desc="Não lembrei" hotkey="1" color="red" onClick={() => handleRating(1)} />
-            <RatingButton label="Hard" desc="Difícil" hotkey="2" color="yellow" onClick={() => handleRating(2)} />
-            <RatingButton label="Good" desc="Lembrei" hotkey="3" color="green" onClick={() => handleRating(3)} />
-            <RatingButton label="Easy" desc="Fácil" hotkey="4" color="cyan" onClick={() => handleRating(4)} />
-          </div>
-          <p className="hidden md:block text-center text-xs text-slate-500 mt-3">
-            <Kbd>1</Kbd> <Kbd>2</Kbd> <Kbd>3</Kbd> <Kbd>4</Kbd> avaliam ·{" "}
-            <Kbd>Enter</Kbd>/<Kbd>→</Kbd> = Good · <Kbd>←</Kbd> volta
-          </p>
-        </>
-      ) : (
-        <>
-          <div className="flex gap-3 justify-center mt-6">
-            <button
-              onClick={() => setFlipped(true)}
-              className="px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors"
-            >
-              Mostrar resposta
-            </button>
-            {isFast && (
+      {/* Rodapé fixo — dificuldades ao virar, senão "Mostrar resposta" */}
+      <footer
+        className="shrink-0 px-3 pt-3 border-t border-slate-800/60"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        {flipped ? (
+          <>
+            <div className="flex gap-2 md:gap-3 justify-center max-w-3xl mx-auto">
+              <RatingButton label="Again" desc="Não lembrei" hotkey="1" color="red" onClick={() => handleRating(1)} />
+              <RatingButton label="Hard" desc="Difícil" hotkey="2" color="yellow" onClick={() => handleRating(2)} />
+              <RatingButton label="Good" desc="Lembrei" hotkey="3" color="green" onClick={() => handleRating(3)} />
+              <RatingButton label="Easy" desc="Fácil" hotkey="4" color="cyan" onClick={() => handleRating(4)} />
+            </div>
+            <p className="hidden md:block text-center text-xs text-slate-500 mt-2">
+              <Kbd>1</Kbd> <Kbd>2</Kbd> <Kbd>3</Kbd> <Kbd>4</Kbd> avaliam ·{" "}
+              <Kbd>Enter</Kbd>/<Kbd>→</Kbd> = Good · <Kbd>←</Kbd> volta
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="flex gap-3 justify-center max-w-3xl mx-auto">
               <button
-                onClick={() => handleRating(3)}
-                title="Confirma que ainda sabe e avança"
-                className="px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg transition-colors text-sm font-semibold"
+                onClick={() => setFlipped(true)}
+                className="flex-1 max-w-md px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors"
               >
-                ⚡ Sei → avançar
+                Mostrar resposta
               </button>
-            )}
-          </div>
-          <p className="text-center text-xs text-slate-500 mt-3">
-            <span className="hidden md:inline">
-              <Kbd>Espaço</Kbd> / <Kbd>Enter</Kbd> / <Kbd>↑</Kbd> viram ·{" "}
-              <Kbd>←</Kbd> <Kbd>→</Kbd> navegam ·{" "}
-            </span>
-            <span className="md:hidden">Toque na carta para virar</span>
-          </p>
-        </>
-      )}
+              {isFast && (
+                <button
+                  onClick={() => handleRating(3)}
+                  title="Confirma que ainda sabe e avança"
+                  className="px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg transition-colors text-sm font-semibold shrink-0"
+                >
+                  ⚡ Sei
+                </button>
+              )}
+            </div>
+            <p className="text-center text-xs text-slate-500 mt-2">
+              <span className="hidden md:inline">
+                <Kbd>Espaço</Kbd> / <Kbd>Enter</Kbd> / <Kbd>↑</Kbd> viram ·{" "}
+                <Kbd>←</Kbd> <Kbd>→</Kbd> navegam
+              </span>
+              <span className="md:hidden">Toque na carta para virar</span>
+            </p>
+          </>
+        )}
+      </footer>
     </div>
   );
 }
