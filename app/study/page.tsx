@@ -97,8 +97,9 @@ function StudyContent() {
     };
   }, [topicId]);
 
-  // Close the volta: finish the session (graduates the cycle, +1 volta) and
-  // fetch the next hottest deck to keep the rotation going.
+  // Close the volta: finish the session (graduates the cycle, +1 volta) and ask
+  // the Trilha rotation for the next topic — fair round-robin across disciplines
+  // (least-recently-studied first), excluding the one just finished.
   const finishVolta = useCallback(async () => {
     setDone(true);
     try {
@@ -114,7 +115,7 @@ function StudyContent() {
       // ignore — the pass still counts visually
     }
     try {
-      const res = await fetch(`/api/study/next?excludeTopicId=${topicId}`);
+      const res = await fetch(`/api/cycle/next?excludeTopicId=${topicId}`);
       const data = await res.json();
       setNextDeck(data.next ?? null);
     } catch {
@@ -229,6 +230,20 @@ function StudyContent() {
     if (!loading && !done && current) overlayRef.current?.focus();
   }, [loading, done, current]);
 
+  // Na tela de conclusão, Enter/Espaço emenda direto no próximo tópico da
+  // rotação — "avançar e avançar" sem tirar a mão do teclado.
+  useEffect(() => {
+    if (!done || !nextDeck) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        router.push(`/study?topicId=${nextDeck.topicId}`);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [done, nextDeck, router]);
+
   if (!topicId) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -268,21 +283,36 @@ function StudyContent() {
         )}
 
         {nextDeck ? (
-          <button
-            onClick={() => {
-              router.push(`/study?topicId=${nextDeck.topicId}`);
-            }}
-            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors"
-          >
-            Próximo: {nextDeck.topicName} →
-          </button>
+          <>
+            <p className="text-xs text-slate-500 mb-1 uppercase tracking-wider">
+              Gira para · {nextDeck.subjectName}
+            </p>
+            <button
+              onClick={() => {
+                router.push(`/study?topicId=${nextDeck.topicId}`);
+              }}
+              className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors"
+            >
+              {nextDeck.topicName} →
+            </button>
+            <p className="text-xs text-slate-500 mt-2">
+              <Kbd>Enter</Kbd> para emendar
+            </p>
+          </>
         ) : (
           <p className="text-slate-400 mb-6">
-            Nenhum outro baralho quente no momento. 🎉
+            🏁 Você varreu tudo que tinha de novo. Hora de revisar e deixar
+            amadurecer.
           </p>
         )}
 
         <div className="flex gap-3 mt-4">
+          <Link
+            href="/cycle"
+            className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+          >
+            🗺️ Mapa
+          </Link>
           <Link
             href="/subjects"
             className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
