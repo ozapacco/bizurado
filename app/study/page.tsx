@@ -323,13 +323,21 @@ function StudyContent() {
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center justify-between gap-2">
-          <button
-            onClick={() => router.push("/subjects")}
-            title="Sair do estudo"
-            className="text-sm px-2.5 py-1.5 rounded text-slate-300 hover:bg-slate-800 transition-colors"
-          >
-            ← Sair
-          </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={() => router.push("/subjects")}
+              title="Sair do estudo"
+              className="text-sm px-2.5 py-1.5 rounded text-slate-300 hover:bg-slate-800 transition-colors shrink-0"
+            >
+              ← Sair
+            </button>
+            <span
+              title="Modo ESTUDO — avançar pela matéria, baralho inteiro"
+              className="text-[0.65rem] font-semibold uppercase tracking-wider px-2 py-1 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0"
+            >
+              📚 Estudo
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             {deck && (
               <span className="text-sm text-cyan-300 font-semibold" title={`${deck.voltas} voltas`}>

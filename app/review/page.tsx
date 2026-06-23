@@ -230,12 +230,20 @@ function ReviewContent() {
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center justify-between gap-2">
-          <Link
-            href="/"
-            className="text-sm px-2.5 py-1.5 rounded text-slate-300 hover:bg-slate-800 transition-colors"
-          >
-            ← Sair
-          </Link>
+          <div className="flex items-center gap-2 min-w-0">
+            <Link
+              href="/"
+              className="text-sm px-2.5 py-1.5 rounded text-slate-300 hover:bg-slate-800 transition-colors shrink-0"
+            >
+              ← Sair
+            </Link>
+            <span
+              title="Modo REVISÃO — limpar os cards vencidos do dia"
+              className="text-[0.65rem] font-semibold uppercase tracking-wider px-2 py-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0"
+            >
+              🔁 Revisão
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleMarkMastered}
