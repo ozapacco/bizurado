@@ -54,8 +54,11 @@ function StudyContent() {
   const [reviewed, setReviewed] = useState(0);
   const [nextDeck, setNextDeck] = useState<NextDeck>(null);
   const sessionIdRef = useRef<number | null>(null);
-  const flippedRef = useRef(false);
-  flippedRef.current = flipped;
+
+  // Live snapshot read by the (bind-once) keyboard handler. Updated on every
+  // render so the listener never sees a stale `flipped`/`loading`/`done`.
+  const kbdStateRef = useRef({ flipped, loading, done });
+  kbdStateRef.current = { flipped, loading, done };
 
   const current = cards[index];
 
@@ -127,6 +130,13 @@ function StudyContent() {
     }
   }, [index, cards.length, finishVolta]);
 
+  // Step back one card to review it again (no rating is undone). Stable so the
+  // keyboard effect can bind once.
+  const goPrev = useCallback(() => {
+    setIndex((i) => (i > 0 ? i - 1 : i));
+    setFlipped(false);
+  }, []);
+
   // Rate a card (records the review + reschedules via FSRS), then advance.
   // Single pass: even "rapido" cards are rated, so a moment of doubt (Again/
   // Hard) instantly demotes a mature card back into the common flow.
@@ -157,43 +167,60 @@ function StudyContent() {
     advance();
   }, [current, advance]);
 
-  // Keyboard navigation: Enter/Espaço vira a carta; quando virada, 1/2/3/4
-  // avaliam (e Enter/Espaço = Good, atalho estilo Anki). Toque na tela vira a
-  // carta no celular (onClick na carta) e os botões são alvos de toque grandes.
+  // Keyboard navigation. Bound ONCE (deps are all stable refs/callbacks) so the
+  // listener is never torn down and re-added mid-session — every press is read
+  // through refs, so there is no stale-closure window. Layout:
+  //   Espaço / Enter / ↑ / ↓ ...... vira a carta (e ao virar, vira de volta)
+  //   → (direita) ................... revela; se já virada, Good + avança
+  //   ← (esquerda) ................. volta para a carta anterior
+  //   1 / 2 / 3 / 4 ................ Again / Hard / Good / Easy (revela se preciso)
+  // Toque na tela vira a carta no celular (onClick na carta).
   useEffect(() => {
-    if (loading || done || !current) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.repeat) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // don't hijack shortcuts
 
-      if (!flippedRef.current) {
-        if (e.key === "Enter" || e.key === " ") {
+      const { flipped: isFlipped, loading: isLoading, done: isDone } =
+        kbdStateRef.current;
+      if (isLoading || isDone) return;
+      if (e.repeat) return;
+
+      switch (e.key) {
+        case " ":
+        case "Enter":
           e.preventDefault();
-          setFlipped(true);
-        }
-        return;
-      }
-      if (e.key === "1") {
-        e.preventDefault();
-        handleRatingRef.current(1);
-      } else if (e.key === "2") {
-        e.preventDefault();
-        handleRatingRef.current(2);
-      } else if (e.key === "3") {
-        e.preventDefault();
-        handleRatingRef.current(3);
-      } else if (e.key === "4") {
-        e.preventDefault();
-        handleRatingRef.current(4);
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        handleRatingRef.current(3);
+          if (isFlipped) handleRatingRef.current(3);
+          else setFlipped(true);
+          break;
+        case "ArrowUp":
+        case "ArrowDown":
+          e.preventDefault();
+          setFlipped((f) => !f);
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          if (isFlipped) handleRatingRef.current(3);
+          else setFlipped(true);
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          goPrev();
+          break;
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+          e.preventDefault();
+          // Revela primeiro se ainda não virou — a próxima tecla avalia.
+          if (isFlipped) handleRatingRef.current(Number(e.key));
+          else setFlipped(true);
+          break;
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [loading, done, current]);
+  }, [goPrev]);
 
   if (!topicId) {
     return (
@@ -410,8 +437,8 @@ function StudyContent() {
             <RatingButton label="Easy" desc="Fácil" hotkey="4" color="cyan" onClick={() => handleRating(4)} />
           </div>
           <p className="hidden md:block text-center text-xs text-slate-500 mt-3">
-            Teclas <Kbd>1</Kbd> <Kbd>2</Kbd> <Kbd>3</Kbd> <Kbd>4</Kbd> para
-            avaliar · <Kbd>Enter</Kbd> = Good
+            <Kbd>1</Kbd> <Kbd>2</Kbd> <Kbd>3</Kbd> <Kbd>4</Kbd> avaliam ·{" "}
+            <Kbd>Enter</Kbd>/<Kbd>→</Kbd> = Good · <Kbd>←</Kbd> volta
           </p>
         </>
       ) : (
@@ -435,7 +462,8 @@ function StudyContent() {
           </div>
           <p className="text-center text-xs text-slate-500 mt-3">
             <span className="hidden md:inline">
-              <Kbd>Enter</Kbd> / <Kbd>Espaço</Kbd> para virar ·{" "}
+              <Kbd>Espaço</Kbd> / <Kbd>Enter</Kbd> / <Kbd>↑</Kbd> viram ·{" "}
+              <Kbd>←</Kbd> <Kbd>→</Kbd> navegam ·{" "}
             </span>
             <span className="md:hidden">Toque na carta para virar</span>
           </p>
