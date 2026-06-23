@@ -7,6 +7,13 @@ import ws from "ws";
 neonConfig.webSocketConstructor = ws;
 neonConfig.poolQueryViaFetch = true;
 
+// Next.js patches the global `fetch` with its Data Cache. Since pool.query()
+// runs over fetch (above), Next was caching our DB *reads* — a write would
+// persist but a follow-up read served the stale cached response (read-after-
+// write inconsistency). Force every Neon HTTP query to bypass that cache.
+neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) =>
+  fetch(input, { ...init, cache: "no-store" });
+
 // Reuse a single Pool across hot reloads / serverless invocations.
 const globalForDb = globalThis as unknown as { _bizuradoPool?: Pool };
 
