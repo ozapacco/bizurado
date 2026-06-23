@@ -20,6 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SearchBar />
             </div>
             <div className="flex gap-3 text-sm shrink-0">
+              <a href="/cycle" className="text-cyan-300 hover:text-white font-semibold transition-colors">
+                🗺️ Trilha
+              </a>
               <a href="/plan" className="text-slate-300 hover:text-white transition-colors">
                 Plano
               </a>
