@@ -468,7 +468,7 @@ function StudyContent() {
               {current.bizu && (
                 <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg max-w-2xl">
                   <p className="text-xs text-yellow-400 font-semibold mb-1">BIZU</p>
-                  <p className="text-yellow-200 text-sm">{current.bizu}</p>
+                  <p className="text-yellow-200 text-sm" dangerouslySetInnerHTML={{ __html: current.bizu }} />
                 </div>
               )}
               {current.source && (

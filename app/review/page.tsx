@@ -328,7 +328,7 @@ function ReviewContent() {
                   <p className="text-xs text-yellow-400 font-semibold mb-1">
                     BIZU
                   </p>
-                  <p className="text-yellow-200 text-sm">{current.bizu}</p>
+                  <p className="text-yellow-200 text-sm" dangerouslySetInnerHTML={{ __html: current.bizu }} />
                 </div>
               )}
               {current.source && (
