@@ -3,38 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-type TopicProgress = {
-  id: number;
-  name: string;
-  total: number;
-  novos: number;
-  vistos: number;
-  jovens: number;
-  maduros: number;
-  dueNow: number;
-  coberturaPct: number;
-  dominioPct: number;
-  acertoPct: number | null;
-  ultimoEstudo: string | null;
-  jaEstudouTudo: boolean;
-};
-
-type SubjectProgress = {
-  id: number;
-  name: string;
-  total: number;
-  novos: number;
-  vistos: number;
-  jovens: number;
-  maduros: number;
-  dueNow: number;
-  coberturaPct: number;
-  dominioPct: number;
-  acertoPct: number | null;
-  ultimoEstudo: string | null;
-  jaEstudouTudo: boolean;
-  topics: TopicProgress[];
-};
+import { getProgressData, type SubjectProgress, type TopicProgress } from "@/lib/client/engine";
 
 type ProgressResponse = {
   subjects: SubjectProgress[];
@@ -57,7 +26,7 @@ function formatDate(iso: string | null): string {
 function ProgressBar({ pct, color }: { pct: number; color: string }) {
   const safe = Math.max(0, Math.min(100, pct || 0));
   return (
-    <div className="w-full bg-slate-700 rounded-full h-2">
+    <div className="w-full bg-line/60 rounded-full h-2">
       <div
         className={`${color} h-2 rounded-full transition-all`}
         style={{ width: `${safe}%` }}
@@ -83,37 +52,37 @@ function Metrics({
     <div className="space-y-3">
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span className="text-slate-400">
+          <span className="text-ink-soft">
             Cobertura{" "}
-            <span className="text-slate-500">
+            <span className="text-ink-soft">
               ({m.vistos}/{m.total})
             </span>
           </span>
-          <span className="text-cyan-400 font-medium">{m.coberturaPct}%</span>
+          <span className="text-accent font-medium">{m.coberturaPct}%</span>
         </div>
-        <ProgressBar pct={m.coberturaPct} color="bg-cyan-500" />
+        <ProgressBar pct={m.coberturaPct} color="bg-accent" />
       </div>
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span className="text-slate-400">
+          <span className="text-ink-soft">
             Domínio{" "}
-            <span className="text-slate-500">
+            <span className="text-ink-soft">
               ({m.maduros}/{m.total})
             </span>
           </span>
-          <span className="text-emerald-400 font-medium">{m.dominioPct}%</span>
+          <span className="text-grade-easy font-medium">{m.dominioPct}%</span>
         </div>
-        <ProgressBar pct={m.dominioPct} color="bg-emerald-500" />
+        <ProgressBar pct={m.dominioPct} color="bg-grade-easy" />
       </div>
-      <div className="flex justify-between text-xs text-slate-400">
+      <div className="flex justify-between text-xs text-ink-soft">
         <span>
           Acerto:{" "}
-          <span className="text-slate-200">
+          <span className="text-ink">
             {m.acertoPct == null ? "—" : `${m.acertoPct}%`}
           </span>
         </span>
         <span>
-          Pendentes: <span className="text-slate-200">{m.dueNow}</span>
+          Pendentes: <span className="text-ink">{m.dueNow}</span>
         </span>
       </div>
     </div>
@@ -124,17 +93,17 @@ function SubjectCard({ s }: { s: SubjectProgress }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+    <div className="bg-surface border border-line rounded-xl p-5">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="text-lg font-semibold text-slate-100">{s.name}</h2>
+          <h2 className="text-lg font-semibold text-ink">{s.name}</h2>
           {s.jaEstudouTudo && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-grade-easy/10 text-grade-easy border border-grade-easy/40">
               Tudo estudado
             </span>
           )}
         </div>
-        <span className="text-xs text-slate-500 shrink-0">
+        <span className="text-xs text-ink-soft shrink-0">
           Último: {formatDate(s.ultimoEstudo)}
         </span>
       </div>
@@ -153,7 +122,7 @@ function SubjectCard({ s }: { s: SubjectProgress }) {
         <div className="mt-4">
           <button
             onClick={() => setOpen((o) => !o)}
-            className="text-sm text-cyan-400 hover:underline"
+            className="text-sm text-accent hover:underline"
           >
             {open ? "▼" : "▶"} {s.topics.length} tópicos
           </button>
@@ -163,20 +132,20 @@ function SubjectCard({ s }: { s: SubjectProgress }) {
               {s.topics.map((t) => (
                 <div
                   key={t.id}
-                  className="bg-slate-900/50 border border-slate-700 rounded-lg p-4"
+                  className="bg-paper/90 border border-line rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-medium text-slate-200">
+                      <h3 className="text-sm font-medium text-ink">
                         {t.name}
                       </h3>
                       {t.jaEstudouTudo && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-grade-easy/10 text-grade-easy border border-grade-easy/40">
                           completo
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-slate-500 shrink-0">
+                    <span className="text-[11px] text-ink-soft shrink-0">
                       {formatDate(t.ultimoEstudo)}
                     </span>
                   </div>
@@ -194,8 +163,8 @@ function SubjectCard({ s }: { s: SubjectProgress }) {
 function Count({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className="text-base font-bold text-slate-100">{value}</p>
-      <p className="text-[10px] text-slate-500 uppercase tracking-wide">
+      <p className="text-base font-bold text-ink">{value}</p>
+      <p className="text-[10px] text-ink-soft uppercase tracking-wide">
         {label}
       </p>
     </div>
@@ -207,11 +176,7 @@ export default function ProgressPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/progress")
-      .then((r) => {
-        if (!r.ok) throw new Error("falha");
-        return r.json();
-      })
+    getProgressData()
       .then((d: ProgressResponse) => setData(d))
       .catch(() => setError(true));
   }, []);
@@ -219,31 +184,31 @@ export default function ProgressPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <header className="mb-6">
-        <Link href="/" className="text-cyan-400 hover:underline text-sm">
+        <Link href="/" className="text-accent hover:underline text-sm">
           ← Dashboard
         </Link>
         <h1 className="text-2xl font-bold mt-2">Progresso / Domínio</h1>
-        <p className="text-sm text-slate-400 mt-2">
-          <span className="text-cyan-400">Cobertura</span> = % do conteúdo já
-          estudado. <span className="text-emerald-400">Domínio</span> = % de
+        <p className="text-sm text-ink-soft mt-2">
+          <span className="text-accent">Cobertura</span> = % do conteúdo já
+          estudado. <span className="text-grade-easy">Domínio</span> = % de
           cards maduros (intervalo ≥ 21 dias).
         </p>
       </header>
 
       {error && (
-        <div className="text-center py-20 text-red-400">
+        <div className="text-center py-20 text-grade-again">
           <p className="text-lg">Erro ao carregar o progresso.</p>
         </div>
       )}
 
       {!error && !data && (
-        <div className="text-center py-20 text-slate-500">
+        <div className="text-center py-20 text-ink-soft">
           <p className="text-xl">Carregando...</p>
         </div>
       )}
 
       {!error && data && data.subjects.length === 0 && (
-        <div className="text-center py-20 text-slate-500">
+        <div className="text-center py-20 text-ink-soft">
           <p className="text-xl">Nenhuma disciplina encontrada.</p>
         </div>
       )}

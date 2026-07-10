@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query, queryOne, tx } from "@/lib/db";
 import { todayStr, startOfNextDayISO } from "@/lib/day";
 import { estimateFromNeed } from "@/lib/cycle";
+import { buildEnginePlan } from "@/lib/mpc/plan";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,21 @@ export async function GET(req: NextRequest) {
   const day = searchParams.get("date") || todayStr();
   const regenerate = searchParams.get("regenerate") === "1";
   const minutesParam = searchParams.get("minutes");
+
+  // --- Modo motor (MPC): plano decidido pelo Motor de Progressão Cognitiva. --
+  // Lado a lado com o plano clássico: NÃO persiste, retorna o mesmo formato
+  // + explicação por item ("por que isso agora?") e metadados do motor.
+  if (searchParams.get("engine") === "1") {
+    const budgetRow = (await queryOne(
+      "SELECT minutes FROM daily_budget WHERE day = $1",
+      [day]
+    )) as { minutes: number } | undefined;
+    const budget =
+      minutesParam !== null && minutesParam !== "" && !Number.isNaN(Number(minutesParam))
+        ? Number(minutesParam)
+        : budgetRow?.minutes ?? DEFAULT_BUDGET;
+    return NextResponse.json(await buildEnginePlan(budget));
+  }
 
   // --- If a plan already exists and we're not regenerating, return it. -------
   const existing = (await query(

@@ -13,6 +13,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { getProgressData, getStatsData, getStatsDifficulty, getStatsHistory, type SubjectProgress } from "@/lib/client/engine";
 
 type Stats = {
   totalCards: number;
@@ -23,22 +24,6 @@ type Stats = {
   subjects: { name: string; cardCount: number }[];
 };
 
-type TopicProgress = {
-  id: number;
-  name: string;
-  total: number;
-  novos: number;
-  vistos: number;
-  jovens: number;
-  maduros: number;
-  dueNow: number;
-  coberturaPct: number;
-  dominioPct: number;
-  acertoPct: number | null;
-  ultimoEstudo: string | null;
-  jaEstudouTudo: boolean;
-};
-type SubjectProgress = TopicProgress & { topics: TopicProgress[] };
 type ProgressResponse = { subjects: SubjectProgress[] };
 
 type DisciplineMacro = {
@@ -125,39 +110,27 @@ export default function StatsPage() {
   >([]);
 
   useEffect(() => {
-    fetch("/api/stats")
-      .then((r) => r.json())
-      .then(setStats);
-
-    fetch("/api/progress")
-      .then((r) => r.json())
-      .then((d: ProgressResponse) => setProgress(d))
-      .catch(() => {});
-
-    fetch("/api/stats/history")
-      .then((r) => r.json())
-      .then((data) => setReviewHistory(data.history || []));
-
-    fetch("/api/stats/difficulty")
-      .then((r) => r.json())
-      .then((data) => setDifficultyDist(data.distribution || []));
+    getStatsData().then(setStats);
+    getProgressData().then((d: ProgressResponse) => setProgress(d)).catch(() => {});
+    getStatsHistory().then((data) => setReviewHistory(data.history || []));
+    getStatsDifficulty().then((data) => setDifficultyDist(data.distribution || []));
   }, []);
 
   if (!stats) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-slate-400 text-xl">Carregando...</p>
+        <p className="text-ink-soft text-xl">Carregando...</p>
       </div>
     );
   }
 
-  const COLORS = ["#06b6d4", "#22c55e", "#eab308", "#ef4444", "#a855f7"];
+  const COLORS = ["#1b6e85", "#2e7d4f", "#a06b10", "#b03a2e", "#5b4a86"];
   const macro = progress ? buildMacro(progress) : null;
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <header className="mb-6">
-        <Link href="/" className="text-cyan-400 hover:underline text-sm">
+        <Link href="/" className="text-accent hover:underline text-sm">
           ← Dashboard
         </Link>
         <h1 className="text-2xl font-bold mt-2">Estatísticas</h1>
@@ -173,7 +146,7 @@ export default function StatsPage() {
 
       {macro && (
         <section className="mb-8">
-          <h2 className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-ink-soft mb-3 uppercase tracking-wider">
             Visão macro
           </h2>
 
@@ -182,31 +155,31 @@ export default function StatsPage() {
               label="Estudado"
               value={`${macro.coberturaPct}%`}
               sub={`${macro.vistos}/${macro.total} cards`}
-              color="text-cyan-400"
+              color="text-accent"
             />
             <MacroBox
               label="Dominado"
               value={`${macro.dominioPct}%`}
               sub={`${macro.maduros}/${macro.total} maduros`}
-              color="text-emerald-400"
+              color="text-grade-easy"
             />
             <MacroBox
               label="Assuntos iniciados"
               value={`${macro.topicosIniciados}/${macro.topicos}`}
               sub="tópicos tocados"
-              color="text-cyan-400"
+              color="text-accent"
             />
             <MacroBox
               label="Assuntos concluídos"
               value={`${macro.topicosConcluidos}/${macro.topicos}`}
               sub="100% vistos"
-              color="text-emerald-400"
+              color="text-grade-easy"
             />
           </div>
 
           {macro.disciplinas.length > 0 && (
-            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-              <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">
+            <div className="p-4 bg-surface rounded-xl border border-line">
+              <h3 className="text-sm font-semibold text-ink-soft mb-4 uppercase tracking-wider">
                 Progresso por disciplina
               </h3>
               <div className="space-y-4">
@@ -215,40 +188,40 @@ export default function StatsPage() {
                     <div className="flex justify-between items-baseline gap-2 mb-1.5">
                       <Link
                         href={`/progress?subject=${encodeURIComponent(d.name)}`}
-                        className="text-sm font-medium text-slate-100 hover:text-cyan-400"
+                        className="text-sm font-medium text-ink hover:text-accent"
                       >
                         {d.name}
                       </Link>
-                      <span className="text-xs text-slate-500 shrink-0">
+                      <span className="text-xs text-ink-soft shrink-0">
                         {d.topicosIniciados}/{d.topicosTotal} assuntos ·{" "}
                         {d.total} cards · acerto{" "}
                         {d.acertoPct == null ? "—" : `${d.acertoPct}%`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] text-slate-500 w-16 shrink-0">
+                      <span className="text-[11px] text-ink-soft w-16 shrink-0">
                         Cobertura
                       </span>
-                      <MacroBar pct={d.coberturaPct} color="bg-cyan-500" />
-                      <span className="text-xs text-cyan-400 w-10 text-right shrink-0">
+                      <MacroBar pct={d.coberturaPct} color="bg-accent" />
+                      <span className="text-xs text-accent w-10 text-right shrink-0">
                         {d.coberturaPct}%
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500 w-16 shrink-0">
+                      <span className="text-[11px] text-ink-soft w-16 shrink-0">
                         Domínio
                       </span>
-                      <MacroBar pct={d.dominioPct} color="bg-emerald-500" />
-                      <span className="text-xs text-emerald-400 w-10 text-right shrink-0">
+                      <MacroBar pct={d.dominioPct} color="bg-grade-easy" />
+                      <span className="text-xs text-grade-easy w-10 text-right shrink-0">
                         {d.dominioPct}%
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-slate-500 mt-4">
-                <span className="text-cyan-400">Cobertura</span> = % já estudado ·{" "}
-                <span className="text-emerald-400">Domínio</span> = % maduro (≥ 21
+              <p className="text-xs text-ink-soft mt-4">
+                <span className="text-accent">Cobertura</span> = % já estudado ·{" "}
+                <span className="text-grade-easy">Domínio</span> = % maduro (≥ 21
                 dias). Clique numa disciplina para ver tópico a tópico.
               </p>
             </div>
@@ -257,8 +230,8 @@ export default function StatsPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-          <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">
+        <div className="p-4 bg-surface rounded-xl border border-line">
+          <h3 className="text-sm font-semibold text-ink-soft mb-4 uppercase tracking-wider">
             Revisões nos últimos 14 dias
           </h3>
           {reviewHistory.length > 0 ? (
@@ -266,36 +239,36 @@ export default function StatsPage() {
               <BarChart data={reviewHistory}>
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  tick={{ fill: "#5a6b74", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  tick={{ fill: "#5a6b74", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "#1e293b",
-                    border: "1px solid #334155",
+                    background: "#f7fafb",
+                    border: "1px solid #d7dee1",
                     borderRadius: 8,
-                    color: "#f1f5f9",
+                    color: "#16262e",
                   }}
                 />
-                <Bar dataKey="count" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#1b6e85" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-slate-500 text-center py-10">
+            <p className="text-ink-soft text-center py-10">
               Nenhum dado ainda. Comece a revisar!
             </p>
           )}
         </div>
 
-        <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-          <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">
+        <div className="p-4 bg-surface rounded-xl border border-line">
+          <h3 className="text-sm font-semibold text-ink-soft mb-4 uppercase tracking-wider">
             Distribuição por dificuldade
           </h3>
           {difficultyDist.length > 0 ? (
@@ -318,16 +291,16 @@ export default function StatsPage() {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    background: "#1e293b",
-                    border: "1px solid #334155",
+                    background: "#f7fafb",
+                    border: "1px solid #d7dee1",
                     borderRadius: 8,
-                    color: "#f1f5f9",
+                    color: "#16262e",
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-slate-500 text-center py-10">
+            <p className="text-ink-soft text-center py-10">
               Revise alguns cards primeiro.
             </p>
           )}
@@ -339,8 +312,8 @@ export default function StatsPage() {
 
 function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="p-3 bg-slate-800 rounded-lg border border-slate-700 text-center">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="p-3 bg-surface rounded-lg border border-line text-center">
+      <p className="text-xs text-ink-soft">{label}</p>
       <p className="text-xl font-bold mt-1">{value}</p>
     </div>
   );
@@ -358,10 +331,10 @@ function MacroBox({
   color: string;
 }) {
   return (
-    <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="p-4 bg-surface rounded-xl border border-line">
+      <p className="text-xs text-ink-soft">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
-      <p className="text-[11px] text-slate-500 mt-0.5">{sub}</p>
+      <p className="text-[11px] text-ink-soft mt-0.5">{sub}</p>
     </div>
   );
 }
@@ -369,7 +342,7 @@ function MacroBox({
 function MacroBar({ pct, color }: { pct: number; color: string }) {
   const safe = Math.max(0, Math.min(100, pct || 0));
   return (
-    <div className="flex-1 bg-slate-700 rounded-full h-2">
+    <div className="flex-1 bg-line/60 rounded-full h-2">
       <div
         className={`${color} h-2 rounded-full transition-all`}
         style={{ width: `${safe}%` }}

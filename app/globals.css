@@ -2,25 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tema "caderno de aprovado" (DESIGN.md) — papel claro, tinta petróleo.
+   Tokens de componente ficam no tailwind.config.ts; aqui só a base. */
 @layer base {
   :root {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-card: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --accent: #06b6d4;
-    --accent-hover: #22d3ee;
-    --success: #22c55e;
-    --warning: #eab308;
-    --danger: #ef4444;
+    --bg-primary: oklch(0.985 0.004 210);
+    --bg-secondary: oklch(0.962 0.006 210);
+    --text-primary: oklch(0.24 0.03 220);
+    --text-secondary: oklch(0.42 0.025 220);
+    --line: oklch(0.88 0.008 210);
   }
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui), system-ui, -apple-system, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 ::-webkit-scrollbar {
@@ -30,6 +33,6 @@ body {
   background: var(--bg-secondary);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-card);
+  background: var(--line);
   border-radius: 3px;
 }

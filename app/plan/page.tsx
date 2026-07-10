@@ -297,7 +297,7 @@ export default function PlanPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-slate-400 text-xl">Carregando plano...</p>
+        <p className="text-ink-soft text-xl">Carregando plano...</p>
       </div>
     );
   }
@@ -305,12 +305,12 @@ export default function PlanPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <header className="mb-6">
-        <Link href="/" className="text-cyan-400 hover:underline text-sm">
+        <Link href="/" className="text-accent hover:underline text-sm">
           ← Dashboard
         </Link>
         <h1 className="text-2xl font-bold mt-2">Plano de Hoje</h1>
         {hasPlan && plan && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-slate-400">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-ink-soft">
             <span>{plan.day}</span>
             <span>·</span>
             <span>
@@ -322,7 +322,7 @@ export default function PlanPage() {
               {plan.disciplinas === 1 ? "disciplina" : "disciplinas"}
             </span>
             <span>·</span>
-            <span className="text-slate-300">
+            <span className="text-ink-soft">
               {completed}/{plan.items.length} cumpridos
             </span>
           </div>
@@ -330,9 +330,9 @@ export default function PlanPage() {
       </header>
 
       {/* Budget control */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-6 flex flex-wrap items-end gap-3">
+      <div className="bg-surface border border-line rounded-xl p-4 mb-6 flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-xs text-slate-400 mb-1">
+          <label className="block text-xs text-ink-soft mb-1">
             Minutos disponíveis hoje
           </label>
           <input
@@ -340,13 +340,13 @@ export default function PlanPage() {
             min={1}
             value={Number.isFinite(minutes) ? minutes : ""}
             onChange={(e) => setMinutes(parseInt(e.target.value, 10))}
-            className="w-28 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
+            className="w-28 bg-paper border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
           />
         </div>
         <button
           onClick={() => generatePlan(hasPlan)}
           disabled={generating}
-          className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
+          className="px-5 py-2 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg transition-colors disabled:opacity-50"
         >
           {generating
             ? "Gerando..."
@@ -357,21 +357,21 @@ export default function PlanPage() {
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/40 text-red-300 rounded-lg p-3 mb-6 text-sm">
+        <div className="bg-grade-again/10 border border-grade-again/40 text-grade-again rounded-lg p-3 mb-6 text-sm">
           {error}
         </div>
       )}
 
       {/* Empty: no plan generated yet */}
       {!hasPlan && !error && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-10 text-center">
+        <div className="bg-surface border border-line rounded-xl p-10 text-center">
           <p className="text-5xl mb-4">🗓️</p>
           <h2 className="text-xl font-semibold mb-2">
             {plan && plan.items.length === 0
               ? "Nada para estudar hoje 🎉"
               : "Nenhum plano ainda"}
           </h2>
-          <p className="text-slate-400">
+          <p className="text-ink-soft">
             {plan && plan.items.length === 0
               ? "Não há tópicos candidatos no momento."
               : "Informe quantos minutos você tem e gere o plano do dia."}
@@ -390,12 +390,12 @@ export default function PlanPage() {
               return (
                 <div
                   key={item.topicId}
-                  className={`bg-slate-800 border border-slate-700 rounded-xl p-4 ${
+                  className={`bg-surface border border-line rounded-xl p-4 ${
                     item.done ? "opacity-60" : ""
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="text-slate-500 font-mono text-sm pt-0.5 w-6 shrink-0">
+                    <div className="text-ink-soft font-mono text-sm pt-0.5 w-6 shrink-0">
                       {item.done ? "✓" : item.position}
                     </div>
 
@@ -407,7 +407,7 @@ export default function PlanPage() {
                         <KindBadge kind={item.kind} />
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-400">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-ink-soft">
                         <span>~{item.estMinutes} min</span>
                         <span>·</span>
                         <span>{item.studyCount}x estudado</span>
@@ -420,18 +420,18 @@ export default function PlanPage() {
 
                       {/* Timer / result */}
                       {running && (
-                        <div className="mt-2 text-cyan-400 font-mono text-lg">
+                        <div className="mt-2 text-accent font-mono text-lg">
                           {formatClock(st.elapsed)}
                         </div>
                       )}
                       {st.measuredMinutes !== null && (
-                        <div className="mt-2 text-sm text-green-400">
+                        <div className="mt-2 text-sm text-grade-easy">
                           Concluído
                           {st.measuredMinutes > 0
                             ? ` em ${st.measuredMinutes} min`
                             : " (sem cronômetro)"}
                           {st.nextStudy && (
-                            <span className="text-slate-400">
+                            <span className="text-ink-soft">
                               {" · "}
                               {st.nextStudy.status}
                               {st.nextStudy.due
@@ -444,7 +444,7 @@ export default function PlanPage() {
                         </div>
                       )}
                       {st.error && (
-                        <div className="mt-2 text-xs text-red-400">
+                        <div className="mt-2 text-xs text-grade-again">
                           {st.error}
                         </div>
                       )}
@@ -455,14 +455,14 @@ export default function PlanPage() {
                           {!running && (
                             <button
                               onClick={() => startSession(item)}
-                              className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg text-sm transition-colors"
+                              className="px-4 py-1.5 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg text-sm transition-colors"
                             >
                               Iniciar
                             </button>
                           )}
                           <Link
                             href={`/review?topicId=${item.topicId}`}
-                            className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors"
+                            className="px-4 py-1.5 bg-line/60 hover:bg-line/60 rounded-lg text-sm transition-colors"
                           >
                             Estudar cards
                           </Link>
@@ -470,7 +470,7 @@ export default function PlanPage() {
                             <button
                               onClick={() => finishSession(item)}
                               disabled={st.finishing}
-                              className="px-4 py-1.5 bg-green-500/20 hover:bg-green-500/40 border border-green-500/50 rounded-lg text-sm transition-colors disabled:opacity-50"
+                              className="px-4 py-1.5 bg-grade-easy/10 hover:bg-grade-easy/10 border border-grade-easy/40 rounded-lg text-sm transition-colors disabled:opacity-50"
                             >
                               {st.finishing ? "Concluindo..." : "Concluir"}
                             </button>
@@ -479,7 +479,7 @@ export default function PlanPage() {
                             <button
                               onClick={() => completeWithoutTimer(item)}
                               disabled={st.finishing}
-                              className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors disabled:opacity-50"
+                              className="px-4 py-1.5 bg-line/60 hover:bg-line/60 rounded-lg text-sm transition-colors disabled:opacity-50"
                             >
                               {st.finishing
                                 ? "Concluindo..."
@@ -502,13 +502,13 @@ export default function PlanPage() {
 function KindBadge({ kind }: { kind: Kind }) {
   if (kind === "novo") {
     return (
-      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-accent/20 text-accent border border-accent/40">
         novo
       </span>
     );
   }
   return (
-    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-grade-hard/10 text-grade-hard border border-grade-hard/40">
       revisão
     </span>
   );
@@ -531,8 +531,8 @@ function PriorityStars({
           aria-label={`Prioridade ${n}`}
           className={`text-sm leading-none transition-colors ${
             n <= value
-              ? "text-amber-400 hover:text-amber-300"
-              : "text-slate-600 hover:text-slate-400"
+              ? "text-grade-hard hover:text-grade-hard"
+              : "text-line hover:text-ink-soft"
           }`}
         >
           ★

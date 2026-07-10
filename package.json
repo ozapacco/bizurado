@@ -4,13 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run seed && npm run export:static && next build",
+    "export:static": "tsx scripts/export-static.ts",
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx lib/seed.ts",
     "db:init": "tsx scripts/db-init.ts"
   },
   "dependencies": {
+    "@mpc/domain": "file:vendor/mpc-domain-0.1.0.tgz",
+    "@mpc/engine": "file:vendor/mpc-engine-0.1.0.tgz",
     "@neondatabase/serverless": "^1.1.0",
     "next": "^14.2.0",
     "react": "^18.3.0",

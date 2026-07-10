@@ -83,3 +83,11 @@ Verificado em 2026-06-22:
 3. (Recomendado) Adicionar `APP_PASSWORD`.
 4. **Redeploy** (Deployments → Redeploy no último, ou novo push).
 5. Validar abrindo `…/api/stats` no navegador — deve retornar JSON com `totalCards` etc.
+
+
+
+
+Sistemas e dashboards: Impeccable
+Landing pages e sites impactantes: Taste Skill
+Pesquisa e criação do design system: UI UX Pro Max
+Código de produção: Frontend UI Engineering

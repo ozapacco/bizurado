@@ -59,27 +59,27 @@ export default function SearchBar() {
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
         placeholder="Buscar nos flashcards..."
-        className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+        className="w-full px-4 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder:text-ink-soft focus:outline-none focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
       />
 
       {open && results.length > 0 && (
-        <div className="absolute top-full mt-1 left-0 right-0 bg-slate-800 border border-slate-600 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50">
+        <div className="absolute top-full mt-1 left-0 right-0 bg-paper border border-line rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
           {results.map((card) => (
             <Link
               key={card.id}
               href={`/review?cardId=${card.id}`}
               onClick={() => setOpen(false)}
-              className="block p-3 border-b border-slate-700 last:border-0 hover:bg-slate-700 transition-colors"
+              className="block p-3 border-b border-line last:border-0 hover:bg-surface transition-colors"
             >
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 line-clamp-2">
+                  <p className="text-sm text-ink line-clamp-2">
                     {stripHtml(card.question)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-ink-soft mt-1">
                     {card.subjectName} &middot; {card.topicName}
                     {card.cardType === "questao" && (
-                      <span className="text-purple-400 ml-1">Questão</span>
+                      <span className="font-mono ml-1">Questão</span>
                     )}
                   </p>
                 </div>
@@ -90,7 +90,7 @@ export default function SearchBar() {
       )}
 
       {open && query.trim().length >= 2 && results.length === 0 && (
-        <div className="absolute top-full mt-1 left-0 right-0 bg-slate-800 border border-slate-600 rounded-lg p-4 text-center text-sm text-slate-500">
+        <div className="absolute top-full mt-1 left-0 right-0 bg-paper border border-line rounded-lg p-4 text-center text-sm text-ink-soft">
           Nenhum resultado para &ldquo;{query}&rdquo;
         </div>
       )}

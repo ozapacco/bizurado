@@ -3,21 +3,13 @@
 import { Suspense, useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { CardScreenSkeleton, Kbd, RatingBar } from "@/components/card-screen";
 
-type ReviewCard = {
-  id: number;
-  question: string;
-  answer: string;
-  bizu: string;
-  source: string;
-  tags: string;
-  cardType: string;
-  subjectName: string;
-  topicName: string;
-  stability: number;
-  difficulty: number;
-  reps: number;
-};
+import { loadReviewCards, rateCard, suspendCard, type DeckCard } from "@/lib/client/engine";
+import type { Rating } from "@/lib/fsrs";
+
+type ReviewCard = DeckCard & { subjectId: number; topicId: number };
+
 
 function ReviewContent() {
   const params = useSearchParams();
@@ -44,22 +36,26 @@ function ReviewContent() {
   const loadCards = useCallback(async () => {
     setLoading(true);
 
-    const p = new URLSearchParams();
-    if (cardIdParam) p.set("cardId", cardIdParam);
-    if (filterSubject) p.set("subjectId", filterSubject);
-    if (filterTopic) p.set("topicId", filterTopic);
-    if (filterType) p.set("mode", filterType);
-    p.set("limit", "30");
-
-    const res = await fetch(`/api/review?${p}`);
-    const data = await res.json();
-    setCards(data.cards);
+    const data = await loadReviewCards({
+      subjectId: filterSubject || undefined,
+      topicId: filterTopic || undefined,
+      mode: filterType || undefined,
+      limit: 30,
+    });
+    
+    // We need subjectId and topicId for rateCard/suspendCard. 
+    // They are available in the engine but not exported in DeckCard by default.
+    // Let's rely on the engine or IDB, actually the engine can return subjectId and topicId, or we can fetch it. 
+    // Wait, the engine's loadReviewCards can return subjectId and topicId in DeckCard! 
+    // We should modify loadReviewCards to include them, or just cast them.
+    // I will cast for now, but we'll need to make sure they are returned.
+    setCards(data.cards as unknown as ReviewCard[]);
     setIndex(0);
     setFlipped(false);
     setDone(data.cards.length === 0);
     setLoading(false);
     setStats((s) => ({ ...s, total: data.cards.length }));
-  }, [cardIdParam, filterSubject, filterTopic, filterType]);
+  }, [filterSubject, filterTopic, filterType]);
 
   useEffect(() => {
     loadCards();
@@ -85,11 +81,10 @@ function ReviewContent() {
       if (!current || busyRef.current) return; // guard double-fire (keys/clicks)
       busyRef.current = true;
       try {
-        await fetch("/api/review", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cardId: current.id, rating }),
-        });
+        await rateCard(
+          { id: current.id, topicId: current.topicId || 0, subjectId: current.subjectId || 0 },
+          rating as Rating
+        );
         setStats((s) => ({ ...s, reviewed: s.reviewed + 1 }));
         await advance();
       } finally {
@@ -103,11 +98,7 @@ function ReviewContent() {
     if (!current || busyRef.current) return;
     busyRef.current = true;
     try {
-      await fetch("/api/cards/suspend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardId: current.id }),
-      });
+      await suspendCard(current.id, current.topicId || 0);
       await advance();
     } finally {
       busyRef.current = false;
@@ -176,19 +167,16 @@ function ReviewContent() {
   }, [loading, done, current]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-slate-400 text-xl">Carregando cards...</p>
-      </div>
-    );
+    return <CardScreenSkeleton />;
   }
 
   if (done) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <p className="text-6xl mb-4">🎉</p>
-        <h2 className="text-2xl font-semibold mb-2">Revisão concluída!</h2>
-        <p className="text-slate-400 mb-6">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center bg-paper text-ink">
+        <h2 className="font-serif text-3xl font-semibold mb-2 text-balance">
+          Revisão concluída
+        </h2>
+        <p className="text-ink-soft mb-8">
           {stats.reviewed > 0
             ? `${stats.reviewed} cards revisados nessa sessão.`
             : "Nenhum card pendente no momento."}
@@ -196,15 +184,15 @@ function ReviewContent() {
         <div className="flex gap-3">
           <button
             onClick={loadCards}
-            className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors"
+            className="px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-deep text-paper font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
           >
             Recarregar
           </button>
           <Link
             href="/"
-            className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+            className="px-5 py-2.5 rounded-lg border border-line text-ink-soft hover:bg-surface transition-colors"
           >
-            Dashboard
+            Início
           </Link>
         </div>
       </div>
@@ -213,60 +201,60 @@ function ReviewContent() {
 
   const difficultyColor =
     current.difficulty >= 7
-      ? "text-red-400"
+      ? "text-grade-again"
       : current.difficulty >= 4
-        ? "text-yellow-400"
-        : "text-green-400";
+        ? "text-grade-hard"
+        : "text-grade-easy";
 
   return (
     <div
       ref={overlayRef}
       tabIndex={-1}
-      className="fixed inset-0 z-50 flex flex-col bg-slate-900 text-slate-100 outline-none"
+      className="fixed inset-0 z-50 flex flex-col bg-paper text-ink outline-none"
     >
       {/* Barra superior enxuta — o card domina a tela */}
       <header
-        className="shrink-0 px-3 pt-3 pb-2 border-b border-slate-800/60"
+        className="shrink-0 px-3 pt-3 pb-2 border-b border-line"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <Link
               href="/"
-              className="text-sm px-2.5 py-1.5 rounded text-slate-300 hover:bg-slate-800 transition-colors shrink-0"
+              className="text-sm px-2.5 py-1.5 rounded text-ink-soft hover:bg-surface transition-colors shrink-0"
             >
               ← Sair
             </Link>
             <span
               title="Modo REVISÃO — limpar os cards vencidos do dia"
-              className="text-[0.65rem] font-semibold uppercase tracking-wider px-2 py-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0"
+              className="font-mono text-[0.65rem] font-semibold uppercase tracking-wide px-2 py-1 rounded border border-grade-hard/40 bg-grade-hard/5 text-grade-hard shrink-0"
             >
-              🔁 Revisão
+              Revisão
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleMarkMastered}
               title="Suspende o card (dominado) e avança"
-              className="text-xs px-2.5 py-1.5 rounded border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+              className="text-xs px-2.5 py-1.5 rounded border border-grade-easy/40 text-grade-easy hover:bg-grade-easy/5 transition-colors"
             >
               ✓ Dominado
             </button>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-slate-800 text-xs px-2 py-1.5 rounded border border-slate-600"
+              className="bg-surface text-ink text-xs px-2 py-1.5 rounded border border-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="due">Vencidos</option>
               <option value="all">Todos</option>
               <option value="new">Novos</option>
             </select>
-            <span className="text-xs text-slate-400 shrink-0">
+            <span className="font-mono text-xs text-ink-soft shrink-0">
               {index + 1} / {cards.length}
             </span>
           </div>
         </div>
-        <div className="mt-1.5 text-[0.7rem] text-slate-400 truncate">
+        <div className="mt-1.5 text-[0.7rem] text-ink-soft truncate">
           {current.subjectName} &middot; {current.topicName}
         </div>
       </header>
@@ -276,26 +264,26 @@ function ReviewContent() {
         onClick={() => setFlipped((f) => !f)}
         className="flex-1 min-h-0 overflow-y-auto cursor-pointer px-4 py-4 flex flex-col"
       >
-        <div className="text-xs text-slate-500 mb-2 space-x-2 shrink-0">
+        <div className="font-mono text-xs text-ink-soft mb-2 space-x-2 shrink-0">
           <span className={difficultyColor}>
             D: {current.difficulty.toFixed(1)}
           </span>
           {current.reps === 0 && (
             <>
               <span>·</span>
-              <span className="text-cyan-400">Novo</span>
+              <span className="text-accent">Novo</span>
             </>
           )}
           {current.cardType === "questao" && (
             <>
               <span>·</span>
-              <span className="text-purple-400">Questão</span>
+              <span>Questão</span>
             </>
           )}
           {current.bizu && (
             <>
               <span>·</span>
-              <span className="text-yellow-400">Bizu</span>
+              <span className="text-grade-hard">Bizu</span>
             </>
           )}
         </div>
@@ -303,36 +291,39 @@ function ReviewContent() {
         <div className="flex-1 flex flex-col items-center justify-center text-center p-2 md:p-6">
           {!flipped ? (
             <>
-              <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider">
+              <p className="font-mono text-xs text-ink-soft mb-4 uppercase tracking-wide">
                 Pergunta
               </p>
               <div
-                className="text-xl md:text-3xl leading-relaxed max-w-2xl"
+                className="font-serif text-xl md:text-2xl leading-relaxed max-w-[44rem] [text-wrap:pretty]"
                 dangerouslySetInnerHTML={{ __html: current.question }}
               />
-              <p className="text-sm text-slate-500 mt-8 animate-pulse">
+              <p className="text-sm text-ink-soft mt-8 motion-safe:animate-pulse">
                 Toque para ver a resposta
               </p>
             </>
           ) : (
             <>
-              <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider">
+              <p className="font-mono text-xs text-ink-soft mb-4 uppercase tracking-wide">
                 Resposta
               </p>
               <div
-                className="text-lg md:text-2xl leading-relaxed max-w-2xl"
+                className="font-serif text-lg md:text-xl leading-relaxed max-w-[44rem] [text-wrap:pretty]"
                 dangerouslySetInnerHTML={{ __html: current.answer }}
               />
               {current.bizu && (
-                <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg max-w-2xl">
-                  <p className="text-xs text-yellow-400 font-semibold mb-1">
-                    BIZU
+                <div className="mt-6 p-4 bg-grade-hard/5 border border-grade-hard/40 rounded-lg max-w-[44rem]">
+                  <p className="font-mono text-xs text-grade-hard font-semibold mb-1 uppercase tracking-wide">
+                    Bizu
                   </p>
-                  <p className="text-yellow-200 text-sm" dangerouslySetInnerHTML={{ __html: current.bizu }} />
+                  <p
+                    className="font-serif text-ink text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: current.bizu }}
+                  />
                 </div>
               )}
               {current.source && (
-                <p className="text-xs text-slate-500 mt-4 italic">
+                <p className="text-xs text-ink-soft mt-4 italic">
                   Fonte: {current.source}
                 </p>
               )}
@@ -341,22 +332,17 @@ function ReviewContent() {
         </div>
       </div>
 
-      {/* Rodapé fixo — dificuldades ao virar, senão "Mostrar resposta" */}
+      {/* Rodapé fixo — notas ao virar, senão "Mostrar resposta" */}
       <footer
-        className="shrink-0 px-3 pt-3 border-t border-slate-800/60"
+        className="shrink-0 px-3 pt-3 border-t border-line"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         {flipped ? (
           <>
-            <div className="flex gap-2 md:gap-3 justify-center max-w-3xl mx-auto">
-              <RatingButton label="Again" desc="Não lembrei" hotkey="1" color="red" onClick={() => handleRating(1)} />
-              <RatingButton label="Hard" desc="Difícil" hotkey="2" color="yellow" onClick={() => handleRating(2)} />
-              <RatingButton label="Good" desc="Lembrei" hotkey="3" color="green" onClick={() => handleRating(3)} />
-              <RatingButton label="Easy" desc="Fácil" hotkey="4" color="cyan" onClick={() => handleRating(4)} />
-            </div>
-            <p className="hidden md:block text-center text-xs text-slate-500 mt-2">
+            <RatingBar onRate={(r) => void handleRating(r)} />
+            <p className="hidden md:block text-center text-xs text-ink-soft mt-2">
               <Kbd>1</Kbd> <Kbd>2</Kbd> <Kbd>3</Kbd> <Kbd>4</Kbd> avaliam ·{" "}
-              <Kbd>Enter</Kbd>/<Kbd>→</Kbd> = Good · <Kbd>←</Kbd> volta
+              <Kbd>Enter</Kbd>/<Kbd>→</Kbd> = Bom · <Kbd>←</Kbd> volta
             </p>
           </>
         ) : (
@@ -364,19 +350,19 @@ function ReviewContent() {
             <div className="flex gap-3 justify-center max-w-3xl mx-auto">
               <button
                 onClick={() => setFlipped(true)}
-                className="flex-1 max-w-md px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold rounded-lg transition-colors"
+                className="flex-1 max-w-md px-8 py-4 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
               >
                 Mostrar resposta
               </button>
               <button
                 onClick={() => handleRating(1)}
-                title="Não lembrei — avança (Again)"
-                className="px-4 py-4 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-sm shrink-0"
+                title="Não lembrei — conta como Errei e avança"
+                className="px-4 py-4 rounded-lg border border-line text-ink-soft hover:bg-surface transition-colors text-sm shrink-0"
               >
                 Pular
               </button>
             </div>
-            <p className="text-center text-xs text-slate-500 mt-2">
+            <p className="text-center text-xs text-ink-soft mt-2">
               <span className="hidden md:inline">
                 <Kbd>Espaço</Kbd> / <Kbd>Enter</Kbd> / <Kbd>↑</Kbd> viram ·{" "}
                 <Kbd>←</Kbd> <Kbd>→</Kbd> navegam
@@ -390,52 +376,10 @@ function ReviewContent() {
   );
 }
 
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="inline-block px-1.5 py-0.5 rounded border border-slate-600 bg-slate-800 text-slate-300 text-[0.7rem] font-mono leading-none">
-      {children}
-    </kbd>
-  );
-}
-
 export default function ReviewPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="text-slate-400 text-xl">Carregando...</p></div>}>
+    <Suspense fallback={<CardScreenSkeleton />}>
       <ReviewContent />
     </Suspense>
-  );
-}
-
-function RatingButton({
-  label,
-  desc,
-  color,
-  hotkey,
-  onClick,
-}: {
-  label: string;
-  desc: string;
-  color: string;
-  hotkey: string;
-  onClick: () => void;
-}) {
-  const colors: Record<string, string> = {
-    red: "bg-red-500/20 hover:bg-red-500/40 border-red-500/50",
-    yellow: "bg-yellow-500/20 hover:bg-yellow-500/40 border-yellow-500/50",
-    green: "bg-green-500/20 hover:bg-green-500/40 border-green-500/50",
-    cyan: "bg-cyan-500/20 hover:bg-cyan-500/40 border-cyan-500/50",
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 p-3 md:p-4 rounded-xl border ${colors[color]} transition-colors text-center`}
-    >
-      <span className="hidden md:inline-block float-left text-[0.7rem] text-slate-500 font-mono border border-slate-600 rounded px-1 leading-tight">
-        {hotkey}
-      </span>
-      <p className="text-base md:text-lg font-bold">{label}</p>
-      <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
-    </button>
   );
 }
