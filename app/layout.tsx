@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import SearchBar from "@/components/SearchBar";
+import SyncManager from "@/components/SyncManager";
 import { fontMono, fontSerif, fontUI } from "./fonts";
 
 export const metadata: Metadata = {
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </nav>
         <main>{children}</main>
+        <SyncManager />
       </body>
     </html>
   );
