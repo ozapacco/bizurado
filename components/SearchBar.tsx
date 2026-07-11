@@ -5,6 +5,7 @@ import Link from "next/link";
 
 type SearchResult = {
   id: number;
+  topicId: number;
   question: string;
   answer: string;
   bizu: string;
@@ -67,7 +68,7 @@ export default function SearchBar() {
           {results.map((card) => (
             <Link
               key={card.id}
-              href={`/review?cardId=${card.id}`}
+              href={`/review?cardId=${card.id}&topicId=${card.topicId}`}
               onClick={() => setOpen(false)}
               className="block p-3 border-b border-line last:border-0 hover:bg-surface transition-colors"
             >

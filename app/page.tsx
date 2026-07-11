@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+import { getStatsData } from "@/lib/client/engine";
+
 type Stats = {
   totalCards: number;
   reviewedToday: number;
   streak: number;
   accuracy: number;
   dueToday: number;
-  subjects: { id: number; name: string; cardCount: number }[];
+  subjects: { name: string; cardCount: number }[];
 };
 
 const nf = new Intl.NumberFormat("pt-BR");
@@ -17,10 +19,10 @@ const nf = new Intl.NumberFormat("pt-BR");
 export default function Home() {
   const [stats, setStats] = useState<Stats | null>(null);
 
+  // Mesma fonte de verdade das outras telas: o engine local (IndexedDB +
+  // JSONs estáticos) — o /api/stats lia o Neon e contradizia a trilha.
   useEffect(() => {
-    fetch("/api/stats")
-      .then((r) => r.json())
-      .then(setStats);
+    getStatsData().then(setStats);
   }, []);
 
   return (

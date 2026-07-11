@@ -461,7 +461,7 @@ export default function PlanPage() {
                             </button>
                           )}
                           <Link
-                            href={`/review?topicId=${item.topicId}`}
+                            href={`/study?topicId=${item.topicId}`}
                             className="px-4 py-1.5 bg-line/60 hover:bg-line/60 rounded-lg text-sm transition-colors"
                           >
                             Estudar cards

@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
   const limIdx = params.length;
 
   const sql = `
-    SELECT c.id, c.question, c.answer, c.bizu, c.tags, c.card_type as "cardType",
+    SELECT c.id, c.topic_id as "topicId", c.question, c.answer, c.bizu, c.tags,
+           c.card_type as "cardType",
            s.name as "subjectName", t.name as "topicName"
     FROM cards c
     JOIN topics t ON t.id = c.topic_id

@@ -10,6 +10,7 @@ import {
 } from "@/lib/fsrs";
 import { graduate } from "@/lib/cycle";
 import {
+  count,
   get,
   getAll,
   getAllByIndex,
@@ -105,25 +106,40 @@ function cardStateToStored(cardId: number, topicId: number, c: CardState, suspen
 }
 
 // Importa o snapshot exportado do Neon (uma vez, no primeiro uso).
+// Só marca "seeded" após importar com sucesso — falha de rede ou seed ainda
+// não publicado tentam de novo na próxima visita, nunca queimam a flag.
+// O seed apenas preenche lacunas: progresso local existente nunca é sobrescrito.
 export async function ensureSeeded(): Promise<void> {
   const done = await get<boolean>("meta", "seeded");
   if (done) return;
+  let res: Response;
   try {
-    const res = await fetch("/data/progress-seed.json");
-    if (res.ok) {
-      const seed = (await res.json()) as {
-        states: StoredState[];
-        log: LogEvent[];
-        voltas: TopicStudy[];
-      };
-      await putMany("states", seed.states);
-      await putMany("log", seed.log);
-      await putMany("topics", seed.voltas);
-    }
+    res = await fetch("/data/progress-seed.json");
   } catch {
-    /* sem seed: começa do zero */
+    return;
   }
-  await put("meta", true, "seeded");
+  if (!res.ok) return;
+  try {
+    const seed = (await res.json()) as {
+      states: StoredState[];
+      log: LogEvent[];
+      voltas: TopicStudy[];
+    };
+    const existingStates = new Set(
+      (await getAll<StoredState>("states")).map((s) => s.cardId)
+    );
+    await putMany("states", seed.states.filter((s) => !existingStates.has(s.cardId)));
+    if ((await count("log")) === 0) {
+      await putMany("log", seed.log);
+    }
+    const existingTopics = new Set(
+      (await getAll<TopicStudy>("topics")).map((t) => t.topicId)
+    );
+    await putMany("topics", seed.voltas.filter((t) => !existingTopics.has(t.topicId)));
+    await put("meta", true, "seeded");
+  } catch {
+    /* seed inválido: não marca, tenta de novo */
+  }
 }
 
 export async function loadDeck(topicId: number): Promise<{
@@ -183,68 +199,109 @@ export async function loadDeck(topicId: number): Promise<{
   };
 }
 
+type RawDeck = {
+  topicId: number;
+  topicName: string;
+  subjectId: number;
+  subjectName: string;
+  cards: any[];
+};
+
+async function fetchDeck(topicId: number): Promise<RawDeck | null> {
+  try {
+    const res = await fetch(`/data/decks/${topicId}.json`);
+    if (!res.ok) return null;
+    return (await res.json()) as RawDeck;
+  } catch {
+    return null;
+  }
+}
+
+function toDeckCard(
+  c: any,
+  deck: RawDeck,
+  s: StoredState | undefined,
+  boundary: string
+): DeckCard {
+  const reps = s?.reps ?? 0;
+  const scheduledDays = s?.scheduledDays ?? 0;
+  const due = s?.due ?? "";
+  const rapido = reps > 0 && scheduledDays >= MATURE_DAYS && due >= boundary;
+  return {
+    ...c,
+    subjectName: deck.subjectName,
+    topicName: deck.topicName,
+    subjectId: deck.subjectId,
+    topicId: deck.topicId,
+    stability: s?.stability ?? 0,
+    difficulty: s?.difficulty ?? 0,
+    scheduledDays,
+    reps,
+    lapses: s?.lapses ?? 0,
+    state: s?.state ?? "new",
+    mode: rapido ? "rapido" : "normal",
+  };
+}
+
+// Um card conta como "tocado" quando saiu do estado FSRS "new" — inclui os em
+// learning/relearning (reps ainda 0). Filtrar por reps > 0 escondia esses
+// cards de todas as filas: eles venciam em minutos e nunca mais apareciam.
+function isTouched(s: StoredState): boolean {
+  return s.state !== "new";
+}
+
 export async function loadReviewCards(opts: {
   subjectId?: string;
   topicId?: string;
   mode?: string; // "due" | "all" | "new"
   limit?: number;
+  cardId?: string;
 }): Promise<{ cards: DeckCard[] }> {
   await ensureSeeded();
-  const states = await getAll<StoredState>("states");
   const boundary = startOfNextDayISO();
   const mode = opts.mode || "due";
   const limit = opts.limit || 30;
+  const index = await getIndex();
 
-  const [index] = await Promise.all([getIndex()]);
-  const subjectsMap = new Map(index.subjects.map((s) => [String(s.id), s]));
-  const topicsMap = new Map(
-    index.subjects.flatMap((s) => s.topics.map((t) => [String(t.id), t]))
+  // Card único (vindo da busca): carrega o deck dele e devolve só o card.
+  if (opts.cardId && opts.topicId) {
+    const deck = await fetchDeck(Number(opts.topicId));
+    const c = deck?.cards.find((c) => c.id === Number(opts.cardId));
+    if (!deck || !c) return { cards: [] };
+    const s = await get<StoredState>("states", Number(opts.cardId));
+    return { cards: [toDeckCard(c, deck, s, boundary)] };
+  }
+
+  // Escopo de tópicos conforme os filtros (null = sem filtro).
+  let scope: Set<number> | null = null;
+  if (opts.topicId) {
+    scope = new Set([Number(opts.topicId)]);
+  } else if (opts.subjectId) {
+    const subj =
+      index.subjects.find((s) => String(s.id) === opts.subjectId) ||
+      index.subjects.find((s) => s.name === opts.subjectId);
+    scope = new Set(subj ? subj.topics.map((t) => t.id) : []);
+  }
+
+  const states = await getAll<StoredState>("states");
+  const active = states.filter(
+    (s) => s.suspended === 0 && (!scope || scope.has(s.topicId))
   );
 
-  let filtered = states.filter((s) => s.suspended === 0);
-
-  if (opts.topicId) {
-    filtered = filtered.filter((s) => String(s.topicId) === opts.topicId);
-  } else if (opts.subjectId) {
-    const s = subjectsMap.get(opts.subjectId) || index.subjects.find(s => s.name === opts.subjectId);
-    if (s) {
-      const topicIds = new Set(s.topics.map((t) => t.id));
-      filtered = filtered.filter((s) => topicIds.has(s.topicId));
-    }
-  }
-
+  // Cards com estado: vencidos ("due") ou todos os tocados ("all").
+  let filtered: StoredState[] = [];
   if (mode === "due") {
-    filtered = filtered.filter((s) => s.due < boundary && s.reps > 0);
-  } else if (mode === "new") {
-    filtered = filtered.filter((s) => s.reps === 0);
+    filtered = active.filter((s) => isTouched(s) && s.due < boundary);
+  } else if (mode === "all") {
+    filtered = active.filter(isTouched);
   }
 
-  // FSRS always schedules due dates, we sort by due ascending
   filtered.sort((a, b) => (a.due < b.due ? -1 : 1));
   filtered = filtered.slice(0, limit);
 
-  if (filtered.length === 0) return { cards: [] };
-
+  const deckMap = new Map<number, RawDeck>();
   const topicsToFetch = [...new Set(filtered.map((s) => s.topicId))];
-  const fetchedDecks = await Promise.all(
-    topicsToFetch.map(async (tId) => {
-      try {
-        const res = await fetch(`/data/decks/${tId}.json`);
-        if (!res.ok) return null;
-        return (await res.json()) as {
-          topicId: number;
-          topicName: string;
-          subjectId: number;
-          subjectName: string;
-          cards: any[];
-        };
-      } catch {
-        return null;
-      }
-    })
-  );
-
-  const deckMap = new Map();
+  const fetchedDecks = await Promise.all(topicsToFetch.map(fetchDeck));
   for (const d of fetchedDecks) {
     if (d) deckMap.set(d.topicId, d);
   }
@@ -255,26 +312,28 @@ export async function loadReviewCards(opts: {
     if (!deck) continue;
     const c = deck.cards.find((c: any) => c.id === s.cardId);
     if (!c) continue;
+    cards.push(toDeckCard(c, deck, s, boundary));
+  }
 
-    const reps = s.reps;
-    const scheduledDays = s.scheduledDays;
-    const due = s.due;
-    const rapido = reps > 0 && scheduledDays >= MATURE_DAYS && due >= boundary;
-
-    cards.push({
-      ...c,
-      subjectName: deck.subjectName,
-      topicName: deck.topicName,
-      subjectId: deck.subjectId,
-      topicId: deck.topicId,
-      stability: s.stability,
-      difficulty: s.difficulty,
-      scheduledDays,
-      reps,
-      lapses: s.lapses,
-      state: s.state,
-      mode: rapido ? "rapido" : "normal",
-    });
+  // Cards sem registro no IndexedDB (nunca tocados) só existem nos decks
+  // estáticos — para "new"/"all", completa a fila buscando deck a deck.
+  if ((mode === "new" || mode === "all") && cards.length < limit) {
+    const known = new Set(states.map((s) => s.cardId));
+    for (const subj of index.subjects) {
+      if (cards.length >= limit) break;
+      for (const t of subj.topics) {
+        if (cards.length >= limit) break;
+        if (scope && !scope.has(t.id)) continue;
+        const deck = deckMap.get(t.id) ?? (await fetchDeck(t.id));
+        if (!deck) continue;
+        deckMap.set(t.id, deck);
+        for (const c of deck.cards) {
+          if (cards.length >= limit) break;
+          if (known.has(c.id)) continue;
+          cards.push(toDeckCard(c, deck, undefined, boundary));
+        }
+      }
+    }
   }
 
   return { cards };
@@ -359,10 +418,10 @@ export async function nextDeck(excludeTopicId?: number): Promise<{
     getAll<TopicStudy>("topics"),
   ]);
 
-  // cards tocados (reps>0) ou suspensos por tópico
+  // cards tocados (saíram de "new") ou suspensos por tópico
   const touched = new Map<number, number>();
   for (const s of states) {
-    if (s.reps > 0 || s.suspended === 1) {
+    if (isTouched(s) || s.suspended === 1) {
       touched.set(s.topicId, (touched.get(s.topicId) ?? 0) + 1);
     }
   }
@@ -502,16 +561,16 @@ export async function getCycleData(): Promise<CycleData> {
   const DOMINIO_C3 = 80;
 
   // Aggregations per topic
-  const touchedCount = new Map<number, number>(); // reps > 0 or suspended=1
+  const touchedCount = new Map<number, number>(); // tocado (saiu de "new") or suspended=1
   const dominioCount = new Map<number, number>(); // scheduledDays >= MATURE_DAYS or suspended=1
-  const dueCount = new Map<number, number>();     // reps > 0 and due < boundary and suspended=0
+  const dueCount = new Map<number, number>();     // tocado and due < boundary and suspended=0
 
   for (const s of states) {
-    const isTouched = s.reps > 0 || s.suspended === 1;
+    const touched = isTouched(s) || s.suspended === 1;
     const isDominio = s.scheduledDays >= MATURE_DAYS || s.suspended === 1;
-    const isDue = s.reps > 0 && s.due < boundary && s.suspended === 0;
+    const isDue = isTouched(s) && s.due < boundary && s.suspended === 0;
 
-    if (isTouched) touchedCount.set(s.topicId, (touchedCount.get(s.topicId) ?? 0) + 1);
+    if (touched) touchedCount.set(s.topicId, (touchedCount.get(s.topicId) ?? 0) + 1);
     if (isDominio) dominioCount.set(s.topicId, (dominioCount.get(s.topicId) ?? 0) + 1);
     if (isDue) dueCount.set(s.topicId, (dueCount.get(s.topicId) ?? 0) + 1);
   }
@@ -725,10 +784,10 @@ export async function getProgressData(): Promise<{ subjects: SubjectProgress[] }
   }>();
 
   for (const s of states) {
-    const isVisto = s.reps > 0;
-    const isJovem = s.reps > 0 && s.scheduledDays < MATURE_DAYS;
+    const isVisto = isTouched(s);
+    const isJovem = isTouched(s) && s.scheduledDays < MATURE_DAYS;
     const isMaduro = s.scheduledDays >= MATURE_DAYS;
-    const isDue = s.due !== null && s.due < dueBoundary && s.suspended === 0;
+    const isDue = isTouched(s) && s.due < dueBoundary && s.suspended === 0;
 
     const cur = counts.get(s.topicId) ?? { vistos: 0, jovens: 0, maduros: 0, dueNow: 0 };
     if (isVisto) cur.vistos++;
@@ -863,7 +922,7 @@ export async function getStatsData() {
 
   let dueToday = 0;
   for (const s of states) {
-    if (s.due !== null && s.due < nextDayIso && s.suspended === 0) {
+    if (isTouched(s) && s.due < nextDayIso && s.suspended === 0) {
       dueToday++;
     }
   }
@@ -1099,8 +1158,8 @@ export async function getSubjectTopics(subjectName: string): Promise<{ subject: 
   let totalDue = 0;
 
   for (const s of states) {
-    const isDue = s.reps > 0 && s.due !== null && s.due < boundary && s.suspended === 0;
-    const isNovo = s.reps === 0;
+    const isDue = isTouched(s) && s.due !== null && s.due < boundary && s.suspended === 0;
+    const isNovo = !isTouched(s);
     const isMaduro = s.scheduledDays >= MATURE_DAYS;
 
     if (isDue) {

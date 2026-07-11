@@ -8,12 +8,9 @@ import { CardScreenSkeleton, Kbd, RatingBar } from "@/components/card-screen";
 import { loadReviewCards, rateCard, suspendCard, type DeckCard } from "@/lib/client/engine";
 import type { Rating } from "@/lib/fsrs";
 
-type ReviewCard = DeckCard & { subjectId: number; topicId: number };
-
-
 function ReviewContent() {
   const params = useSearchParams();
-  const [cards, setCards] = useState<ReviewCard[]>([]);
+  const [cards, setCards] = useState<DeckCard[]>([]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -21,8 +18,9 @@ function ReviewContent() {
   const [filterSubject, setFilterSubject] = useState(params.get("subjectId") || "");
   const [filterTopic, setFilterTopic] = useState(params.get("topicId") || "");
   const [filterType, setFilterType] = useState(params.get("mode") || "due");
+  // Card único vindo da busca — solto quando o usuário troca o filtro.
+  const [filterCard, setFilterCard] = useState(params.get("cardId") || "");
   const [stats, setStats] = useState({ total: 0, reviewed: 0 });
-  const cardIdParam = params.get("cardId");
 
   const current = cards[index];
 
@@ -40,22 +38,17 @@ function ReviewContent() {
       subjectId: filterSubject || undefined,
       topicId: filterTopic || undefined,
       mode: filterType || undefined,
+      cardId: filterCard || undefined,
       limit: 30,
     });
-    
-    // We need subjectId and topicId for rateCard/suspendCard. 
-    // They are available in the engine but not exported in DeckCard by default.
-    // Let's rely on the engine or IDB, actually the engine can return subjectId and topicId, or we can fetch it. 
-    // Wait, the engine's loadReviewCards can return subjectId and topicId in DeckCard! 
-    // We should modify loadReviewCards to include them, or just cast them.
-    // I will cast for now, but we'll need to make sure they are returned.
-    setCards(data.cards as unknown as ReviewCard[]);
+
+    setCards(data.cards);
     setIndex(0);
     setFlipped(false);
     setDone(data.cards.length === 0);
     setLoading(false);
     setStats((s) => ({ ...s, total: data.cards.length }));
-  }, [filterSubject, filterTopic, filterType]);
+  }, [filterSubject, filterTopic, filterType, filterCard]);
 
   useEffect(() => {
     loadCards();
@@ -65,10 +58,13 @@ function ReviewContent() {
     if (index + 1 < cards.length) {
       setIndex(index + 1);
       setFlipped(false);
+    } else if (filterCard) {
+      // Card único avaliado: solta o pin — o efeito recarrega a fila normal.
+      setFilterCard("");
     } else {
       await loadCards();
     }
-  }, [index, cards.length, loadCards]);
+  }, [index, cards.length, filterCard, loadCards]);
 
   // Step back one card to review it again (no rating is undone).
   const goPrev = useCallback(() => {
@@ -242,7 +238,10 @@ function ReviewContent() {
             </button>
             <select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
+              onChange={(e) => {
+                setFilterCard("");
+                setFilterType(e.target.value);
+              }}
               className="bg-surface text-ink text-xs px-2 py-1.5 rounded border border-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="due">Vencidos</option>
@@ -268,10 +267,16 @@ function ReviewContent() {
           <span className={difficultyColor}>
             D: {current.difficulty.toFixed(1)}
           </span>
-          {current.reps === 0 && (
+          {current.state === "new" && (
             <>
               <span>·</span>
               <span className="text-accent">Novo</span>
+            </>
+          )}
+          {(current.state === "learning" || current.state === "relearning") && (
+            <>
+              <span>·</span>
+              <span className="text-grade-hard">Aprendendo</span>
             </>
           )}
           {current.cardType === "questao" && (
