@@ -163,9 +163,11 @@ export function schedule(state: CardState, rating: Rating, now: Date = new Date(
   // ---- NEW / LEARNING ----
   if (currentState === "new" || currentState === "learning") {
     const isFirstTouch = currentState === "new";
-    // Initialize S/D on the first touch of a brand-new card.
-    let s = isFirstTouch ? initStability(1) : state.stability;
-    let d = isFirstTouch ? initDifficulty(1) : state.difficulty;
+    // Initialize S/D on the first touch from the ACTUAL first rating (FSRS S0/D0).
+    // Hardcoding rating 1 here gave every card the "Again" stability (0.4d),
+    // so even cards answered "Good" graduated with 1-day intervals.
+    let s = isFirstTouch ? initStability(rating) : state.stability;
+    let d = isFirstTouch ? initDifficulty(rating) : state.difficulty;
 
     if (rating === 1) {
       // Again -> stay/enter learning at step 0.
@@ -215,9 +217,9 @@ export function schedule(state: CardState, rating: Rating, now: Date = new Date(
     // Good (rating === 3) -> advance step, maybe graduate.
     const nextStep = base.learning_step + 1;
     if (nextStep >= LEARNING_STEPS_MIN.length) {
-      // Graduate to review.
+      // Graduate to review, carrying the S/D accumulated during learning.
       const gradS = isFirstTouch ? initStability(3) : s;
-      const gradD = initDifficulty(3);
+      const gradD = isFirstTouch ? initDifficulty(3) : d;
       const days = nextIntervalDays(gradS);
       return finalizeReview({
         ...base,
@@ -314,6 +316,20 @@ export function schedule(state: CardState, rating: Rating, now: Date = new Date(
     scheduled_days: days,
     due: addDays(now, days),
   });
+}
+
+/**
+ * Current recall probability (retrievability) of a card, per the FSRS
+ * forgetting curve. Null while the card has no review history.
+ */
+export function retrievabilityAt(
+  stability: number,
+  lastReview: string | null,
+  now: Date = new Date()
+): number | null {
+  if (!lastReview || stability <= 0) return null;
+  const t = Math.max(0, (now.getTime() - new Date(lastReview).getTime()) / MS_PER_DAY);
+  return retrievability(t, stability);
 }
 
 export function getNextReviewInterval(state: CardState): number {

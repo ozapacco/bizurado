@@ -267,6 +267,23 @@ function ReviewContent() {
           <span className={difficultyColor}>
             D: {current.difficulty.toFixed(1)}
           </span>
+          {current.retrievability !== null && (
+            <>
+              <span>·</span>
+              <span
+                title="Probabilidade de você ainda lembrar (curva FSRS)"
+                className={
+                  current.retrievability >= 0.8
+                    ? "text-grade-easy"
+                    : current.retrievability >= 0.5
+                      ? "text-grade-hard"
+                      : "text-grade-again"
+                }
+              >
+                R: {Math.round(current.retrievability * 100)}%
+              </span>
+            </>
+          )}
           {current.state === "new" && (
             <>
               <span>·</span>

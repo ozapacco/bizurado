@@ -4,6 +4,7 @@
 // Conteúdo vem dos JSONs estáticos (public/data); estado vive no IndexedDB.
 import {
   createInitialState,
+  retrievabilityAt,
   schedule,
   type CardState,
   type Rating,
@@ -47,6 +48,8 @@ export type DeckCard = {
   lapses: number;
   state: string;
   mode: "rapido" | "normal";
+  // Probabilidade atual de lembrar (curva FSRS); null para card nunca visto.
+  retrievability: number | null;
 };
 
 let indexCache: ContentIndex | null = null;
@@ -183,6 +186,7 @@ export async function loadDeck(topicId: number): Promise<{
         lapses: s?.lapses ?? 0,
         state: s?.state ?? "new",
         mode: rapido ? "rapido" : "normal",
+        retrievability: s ? retrievabilityAt(s.stability, s.lastReview) : null,
       };
     });
 
@@ -240,6 +244,7 @@ function toDeckCard(
     lapses: s?.lapses ?? 0,
     state: s?.state ?? "new",
     mode: rapido ? "rapido" : "normal",
+    retrievability: s ? retrievabilityAt(s.stability, s.lastReview) : null,
   };
 }
 
@@ -296,7 +301,18 @@ export async function loadReviewCards(opts: {
     filtered = active.filter(isTouched);
   }
 
-  filtered.sort((a, b) => (a.due < b.due ? -1 : 1));
+  // Triagem de backlog: vencidos saem por retrievability DECRESCENTE — primeiro
+  // os que você ainda deve lembrar (salvá-los custa segundos e impede que
+  // decaiam); os já esquecidos custam a mesma reaprendizagem hoje ou depois.
+  // (Estratégia recomendada pelo autor do FSRS para liquidar filas represadas.)
+  if (mode === "due") {
+    const risk = new Map(
+      filtered.map((s) => [s.cardId, retrievabilityAt(s.stability, s.lastReview) ?? 0])
+    );
+    filtered.sort((a, b) => risk.get(b.cardId)! - risk.get(a.cardId)!);
+  } else {
+    filtered.sort((a, b) => (a.due < b.due ? -1 : 1));
+  }
   filtered = filtered.slice(0, limit);
 
   const deckMap = new Map<number, RawDeck>();
