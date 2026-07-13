@@ -1242,20 +1242,32 @@ export async function syncWithNeon(): Promise<boolean> {
   }
 }
 
+// Sobrescreve o progresso local com o backup do Neon. Empurra a fila pendente
+// antes, para não perder nada; depois substitui states/log/topics por inteiro
+// (o log tem chave autoincremento — sem limpar antes, restaurar duplicaria).
+// A API /api/sync/down já responde no formato das stores (camelCase).
 export async function restoreFromNeon(): Promise<boolean> {
   try {
+    await syncWithNeon();
     const res = await fetch("/api/sync/down");
     if (!res.ok) return false;
-    const data = await res.json();
-    
-    // Sobrescreve local
-    await putMany("states", data.states.map((s: any) => cardStateToStored(s.cardId, s.topicId, s, s.suspended)));
+    const data = (await res.json()) as {
+      states: StoredState[];
+      log: LogEvent[];
+      voltas: TopicStudy[];
+    };
+
+    await clearStore("states");
+    await clearStore("log");
+    await clearStore("topics");
+    await putMany("states", data.states);
     await putMany("log", data.log);
     await putMany("topics", data.voltas);
-    
+    await put("meta", true, "seeded");
+
     // Limpa a queue pois estamos 100% sincados
     await clearStore("queue");
-    
+
     return true;
   } catch (err) {
     console.error("Erro no restore:", err);

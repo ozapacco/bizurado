@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { getStatsData } from "@/lib/client/engine";
+import { getStatsData, restoreFromNeon } from "@/lib/client/engine";
 
 type Stats = {
   totalCards: number;
@@ -111,7 +111,7 @@ export default function Home() {
             </ul>
           </section>
 
-          <section className="text-center text-sm pb-10">
+          <section className="text-center text-sm pb-10 space-x-6">
             <button
               onClick={async () => {
                 const btn = document.activeElement as HTMLButtonElement;
@@ -128,6 +128,30 @@ export default function Home() {
               className="text-ink-soft hover:text-accent underline underline-offset-4 bg-transparent cursor-pointer transition-colors"
             >
               Reimportar arquivos
+            </button>
+            <button
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    "Substituir o progresso deste navegador pelo backup da nuvem (Neon)? O que estiver pendente de sync é enviado antes."
+                  )
+                )
+                  return;
+                const btn = document.activeElement as HTMLButtonElement;
+                btn.disabled = true;
+                btn.textContent = "Restaurando...";
+                const ok = await restoreFromNeon();
+                if (ok) {
+                  window.location.reload();
+                } else {
+                  btn.disabled = false;
+                  btn.textContent = "Restaurar progresso da nuvem";
+                  window.alert("Não foi possível restaurar. Tente de novo.");
+                }
+              }}
+              className="text-ink-soft hover:text-accent underline underline-offset-4 bg-transparent cursor-pointer transition-colors"
+            >
+              Restaurar progresso da nuvem
             </button>
           </section>
         </>
