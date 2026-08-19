@@ -1,9 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-import { getStatsData, restoreFromNeon } from "@/lib/client/engine";
+import { useDb } from "@/lib/preparation/useDb";
+import {
+  getCurrentSubject,
+  getNextSubjects,
+  getPlanId,
+  getCurrentLayer,
+  advanceToNextLayer,
+} from "@/lib/preparation/cycle";
+import { evaluateLayer, getTopicsForSubjectInLayer } from "@/lib/preparation/layerEngine";
+import { getSessionProtocol, getSuggestedRebalance } from "@/lib/preparation/sessionEngine";
+import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
+import { saveDb } from "@/lib/preparation/db";
+import { getStatsData } from "@/lib/client/engine";
+import { Settings, Play, CheckCircle2, ChevronRight, Clock, Target, BookOpen, AlertTriangle } from "lucide-react";
 
 type Stats = {
   totalCards: number;
@@ -11,150 +24,356 @@ type Stats = {
   streak: number;
   accuracy: number;
   dueToday: number;
-  subjects: { name: string; cardCount: number }[];
 };
 
-const nf = new Intl.NumberFormat("pt-BR");
-
 export default function Home() {
+  const db = useDb();
+  const router = useRouter();
+  const planId = getPlanId();
+  const plan = db.studyPlans.find((p) => p.id === planId);
+  const currentSubject = getCurrentSubject();
+  const nextSubjects = getNextSubjects(3);
+  const consolidated = buildConsolidatedPlan(db);
+
+  const [isRebalanceModalOpen, setIsRebalanceModalOpen] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
 
-  // Mesma fonte de verdade das outras telas: o engine local (IndexedDB +
-  // JSONs estáticos) — o /api/stats lia o Neon e contradizia a trilha.
   useEffect(() => {
-    getStatsData().then(setStats);
+    getStatsData().then((res) => {
+      setStats(res as unknown as Stats);
+    });
   }, []);
 
+  if (!plan) return <div className="p-6 text-slate-500 font-sans">Carregando...</div>;
+
+  const currentLayer = getCurrentLayer();
+  const layerState = evaluateLayer(db);
+  const isReadyToTransition = layerState.status === "READY_TO_TRANSITION";
+
+  const rebalanceSuggestions = isReadyToTransition ? getSuggestedRebalance(db) : {};
+
+  const handleStartTransition = () => {
+    setIsRebalanceModalOpen(true);
+  };
+
+  const handleConfirmTransition = () => {
+    Object.keys(rebalanceSuggestions).forEach((subId) => {
+      const sub = db.subjects.find((s) => s.id === subId);
+      if (sub) {
+        sub.block_minutes = rebalanceSuggestions[subId].new;
+        const rs = db.subjectRoundStates.find((r) => r.subject_id === sub.id);
+        if (rs) {
+          rs.planned_minutes = sub.block_minutes;
+          rs.remaining_minutes = sub.block_minutes;
+        }
+      }
+    });
+    saveDb({ ...db });
+    advanceToNextLayer();
+    setIsRebalanceModalOpen(false);
+  };
+
+  const roundState = currentSubject
+    ? db.subjectRoundStates.find((rs) => rs.subject_id === currentSubject.id)
+    : null;
+  const activeTopics = currentSubject
+    ? getTopicsForSubjectInLayer(db, currentSubject.id, currentLayer)
+    : [];
+  const protocol = currentSubject
+    ? getSessionProtocol(db, currentSubject.id, currentLayer)
+    : null;
+
+  // Find coverage count for active topic
+  const activeTopic = activeTopics.length > 0 ? activeTopics[0] : null;
+  const topicConsolidated = activeTopic
+    ? consolidated.topics.find(
+        (t) => t.canonical_topic_id === activeTopic.id || t.name === activeTopic.name
+      )
+    : null;
+
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      {!stats && (
-        <div aria-busy="true" aria-label="Carregando seu estudo" className="py-10 space-y-6">
-          <div className="h-10 w-3/4 rounded bg-line/60 motion-safe:animate-pulse" />
-          <div className="h-12 w-56 rounded-lg bg-line/60 motion-safe:animate-pulse" />
-          <div className="h-4 w-2/3 rounded bg-line/60 motion-safe:animate-pulse" />
-          <div className="space-y-2 pt-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 rounded bg-line/60 motion-safe:animate-pulse" />
-            ))}
+    <div className="max-w-xl mx-auto space-y-10 font-sans pb-12">
+      <header className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">HOJE</h1>
+          <div className="text-slate-500 mt-1 text-sm flex items-center space-x-2">
+            <span>Seu ciclo diário</span>
+            {consolidated.goal_names.length > 0 && (
+              <>
+                <span>•</span>
+                <span className="font-medium text-teal-700 truncate max-w-[250px]">
+                  {consolidated.goal_names.join(" + ")}
+                </span>
+              </>
+            )}
           </div>
         </div>
-      )}
+        <Link
+          href="/configuracoes"
+          className="p-2 text-slate-400 hover:text-slate-700 bg-slate-50 rounded-full transition-colors border border-slate-100"
+        >
+          <Settings className="w-5 h-5" />
+        </Link>
+      </header>
 
-      {stats && stats.totalCards === 0 && (
-        <div className="text-center py-20">
-          <h2 className="font-serif text-2xl font-semibold mb-2">
-            Nenhum flashcard encontrado
-          </h2>
-          <p className="text-ink-soft mb-6">
-            Seus arquivos .txt ainda não foram importados.
-          </p>
-          <button
-            onClick={async () => {
-              const res = await fetch("/api/parse", { method: "POST" });
-              if (res.ok) window.location.reload();
-            }}
-            className="px-6 py-3 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-          >
-            Importar flashcards dos .txt
-          </button>
-        </div>
-      )}
-
+      {/* FLASHCARDS INTEGRATION SUMMARY */}
       {stats && stats.totalCards > 0 && (
-        <>
-          {/* O dia de hoje — a única decisão desta tela é "continuar" */}
-          <section className="py-10 border-b border-line">
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold leading-tight max-w-[24ch]">
-              {stats.dueToday > 0 ? (
-                <>
-                  {nf.format(stats.dueToday)} cards esperando revisão hoje.
-                </>
-              ) : (
-                <>Nada vencido. Hora de avançar na trilha.</>
-              )}
-            </h1>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <Link
-                href="/cycle"
-                className="px-6 py-3 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-              >
-                Continuar a trilha →
-              </Link>
-              <Link href="/plan" className="text-accent hover:text-accent-deep text-sm font-medium transition-colors">
-                Ver o plano de hoje
-              </Link>
+        <section className="bg-slate-50 rounded-xl p-5 border border-slate-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Revisão Espaçada</h2>
+              <div className="text-lg font-bold text-slate-900">
+                {stats.dueToday > 0 ? (
+                  <span className="text-amber-700 font-semibold">{stats.dueToday} flashcards aguardando hoje</span>
+                ) : (
+                  <span className="text-slate-700">Tudo revisado por aqui!</span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                {stats.totalCards} cards ativos · streak de {stats.streak} {stats.streak === 1 ? "dia" : "dias"}
+              </p>
             </div>
-            <p className="font-mono text-xs text-ink-soft mt-6">
-              {nf.format(stats.totalCards)} cards · {nf.format(stats.reviewedToday)}{" "}
-              revisados hoje · {stats.streak}{" "}
-              {stats.streak === 1 ? "dia seguido" : "dias seguidos"}
-            </p>
-          </section>
+            {stats.dueToday > 0 && (
+              <Link
+                href="/review"
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition-colors shadow-sm"
+              >
+                REVISAR AGORA
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
 
-          {/* Disciplinas — lista de caderno, não grid de cards */}
-          <section className="py-8">
-            <h2 className="font-serif text-lg font-semibold mb-3">Disciplinas</h2>
-            <ul className="divide-y divide-line border-y border-line">
-              {stats.subjects.map((s) => (
-                <li key={s.name}>
-                  <Link
-                    href={`/subjects?name=${encodeURIComponent(s.name)}`}
-                    className="flex items-baseline justify-between gap-4 py-3 px-2 -mx-2 hover:bg-surface transition-colors"
-                  >
-                    <span className="font-medium">{s.name}</span>
-                    <span className="font-mono text-xs text-ink-soft shrink-0">
-                      {nf.format(s.cardCount)} cards
+      <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="flex justify-between items-center mb-4 relative z-10">
+          <div>
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Status Geral</h2>
+            <div className="text-lg font-bold text-slate-900 mt-1">Camada {currentLayer}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-teal-600 tracking-tighter">{layerState.progress}%</div>
+          </div>
+        </div>
+
+        {isReadyToTransition ? (
+          <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mt-4 relative z-10">
+            <div className="flex items-start">
+              <CheckCircle2 className="w-5 h-5 text-teal-600 mr-3 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-bold text-teal-900">Camada concluída</h3>
+                <p className="text-sm text-teal-800 mt-1 mb-3">Você cumpriu os requisitos pedagógicos desta etapa.</p>
+                <button
+                  onClick={handleStartTransition}
+                  className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded font-bold text-sm transition-colors"
+                >
+                  INICIAR CAMADA {currentLayer + 1}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 pt-4 border-t border-slate-100 relative z-10 text-sm">
+            <div className="font-medium text-slate-800 mb-2">Status da camada:</div>
+            <p className="text-slate-600 mb-2">{layerState.explanation}</p>
+            {layerState.missing_requirements.length > 0 && (
+              <ul className="space-y-1">
+                {layerState.missing_requirements.map((req, idx) => (
+                  <li key={idx} className="flex items-start text-slate-600">
+                    <span className="text-teal-600 mr-2 font-bold">•</span> {req}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">AGORA</h2>
+        {!currentSubject ? (
+          <div className="max-w-xl mx-auto py-8 text-center bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <h1 className="text-xl font-bold tracking-tight">Todas as matérias desta camada foram concluídas!</h1>
+            <p className="text-slate-600 text-sm">A fila aguarda o início da próxima camada.</p>
+            {isReadyToTransition && (
+              <button
+                onClick={handleStartTransition}
+                className="inline-block bg-teal-700 hover:bg-teal-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              >
+                INICIAR CAMADA {currentLayer + 1}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white border-2 border-slate-900 rounded-2xl p-6 shadow-md relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <div className="text-3xl font-bold text-slate-900 tracking-tight leading-none mb-2">
+                  {currentSubject.name}
+                </div>
+                <div className="text-slate-600 font-medium text-lg flex items-center flex-wrap gap-2">
+                  <span>{activeTopic ? activeTopic.name : "Revisão Geral"}</span>
+                  {topicConsolidated && topicConsolidated.coverage_count > 1 && (
+                    <span className="inline-flex items-center text-xs font-bold bg-teal-50 text-teal-800 px-2 py-0.5 rounded border border-teal-200">
+                      <Target className="w-3 h-3 mr-1" />
+                      Cai em {topicConsolidated.coverage_count} dos seus objetivos
                     </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+                  )}
+                </div>
+                <div className="text-sm font-bold text-teal-700 uppercase tracking-wider mt-2">
+                  Camada {currentLayer} · {protocol?.title}
+                </div>
+              </div>
+              {roundState && (
+                <div className="flex items-center text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full font-medium text-sm">
+                  <Clock className="w-4 h-4 mr-1.5" />
+                  {roundState.remaining_minutes} min
+                </div>
+              )}
+            </div>
 
-          <section className="text-center text-sm pb-10 space-x-6">
+            <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 mb-6">
+              <div className="mb-4">
+                <div className="font-bold text-slate-800 mb-2">FAÇA:</div>
+                <ul className="space-y-3">
+                  {protocol?.action_list.map((act, i) => (
+                    <li key={i} className="flex items-start text-sm text-slate-700 font-medium">
+                      <ChevronRight className="w-4 h-4 mr-1 text-slate-400 mt-0.5 flex-shrink-0" />
+                      {act}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex space-x-4 pt-4 border-t border-slate-200 text-sm font-medium">
+                <div className="flex-1">
+                  <span className="text-slate-500 block text-xs uppercase mb-1">Bateria Sugerida</span>
+                  <span className="text-slate-800">Grupo {protocol?.question_group}</span>
+                </div>
+                <div className="flex-1">
+                  <span className="text-slate-500 block text-xs uppercase mb-1">Referência</span>
+                  <span className="text-slate-800">{protocol?.question_reference}</span>
+                </div>
+              </div>
+            </div>
+
             <button
-              onClick={async () => {
-                const btn = document.activeElement as HTMLButtonElement;
-                btn.disabled = true;
-                btn.textContent = "Importando...";
-                try {
-                  await fetch("/api/parse", { method: "POST" });
-                  window.location.reload();
-                } catch {
-                  btn.disabled = false;
-                  btn.textContent = "Reimportar arquivos";
-                }
-              }}
-              className="text-ink-soft hover:text-accent underline underline-offset-4 bg-transparent cursor-pointer transition-colors"
+              onClick={() => router.push("/estudar")}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-4 font-bold transition-all flex items-center justify-center group-hover:shadow-lg"
             >
-              Reimportar arquivos
+              CONTINUAR ESTUDO
+              <Play className="w-5 h-5 ml-2 fill-current" />
             </button>
-            <button
-              onClick={async () => {
-                if (
-                  !window.confirm(
-                    "Substituir o progresso deste navegador pelo backup da nuvem (Neon)? O que estiver pendente de sync é enviado antes."
-                  )
-                )
-                  return;
-                const btn = document.activeElement as HTMLButtonElement;
-                btn.disabled = true;
-                btn.textContent = "Restaurando...";
-                const ok = await restoreFromNeon();
-                if (ok) {
-                  window.location.reload();
-                } else {
-                  btn.disabled = false;
-                  btn.textContent = "Restaurar progresso da nuvem";
-                  window.alert("Não foi possível restaurar. Tente de novo.");
-                }
-              }}
-              className="text-ink-soft hover:text-accent underline underline-offset-4 bg-transparent cursor-pointer transition-colors"
+
+            <div className="mt-4 text-center">
+              <span className="text-xs text-slate-400">Por que? {protocol?.reason}</span>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {nextSubjects.length > 0 && (
+        <section>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Próximas na Fila</h2>
+            <Link
+              href="/ciclo"
+              className="text-xs font-bold text-teal-600 hover:text-teal-700 uppercase tracking-wider"
             >
-              Restaurar progresso da nuvem
-            </button>
-          </section>
-        </>
+              Ver Ciclo
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {nextSubjects.map((subject, index) => {
+              const rs = db.subjectRoundStates.find((r) => r.subject_id === subject.id);
+              return (
+                <div
+                  key={`${subject.id}-${index}`}
+                  className="flex items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-teal-200 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm mr-4 border border-slate-200">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-slate-900">{subject.name}</div>
+                    <div className="text-sm text-slate-500">{rs?.planned_minutes} min previstos</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {isRebalanceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl my-8">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold uppercase tracking-wider text-slate-900">
+                Preparar Camada {currentLayer + 1}
+              </h3>
+              <p className="text-slate-600 mt-2 text-sm">
+                O sistema calculou os novos tempos de bloco com base no seu desempenho.
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-8 max-h-[50vh] overflow-y-auto pr-2">
+              {Object.keys(rebalanceSuggestions).length === 0 ? (
+                <div className="text-center text-slate-500 py-4 bg-slate-50 rounded-lg">
+                  Tempos mantidos (dados insuficientes para ajuste automático).
+                </div>
+              ) : (
+                Object.keys(rebalanceSuggestions).map((subId) => {
+                  const sub = db.subjects.find((s) => s.id === subId);
+                  if (!sub) return null;
+                  const change = rebalanceSuggestions[subId];
+                  const isIncrease = change.new > change.old;
+                  const isDecrease = change.new < change.old;
+                  return (
+                    <div key={subId} className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-slate-800">{sub.name}</span>
+                        <div className="flex items-center space-x-2 font-bold tabular-nums text-sm">
+                          <span className="text-slate-400">{change.old}m</span>
+                          <span className="text-slate-300">→</span>
+                          <span
+                            className={
+                              isIncrease
+                                ? "text-teal-600"
+                                : isDecrease
+                                ? "text-amber-600"
+                                : "text-slate-800"
+                            }
+                          >
+                            {change.new}m
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-500">{change.reason}</div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex flex-col space-y-3">
+              <button
+                onClick={handleConfirmTransition}
+                className="w-full py-3 rounded-lg font-bold text-white bg-teal-700 hover:bg-teal-800 text-center"
+              >
+                ACEITAR CICLO SUGERIDO
+              </button>
+              <button
+                onClick={() => setIsRebalanceModalOpen(false)}
+                className="w-full py-3 rounded-lg font-medium text-slate-500 hover:text-slate-700 text-center bg-slate-100 hover:bg-slate-200"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
