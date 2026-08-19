@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useDb } from "@/lib/preparation/useDb";
 import {
   getCurrentSubject,
@@ -13,6 +14,7 @@ import {
 import { evaluateLayer, getTopicsForSubjectInLayer, getOrCreateTopicProgress } from "@/lib/preparation/layerEngine";
 import { getSessionProtocol } from "@/lib/preparation/sessionEngine";
 import { saveDb } from "@/lib/preparation/db";
+import { getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
 import { Play, Pause, ChevronRight, Check } from "lucide-react";
 
 export default function EstudarPage() {
@@ -57,6 +59,23 @@ export default function EstudarPage() {
     }
     return () => clearInterval(interval);
   }, [isPaused, isFinishModalOpen, isUpdateModalOpen]);
+
+  const [matchedFlashcardTopic, setMatchedFlashcardTopic] = useState<SubjectTopicOut | null>(null);
+
+  useEffect(() => {
+    if (currentSubject && currentTopic) {
+      getSubjectTopics(currentSubject.name).then((data) => {
+        if (data?.topics) {
+          const match = data.topics.find(
+            (t) => t.name.toLowerCase() === currentTopic.name.toLowerCase()
+          );
+          setMatchedFlashcardTopic(match || null);
+        }
+      });
+    } else {
+      setMatchedFlashcardTopic(null);
+    }
+  }, [currentSubject, currentTopic]);
 
   if (!currentSubject || !roundState || !material || !protocol) return null;
 
@@ -148,7 +167,7 @@ export default function EstudarPage() {
     <div className="max-w-xl mx-auto font-sans pb-12">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight uppercase leading-none">
+          <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight uppercase leading-none">
             {currentSubject.name}
           </h1>
           <div className="text-slate-600 font-medium text-lg mt-1">
@@ -200,6 +219,30 @@ export default function EstudarPage() {
             {String(displayMinutes).padStart(2, "0")}:{String(displaySeconds).padStart(2, "0")}
           </div>
         </div>
+
+        {matchedFlashcardTopic && (
+          <div className="mb-6 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-left">
+            <div>
+              <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block mb-1">
+                Flashcards do Assunto
+              </span>
+              <p className="text-slate-800 font-medium leading-snug">
+                Você tem <strong className="text-slate-900">{matchedFlashcardTopic.cardCount} flashcards</strong> para este assunto.
+              </p>
+              {matchedFlashcardTopic.dueNow > 0 && (
+                <span className="text-xs text-amber-700 font-bold block mt-1">
+                  ⚠️ {matchedFlashcardTopic.dueNow} cards precisando de revisão hoje!
+                </span>
+              )}
+            </div>
+            <Link
+              href={`/study?topicId=${matchedFlashcardTopic.id}`}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto text-center"
+            >
+              ESTUDAR CARDS
+            </Link>
+          </div>
+        )}
 
         <div className="space-y-3">
           <button

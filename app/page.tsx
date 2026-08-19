@@ -15,7 +15,7 @@ import { evaluateLayer, getTopicsForSubjectInLayer } from "@/lib/preparation/lay
 import { getSessionProtocol, getSuggestedRebalance } from "@/lib/preparation/sessionEngine";
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
 import { saveDb } from "@/lib/preparation/db";
-import { getStatsData } from "@/lib/client/engine";
+import { getStatsData, getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
 import { Settings, Play, CheckCircle2, ChevronRight, Clock, Target, BookOpen, AlertTriangle } from "lucide-react";
 
 type Stats = {
@@ -90,12 +90,28 @@ export default function Home() {
         (t) => t.canonical_topic_id === activeTopic.id || t.name === activeTopic.name
       )
     : null;
+  const [matchedFlashcardTopic, setMatchedFlashcardTopic] = useState<SubjectTopicOut | null>(null);
+
+  useEffect(() => {
+    if (currentSubject && activeTopic) {
+      getSubjectTopics(currentSubject.name).then((data) => {
+        if (data?.topics) {
+          const match = data.topics.find(
+            (t) => t.name.toLowerCase() === activeTopic.name.toLowerCase()
+          );
+          setMatchedFlashcardTopic(match || null);
+        }
+      });
+    } else {
+      setMatchedFlashcardTopic(null);
+    }
+  }, [currentSubject, activeTopic]);
 
   return (
     <div className="max-w-xl mx-auto space-y-10 font-sans pb-12">
       <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">HOJE</h1>
+          <h1 className="font-serif text-3xl font-bold text-slate-900 tracking-tight">HOJE</h1>
           <div className="text-slate-500 mt-1 text-sm flex items-center space-x-2">
             <span>Seu ciclo diário</span>
             {consolidated.goal_names.length > 0 && (
@@ -210,7 +226,7 @@ export default function Home() {
 
             <div className="flex justify-between items-start mb-6">
               <div>
-                <div className="text-3xl font-bold text-slate-900 tracking-tight leading-none mb-2">
+                <div className="font-serif text-3xl font-bold text-slate-900 tracking-tight leading-none mb-2">
                   {currentSubject.name}
                 </div>
                 <div className="text-slate-600 font-medium text-lg flex items-center flex-wrap gap-2">
@@ -258,6 +274,30 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {matchedFlashcardTopic && (
+              <div className="mb-6 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
+                <div>
+                  <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block mb-1">
+                    Flashcards do Assunto
+                  </span>
+                  <p className="text-slate-800 font-medium leading-snug">
+                    Você tem <strong className="text-slate-900">{matchedFlashcardTopic.cardCount} flashcards</strong> para este assunto.
+                  </p>
+                  {matchedFlashcardTopic.dueNow > 0 && (
+                    <span className="text-xs text-amber-700 font-bold block mt-1">
+                      ⚠️ {matchedFlashcardTopic.dueNow} cards precisando de revisão hoje!
+                    </span>
+                  )}
+                </div>
+                <Link
+                  href={`/study?topicId=${matchedFlashcardTopic.id}`}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto"
+                >
+                  ESTUDAR CARDS
+                </Link>
+              </div>
+            )}
 
             <button
               onClick={() => router.push("/estudar")}
