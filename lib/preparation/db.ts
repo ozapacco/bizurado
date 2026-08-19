@@ -293,6 +293,9 @@ const defaultSeed: DatabaseState = {
 };
 
 export function getDb(): DatabaseState {
+  if (typeof window === 'undefined') {
+    return defaultSeed;
+  }
   const data = localStorage.getItem(DB_KEY);
   if (!data) {
     localStorage.setItem(DB_KEY, JSON.stringify(defaultSeed));
@@ -325,11 +328,13 @@ export function getDb(): DatabaseState {
 }
 
 export function saveDb(state: DatabaseState) {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(DB_KEY, JSON.stringify(state));
   window.dispatchEvent(new Event('db-updated'));
 }
 
 export function resetDb() {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem(DB_KEY);
   getDb();
   window.dispatchEvent(new Event('db-updated'));

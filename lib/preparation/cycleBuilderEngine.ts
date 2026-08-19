@@ -110,10 +110,11 @@ export function syncConsolidatedCycleToDb(db: DatabaseState, suggestions: CycleS
         material_progress: 0,
       });
     } else {
-      sub.cycle_order = idx + 1;
+      const activeSub = sub as Subject;
+      activeSub.cycle_order = idx + 1;
       if (!sug.user_override) {
-        sub.block_minutes = sug.recommended_block_minutes;
-        const rs = db.subjectRoundStates.find(r => r.subject_id === sub.id);
+        activeSub.block_minutes = sug.recommended_block_minutes;
+        const rs = db.subjectRoundStates.find(r => r.subject_id === activeSub.id);
         if (rs) {
           rs.planned_minutes = sug.recommended_block_minutes;
           rs.remaining_minutes = Math.max(0, rs.planned_minutes - rs.consumed_minutes);

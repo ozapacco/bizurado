@@ -254,7 +254,7 @@ export default function AddGoalWizardModal({ isOpen, onClose }: Props) {
                     <div className="font-bold text-slate-900 group-hover:text-teal-900 flex items-center">
                       {ed.name}
                       {ed.data_quality === 'OFFICIAL' && (
-                        <ShieldCheck className="w-4 h-4 text-teal-600 ml-2" title="Oficial" />
+                        <span title="Oficial"><ShieldCheck className="w-4 h-4 text-teal-600 ml-2" /></span>
                       )}
                     </div>
                     <div className="text-xs text-slate-500 mt-1 flex items-center space-x-2">
