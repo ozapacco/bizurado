@@ -8,14 +8,15 @@ Sistema de estudos (flashcards + ciclos de revisão FSRS) em **Next.js 14 (App R
 
 Sem estes 3 acessos **não dá pra avançar**:
 
-| Recurso | Onde | Conta |
+| Recurso | Onde | Observação |
 |---|---|---|
 | Hospedagem | https://vercel.com/matheus-de-castros-projects/bizurado | — |
-| Banco de dados | https://console.neon.tech/app/projects/soft-brook-95925879 | — |
-| Código | https://github.com/matheusexperienceex-dotcom/bizurado | **matheus.experienceex@gmail.com** |
+| Banco de dados | Neon, host `ep-twilight-bar-ac49tfsr-pooler.sa-east-1.aws.neon.tech` (região `sa-east-1`) | é o host que está no `.env.local` |
+| Código | https://github.com/ozapacco/bizurado | remotes `origin` e `ozapacco` apontam para **este mesmo** repositório |
 
-> **IMPORTANTE:** este repositório usa **somente o GitHub da conta `matheus.experienceex@gmail.com`**.
-> Não fazer push/commit com outra conta.
+> O README apontava para `matheusexperienceex-dotcom/bizurado` e mandava usar
+> aquela conta. Estava defasado: os commits vão para `ozapacco/bizurado` desde
+> a migração para local-first. Corrigido em 20/08/2026.
 
 ---
 
@@ -103,6 +104,52 @@ Proteções adicionais na fila de flashcards:
 
 O estado dos dois canais fica visível no `SyncManager` (barra lateral no desktop, aviso no topo do conteúdo no mobile). Falha de rede não é engolida: aparece como "Backup pendente" e a fila é preservada.
 
+## Ciclo editável: criar, pausar, excluir e aninhar assuntos
+
+Os assuntos do ciclo são **derivados** dos baralhos por `alignWithDecks`. Isso
+cria um conflito com a vontade do usuário, e todo o desenho existe para
+resolvê-lo: **o alinhamento propõe, o usuário dispõe.**
+
+| ação | o que acontece | por quê |
+|---|---|---|
+| **Pausar** (`status: 'suspended'`) | sai da rotação, sai do denominador da camada, some da fila de revisão. Continua visível, apagado. | esconder o que foi pausado é receita para esquecer que pausou |
+| **Excluir** | apaga a linha e grava uma **lápide** em `topicTombstones` | sem a lápide, apagar só limpa o caminho para o alinhamento recriar o assunto no próximo boot |
+| **Criar** (`origin: 'user'`) | nasce ativo, sem baralho | é o caminho para temas do edital sem card — "Crase" é o caso concreto |
+| **Aninhar** (`parent_id`) | profundidade livre | — |
+
+**Só folha conta.** Um assunto que ganha filho vira pasta: sai da rotação e do
+progresso, e quem trabalha são os filhos. Sem essa regra o mesmo estudo
+contaria duas vezes e a camada nunca fecharia. Um filho sem baralho próprio
+herda o do ancestral mais próximo que tenha. Excluir pai leva o galho inteiro;
+pausar pai tira o galho de escopo.
+
+A exclusão dos cards da fila de revisão é feita por **filtro na consulta**
+(`suspendedDeckIds()`), não escrevendo `suspended` em milhares de linhas de
+`card_states`: pausar e reativar é instantâneo e não toca no estado FSRS. O
+filtro é aplicado nos **dois** caminhos de `loadReviewCards` — o de cards com
+estado e o de cards novos, que não passa por `states`.
+
+## Cards criados dentro do app
+
+Cada assunto ganha uma gaveta sob demanda: `<caminho do assunto> > Meus cards`.
+O nome faz o casamento por módulo agrupá-la junto dos baralhos oficiais daquele
+assunto, sem nenhuma regra especial. Cards do app têm `cards.source = 'app'` —
+é o que os distingue dos importados por `npm run seed`.
+
+Duas portas, um formato:
+
+- **Escrever um** — formulário, `POST /api/cards`.
+- **Importar `.txt`** — `POST /api/cards/import`, que usa `parseContent` (o
+  mesmo parser de `npm run seed`, extraído de `parseFile`). Sempre em dois
+  tempos: `dryRun` mostra a prévia sem gravar, depois a confirmação importa.
+  Reimportar o mesmo arquivo não duplica nem apaga progresso. Lê UTF-8 e cai
+  para Windows-1252 quando os acentos vêm quebrados.
+
+Os 575 baralhos importados continuam vindo de `public/data/decks` (arquivo
+estático); os do app vivem no IndexedDB (`userCards`/`userTopics`, v2) e são
+mesclados em `getIndex`, `loadDeck` e `fetchDeck`. `pullUserCards()` traz os
+que foram criados em outro dispositivo.
+
 ## Ponte entre o ciclo e os baralhos
 
 `lib/subjectMatch.ts` traduz o vocabulário do ciclo ("Processo Penal" › "Controle Administrativo") para o dos baralhos ("Direito Processual Penal" › "6. Controle da Administração Pública > 1.1 …"):
@@ -124,12 +171,19 @@ Verificado em 2026-06-22:
 2. Adicionar/conferir `DATABASE_URL` = a connection string **`-pooler`** da Neon (a mesma do `.env.local`), marcada para **Production, Preview e Development**.
 3. (Recomendado) Adicionar `APP_PASSWORD`.
 4. **Redeploy** (Deployments → Redeploy no último, ou novo push).
-5. Validar abrindo `…/api/stats` no navegador — deve retornar JSON com `totalCards` etc.
+5. Validar abrindo `…/api/cycle-state` no navegador — deve retornar JSON com `revision` e `data`.
+   (A rota `/api/stats` citada aqui até 08/2026 não existe mais: as estatísticas
+   passaram a ser calculadas no navegador quando o app virou local-first.)
 
+---
 
+## Notas soltas
 
+Skills usadas por frente de trabalho:
 
-Sistemas e dashboards: Impeccable
-Landing pages e sites impactantes: Taste Skill
-Pesquisa e criação do design system: UI UX Pro Max
-Código de produção: Frontend UI Engineering
+| Frente | Skill |
+|---|---|
+| Sistemas e dashboards | Impeccable |
+| Landing pages e sites impactantes | Taste Skill |
+| Pesquisa e criação do design system | UI UX Pro Max |
+| Código de produção | Frontend UI Engineering |
