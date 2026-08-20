@@ -32,7 +32,14 @@ type DeckIndex = { subjects: { id: number; name: string; topics: DeckTopic[] }[]
 type CycleState = {
   studyPlans: { id: string }[];
   subjects: { id: string; name: string; study_plan_id: string }[];
-  topics: { id: string; subject_id: string; name: string; active: boolean }[];
+  topics: {
+    id: string;
+    subject_id: string;
+    name: string;
+    status?: "active" | "suspended";
+    active?: boolean;
+  }[];
+  topicTombstones?: { subject_name: string; deck_unit_key: string; last_name: string }[];
 };
 
 async function loadCycle(): Promise<CycleState> {
@@ -53,7 +60,7 @@ async function loadCycle(): Promise<CycleState> {
 }
 
 async function main() {
-  const { matchTopicDecks, resolveSubjectName } = await import("../lib/subjectMatch");
+  const { matchTopicDecks, normalize, resolveSubjectName } = await import("../lib/subjectMatch");
   const index = JSON.parse(
     readFileSync(join(root, "public", "data", "index.json"), "utf8")
   ) as DeckIndex;
@@ -69,6 +76,8 @@ async function main() {
 
   // Direção 1: assunto do ciclo -> baralhos
   const owners = new Map<number, string[]>();
+  // Baralhos que só um assunto PAUSADO reivindica: dispensados por escolha.
+  const pausados = new Map<number, string>();
   const semCards: string[] = [];
   let comCards = 0;
 
@@ -76,11 +85,21 @@ async function main() {
   for (const sub of subjects) {
     const deckName = resolveSubjectName(sub.name, deckNames);
     const deck = deckName ? index.subjects.find((s) => s.name === deckName) : null;
-    const topics = cycle.topics.filter((t) => t.subject_id === sub.id && t.active);
+    const doAssunto = cycle.topics.filter((t) => t.subject_id === sub.id);
+    const emEscopo = (t: (typeof doAssunto)[number]) =>
+      t.status ? t.status === "active" : t.active !== false;
+    const topics = doAssunto.filter(emEscopo);
     let ok = 0;
 
-    for (const t of topics) {
+    for (const t of doAssunto) {
       const matched = deck ? matchTopicDecks(t.name, deck.topics) : [];
+
+      if (!emEscopo(t)) {
+        // Pausado: os baralhos dele saem da conta, mas não são defeito.
+        for (const d of matched) pausados.set(d.id, `${sub.name} › ${t.name}`);
+        continue;
+      }
+
       if (matched.length === 0) {
         semCards.push(`${sub.name} › ${t.name}`);
         continue;
@@ -101,10 +120,23 @@ async function main() {
   }
 
   // Direção 2: baralho -> assuntos do ciclo
+  //
+  // TRÊS categorias, não duas. Um baralho sem dono porque o usuário excluiu ou
+  // pausou o assunto é uma decisão, não um defeito — e só o defeito pode
+  // derrubar o `--ci`. Sem essa distinção o portão vira ruído e acaba
+  // desligado, que é o pior desfecho possível.
+  const lapides = new Set(
+    (cycle.topicTombstones ?? []).map((l) => `${l.subject_name}::${l.deck_unit_key}`)
+  );
+  const moduloDe = (nome: string) =>
+    normalize(nome.includes(">") ? nome.split(">")[0] : nome);
+
   let decks = 0;
   let cards = 0;
   let orfaosDecks = 0;
   let orfaosCards = 0;
+  let dispensadosDecks = 0;
+  let dispensadosCards = 0;
   let ambiguos = 0;
   const porDisciplina = new Map<string, { decks: number; cards: number; exemplos: string[] }>();
 
@@ -115,6 +147,13 @@ async function main() {
       cards += n;
       const donos = owners.get(t.id);
       if (!donos || donos.length === 0) {
+        const excluido = lapides.has(`${s.name}::${moduloDe(t.name)}`);
+        const pausado = pausados.has(t.id);
+        if (excluido || pausado) {
+          dispensadosDecks++;
+          dispensadosCards += n;
+          continue;
+        }
         orfaosDecks++;
         orfaosCards += n;
         const bucket = porDisciplina.get(s.name) ?? { decks: 0, cards: 0, exemplos: [] };
@@ -128,12 +167,21 @@ async function main() {
     }
   }
 
-  const pctDecks = Math.round(((decks - orfaosDecks) / decks) * 1000) / 10;
-  const pctCards = Math.round(((cards - orfaosCards) / cards) * 1000) / 10;
+  // O denominador exclui o que foi dispensado por escolha: cobrar 100% de algo
+  // que o usuário mandou tirar do ciclo seria cobrar o impossível.
+  const decksEmJogo = decks - dispensadosDecks;
+  const cardsEmJogo = cards - dispensadosCards;
+  const pctDecks = decksEmJogo === 0 ? 100 : Math.round(((decksEmJogo - orfaosDecks) / decksEmJogo) * 1000) / 10;
+  const pctCards = cardsEmJogo === 0 ? 100 : Math.round(((cardsEmJogo - orfaosCards) / cardsEmJogo) * 1000) / 10;
 
   console.log("\nBARALHOS -> ASSUNTOS DO CICLO\n");
-  console.log(`  baralhos alcançáveis  ${decks - orfaosDecks}/${decks}  (${pctDecks}%)`);
-  console.log(`  cards alcançáveis     ${cards - orfaosCards}/${cards}  (${pctCards}%)`);
+  console.log(`  baralhos alcançáveis  ${decksEmJogo - orfaosDecks}/${decksEmJogo}  (${pctDecks}%)`);
+  console.log(`  cards alcançáveis     ${cardsEmJogo - orfaosCards}/${cardsEmJogo}  (${pctCards}%)`);
+  if (dispensadosDecks > 0) {
+    console.log(
+      `  dispensados por escolha: ${dispensadosDecks} baralhos · ${dispensadosCards} cards (assunto excluído ou pausado)`
+    );
+  }
   console.log(`  baralhos disputados por mais de um assunto: ${ambiguos}`);
 
   if (porDisciplina.size > 0) {

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { CloudCheck, CloudAlert, RefreshCw, Loader2 } from "lucide-react";
-import { pendingSyncCount, syncWithNeon } from "@/lib/client/engine";
+import { pendingSyncCount, pullUserCards, syncWithNeon } from "@/lib/client/engine";
 import {
   describeChannel,
   getServerSyncSnapshot,
@@ -48,6 +48,9 @@ export default function SyncManager() {
     });
     void pendingSyncCount().then((n) => setChannelStatus("cards", { pending: n }));
     void syncWithNeon();
+    // Cards criados no app em outro dispositivo: o arquivo estático de baralhos
+    // não os conhece, então eles vêm por aqui.
+    void pullUserCards();
   }, []);
 
   // Toda edição do ciclo agenda um backup (rajadas viram uma escrita só).

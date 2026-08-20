@@ -20,7 +20,7 @@ export default function ProgressPage() {
   const totalC = db.questionLogs.reduce((acc, l) => acc + l.correct, 0);
   const globalAccuracy = totalQ === 0 ? 0 : Math.round((totalC / totalQ) * 100);
 
-  const allActiveTopics = db.topics.filter((t) => t.active);
+  const allActiveTopics = db.topics.filter((t) => t.status === 'active');
   const coreTopicsCount = allActiveTopics.filter((t) => t.importance_tier === "CORE").length;
   const topicsSeenCount = allActiveTopics.filter(
     (t) => getOrCreateTopicProgress(db, t.id).layer_1_completed
@@ -89,7 +89,7 @@ export default function ProgressPage() {
         {activeSubjects.map((subject) => {
           const isExpanded = expandedSubject === subject.id;
           const subjectTopics = db.topics
-            .filter((t) => t.subject_id === subject.id && t.active)
+            .filter((t) => t.subject_id === subject.id && t.status === 'active')
             .sort((a, b) => a.order - b.order);
           const coreT = subjectTopics.filter((t) => t.importance_tier === "CORE");
           const secT = subjectTopics.filter((t) => t.importance_tier === "SECONDARY");

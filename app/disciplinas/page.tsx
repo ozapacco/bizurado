@@ -8,6 +8,10 @@ import { evaluateLayer, getOrCreateTopicProgress } from "@/lib/preparation/layer
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
 import { getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
 import { matchTopicDecks, resolveSubjectName } from "@/lib/subjectMatch";
+import AddCardModal from "@/components/AddCardModal";
+import TopicActions from "@/components/TopicActions";
+import { fullName, isLeaf, pathOf, scopedLeaves, treeOf } from "@/lib/preparation/topicOps";
+import AddTopicButton from "@/components/AddTopicButton";
 import { pickEntryDeck } from "@/lib/deckEntry";
 import { ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock, Target, Play } from "lucide-react";
 
@@ -26,6 +30,7 @@ export default function Disciplinas() {
   const [sortBy, setSortBy] = useState<string>("CICLO");
 
   // Local flashcard topics cache
+  const [novoCard, setNovoCard] = useState<{ subject: string; topic: string } | null>(null);
   const [flashcardTopics, setFlashcardTopics] = useState<Record<string, SubjectTopicOut[]>>({});
 
   const layerTitles: Record<number, string> = {
@@ -75,9 +80,12 @@ export default function Disciplinas() {
     const emphasisLabel = discConsolidated ? discConsolidated.emphasis_label : "MÉDIA";
 
     // Topic completion stats
-    const subjectTopics = db.topics
-      .filter((t) => t.subject_id === subject.id && t.active)
-      .sort((a, b) => a.order - b.order);
+    // Contagem e progresso usam só os ativos. A TABELA mostra os pausados
+    // também, apagados: esconder o que você pausou é receita para esquecer que
+    // pausou e achar que sumiu.
+    const subjectTopics = scopedLeaves(db, subject.id).sort((a, b) => a.order - b.order);
+    // Árvore: pais antes dos filhos, com a profundidade para a indentação.
+    const topicosVisiveis = treeOf(db, subject.id);
     const eligibleCount = subjectTopics.length;
 
     let completedCount = 0;
@@ -176,6 +184,7 @@ export default function Disciplinas() {
       cycleStatus,
       discreteAlert,
       subjectTopics,
+      topicosVisiveis,
       currentTopicName,
       examNames: discConsolidated?.exam_names || [],
     };
@@ -430,8 +439,26 @@ export default function Disciplinas() {
 
                           {/* TOPICS SUB-TABLE */}
                           <div>
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-                              Assuntos da Disciplina
+                            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                Assuntos da Disciplina
+                                <span className="ml-2 font-normal normal-case tracking-normal text-slate-400">
+                                  {item.subjectTopics.length} ativo
+                                  {item.subjectTopics.length === 1 ? "" : "s"}
+                                  {item.topicosVisiveis.length > item.subjectTopics.length &&
+                                    ` · ${
+                                      item.topicosVisiveis.length - item.subjectTopics.length
+                                    } pausado${
+                                      item.topicosVisiveis.length - item.subjectTopics.length === 1
+                                        ? ""
+                                        : "s"
+                                    }`}
+                                </span>
+                              </div>
+                              <AddTopicButton
+                                subjectId={item.subject.id}
+                                subjectName={item.subject.name}
+                              />
                             </div>
                             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                               <table className="w-full text-left border-collapse text-sm">
@@ -447,7 +474,7 @@ export default function Disciplinas() {
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                  {item.subjectTopics.map((topic) => {
+                                  {item.topicosVisiveis.map(({ topic, depth }) => {
                                     const prog = getOrCreateTopicProgress(db, topic.id);
 
                                     // Topic incidence label
@@ -500,16 +527,70 @@ export default function Disciplinas() {
                                     // Baralhos que cobrem o tema (casamento por
                                     // módulo — ver lib/subjectMatch.ts).
                                     const matchSub = flashcardTopics[item.subject.name.toLowerCase()];
-                                    const matchedDecks = matchSub
+                                    // Subassunto sem baralho próprio herda o do
+                                    // ancestral mais próximo que tenha.
+                                    const ancestrais = pathOf(db, topic.id)
+                                      .slice(0, -1)
+                                      .reverse()
+                                      .map((a) => a.name);
+                                    let matchedDecks = matchSub
                                       ? matchTopicDecks(topic.name, matchSub)
                                       : [];
+                                    if (matchedDecks.length === 0 && matchSub) {
+                                      for (const a of ancestrais) {
+                                        const herdado = matchTopicDecks(a, matchSub);
+                                        if (herdado.length > 0) {
+                                          matchedDecks = herdado;
+                                          break;
+                                        }
+                                      }
+                                    }
                                     const deckDue = matchedDecks.reduce((a, d) => a + d.dueNow, 0);
                                     const deckCards = matchedDecks.reduce((a, d) => a + d.cardCount, 0);
                                     const entryDeck = pickEntryDeck(matchedDecks);
 
                                     return (
-                                      <tr key={topic.id} className="hover:bg-slate-50">
-                                        <td className="p-3 font-medium text-slate-800">{topic.name}</td>
+                                      <tr
+                                        key={topic.id}
+                                        className={`hover:bg-slate-50 ${
+                                          topic.status === "suspended" ? "opacity-55" : ""
+                                        }`}
+                                      >
+                                        <td className="p-3 font-medium text-slate-800">
+                                          <span
+                                            className="flex items-center gap-2 flex-wrap"
+                                            style={{ paddingLeft: `${depth * 18}px` }}
+                                          >
+                                            {depth > 0 && (
+                                              <span className="text-slate-300" aria-hidden="true">
+                                                └
+                                              </span>
+                                            )}
+                                            <span>{topic.name}</span>
+                                            {!isLeaf(db, topic.id) && (
+                                              <span
+                                                title="Tem subassuntos: quem entra na rotação e no progresso são eles"
+                                                className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded"
+                                              >
+                                                pasta
+                                              </span>
+                                            )}
+                                            {topic.status === "suspended" && (
+                                              <span
+                                                title={topic.status_reason || "Pausado"}
+                                                className="text-[10px] font-bold uppercase tracking-wide bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded"
+                                              >
+                                                pausado
+                                                {topic.status_reason ? ` · ${topic.status_reason}` : ""}
+                                              </span>
+                                            )}
+                                            {topic.origin === "user" && (
+                                              <span className="text-[10px] font-bold uppercase tracking-wide bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded">
+                                                meu
+                                              </span>
+                                            )}
+                                          </span>
+                                        </td>
                                         <td className="p-3">
                                           <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
                                             {incidenceText}
@@ -542,7 +623,20 @@ export default function Disciplinas() {
                                             {topicStatus}
                                           </span>
                                         </td>
-                                        <td className="p-3 text-center">
+                                        <td className="p-3 text-center whitespace-nowrap">
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              setNovoCard({
+                                                subject: item.subject.name,
+                                                topic: fullName(db, topic.id),
+                                              })
+                                            }
+                                            title="Criar um card neste assunto"
+                                            className="mr-1.5 inline-flex items-center text-xs font-bold text-slate-500 hover:text-teal-700 border border-slate-200 hover:border-teal-200 px-1.5 py-1 rounded"
+                                          >
+                                            + card
+                                          </button>
                                           {entryDeck ? (
                                             <Link
                                               href={`/study?topicId=${entryDeck.id}&disciplina=${encodeURIComponent(
@@ -574,6 +668,14 @@ export default function Disciplinas() {
                                               {matchSub ? "sem cobertura" : "sem baralho"}
                                             </span>
                                           )}
+                                          <AddTopicButton
+                                            subjectId={item.subject.id}
+                                            subjectName={item.subject.name}
+                                            parentId={topic.id}
+                                            parentName={topic.name}
+                                            compact
+                                          />
+                                          <TopicActions topic={topic} />
                                         </td>
                                       </tr>
                                     );
@@ -693,6 +795,13 @@ export default function Disciplinas() {
           );
         })}
       </div>
+      {novoCard && (
+        <AddCardModal
+          subjectName={novoCard.subject}
+          topicName={novoCard.topic}
+          onClose={() => setNovoCard(null)}
+        />
+      )}
     </div>
   );
 }

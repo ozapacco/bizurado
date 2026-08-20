@@ -1,4 +1,5 @@
 import { getDb, saveDb } from './db';
+import { scopedLeaves } from './topicOps';
 
 // Gets the plan id for this user (simplification for local single user)
 export function getPlanId() {
@@ -19,7 +20,7 @@ export function getActiveCycleSubjects() {
   return db.subjects
     .filter((s) => s.study_plan_id === planId && s.active)
     .filter((s) => {
-      const topics = db.topics.filter(t => t.subject_id === s.id && t.active);
+      const topics = scopedLeaves(db, s.id);
       if (topics.length === 0) return true; // Keep subjects without topics to not break them
       
       const isCompleted = topics.every(t => {

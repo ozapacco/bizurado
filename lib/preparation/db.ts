@@ -121,6 +121,7 @@ const defaultSeed: DatabaseState = {
   studySessions: [],
   questionLogs: [],
   topics: [],
+  topicTombstones: [],
   topicProgresses: [],
   reviewMaterials: [],
   layerStates: [],
@@ -352,6 +353,18 @@ export function getDb(): DatabaseState {
   // Ensure new arrays exist for users with older local storage data
   if (!parsed.topics) parsed.topics = [...defaultSeed.topics];
   if (!parsed.topicProgresses) parsed.topicProgresses = [...defaultSeed.topicProgresses];
+  if (!parsed.topicTombstones) parsed.topicTombstones = [];
+
+  // Migração dos assuntos criados antes do ciclo editável: eles tinham
+  // `active: boolean` e nenhuma procedência. Sem isto, todo assunto antigo
+  // sairia da rotação (status undefined !== 'active').
+  for (const t of parsed.topics ?? []) {
+    const legado = t as unknown as { active?: boolean };
+    if (!t.status) t.status = legado.active === false ? 'suspended' : 'active';
+    if (!t.origin) t.origin = 'deck';
+    delete legado.active;
+  }
+
   if (!parsed.reviewMaterials) parsed.reviewMaterials = [];
   if (!parsed.layerStates) parsed.layerStates = [];
   if (!parsed.layerMetrics) parsed.layerMetrics = [];

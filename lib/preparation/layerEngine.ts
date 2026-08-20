@@ -1,4 +1,5 @@
 import { DatabaseState, Topic, TopicProgress, LayerState } from './types';
+import { scopedLeaves } from './topicOps';
 
 export function getOrCreateTopicProgress(db: DatabaseState, topicId: string): TopicProgress {
   const plan = db.studyPlans[0];
@@ -31,7 +32,7 @@ export function evaluateLayer(db: DatabaseState): LayerState & {
   const plan = db.studyPlans[0];
   const activeSubjects = db.subjects.filter(s => s.active && s.study_plan_id === plan.id);
   const activeSubjectIds = activeSubjects.map(s => s.id);
-  const topics = db.topics.filter(t => activeSubjectIds.includes(t.subject_id) && t.active);
+  const topics = scopedLeaves(db).filter(t => activeSubjectIds.includes(t.subject_id));
   const coreTopics = topics.filter(t => t.importance_tier === 'CORE');
 
   const getProgress = (t: Topic) => getOrCreateTopicProgress(db, t.id);
@@ -135,7 +136,7 @@ export function evaluateLayer(db: DatabaseState): LayerState & {
 }
 
 export function getTopicsForSubjectInLayer(db: DatabaseState, subjectId: string, layer: number): Topic[] {
-  const topics = db.topics.filter(t => t.subject_id === subjectId && t.active);
+  const topics = scopedLeaves(db, subjectId);
   // Sort by IMPORTANCE (CORE > SECONDARY > TERTIARY) then ORDER
   topics.sort((a, b) => {
     const tierMap = { 'CORE': 1, 'SECONDARY': 2, 'TERTIARY': 3 };

@@ -24,9 +24,12 @@ import {
   type LogEvent,
   type StoredState,
   type TopicStudy,
+  type UserCard,
+  type UserTopic,
 } from "./idb";
 import { setChannelStatus } from "./syncStatus";
 import { matchTopicDecks, resolveSubjectName } from "@/lib/subjectMatch";
+import { getDb as getCycleDb } from "@/lib/preparation/db";
 
 const MATURE_DAYS = 21;
 
@@ -64,7 +67,125 @@ export async function getIndex(): Promise<ContentIndex> {
     const res = await fetch("/data/index.json");
     indexCache = (await res.json()) as ContentIndex;
   }
-  return indexCache;
+  // As gavetas criadas no app não estão no arquivo estático (ele só é
+  // regenerado por `npm run content:sync`). Injetá-las aqui faz TODO o resto do
+  // sistema enxergá-las de graça: casamento, contagens, cobertura e revisão.
+  const gavetas = await getAll<UserTopic>("userTopics").catch(() => [] as UserTopic[]);
+  if (gavetas.length === 0) return indexCache;
+
+  // Quantos cards cada gaveta tem, para as contagens da interface baterem.
+  const meus = await getAll<UserCard>("userCards").catch(() => [] as UserCard[]);
+  const porGaveta = new Map<number, number>();
+  for (const c of meus) porGaveta.set(c.topicId, (porGaveta.get(c.topicId) ?? 0) + 1);
+
+  const mesclado: ContentIndex = {
+    ...indexCache,
+    subjects: indexCache.subjects.map((s) => ({ ...s, topics: [...s.topics] })),
+  };
+  for (const g of gavetas) {
+    const disciplina = mesclado.subjects.find((s) => s.name === g.subjectName);
+    if (!disciplina) continue;
+    const jaExiste = disciplina.topics.find((t) => t.id === g.topicId);
+    const total = porGaveta.get(g.topicId) ?? 0;
+    if (jaExiste) {
+      // Gaveta já folded pelo `content:sync`: o arquivo estático manda.
+      continue;
+    }
+    disciplina.topics.push({ id: g.topicId, name: g.topicName, cardCount: total } as never);
+  }
+  return mesclado;
+}
+
+/**
+ * Cria um card dentro de um assunto do ciclo.
+ *
+ * O card nasce no Postgres (é lá que ele precisa durar) e é espelhado no
+ * IndexedDB na mesma hora, para aparecer na revisão imediatamente e continuar
+ * disponível offline.
+ */
+export async function createCard(input: {
+  subjectName: string;
+  topicName: string;
+  question: string;
+  answer: string;
+  bizu?: string;
+}): Promise<{ cardId: number; topicId: number }> {
+  const res = await fetch("/api/cards", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const body = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    cardId?: number;
+    topicId?: number;
+    topicName?: string;
+    subjectId?: number;
+    subjectName?: string;
+  };
+  if (!res.ok || !body.cardId || !body.topicId) {
+    throw new Error(body.error || `Não foi possível criar o card (HTTP ${res.status})`);
+  }
+
+  await putAtomic([
+    {
+      store: "userCards",
+      value: {
+        id: body.cardId,
+        topicId: body.topicId,
+        question: input.question,
+        answer: input.answer,
+        bizu: input.bizu ?? "",
+        source: "app",
+        tags: "",
+        cardType: "normal",
+      } satisfies UserCard,
+    },
+    {
+      store: "userTopics",
+      value: {
+        topicId: body.topicId,
+        topicName: body.topicName ?? input.topicName,
+        subjectId: body.subjectId ?? 0,
+        subjectName: body.subjectName ?? input.subjectName,
+      } satisfies UserTopic,
+    },
+  ]);
+
+  indexCache = null; // força reler o índice com a gaveta nova
+  return { cardId: body.cardId, topicId: body.topicId };
+}
+
+/** Traz para este dispositivo os cards criados no app em outro lugar. */
+export async function pullUserCards(): Promise<number> {
+  try {
+    const res = await fetch("/api/cards", { cache: "no-store" });
+    if (!res.ok) return 0;
+    const body = (await res.json()) as {
+      cards: (UserCard & { topicName: string; subjectId: number; subjectName: string })[];
+    };
+    if (!Array.isArray(body.cards) || body.cards.length === 0) return 0;
+
+    await putMany(
+      "userCards",
+      body.cards.map((c) => ({
+        id: c.id, topicId: c.topicId, question: c.question, answer: c.answer,
+        bizu: c.bizu, source: c.source, tags: c.tags, cardType: c.cardType,
+      }))
+    );
+    const gavetas = new Map<number, UserTopic>();
+    for (const c of body.cards) {
+      gavetas.set(c.topicId, {
+        topicId: c.topicId, topicName: c.topicName,
+        subjectId: c.subjectId, subjectName: c.subjectName,
+      });
+    }
+    await putMany("userTopics", [...gavetas.values()]);
+    indexCache = null;
+    return body.cards.length;
+  } catch {
+    return 0;
+  }
 }
 
 // Início do PRÓXIMO dia local em ISO — mesmo corte de /api (lib/day).
@@ -193,15 +314,61 @@ export async function loadDeck(topicId: number): Promise<{
   cards: DeckCard[];
 }> {
   await ensureSeeded();
-  const res = await fetch(`/data/decks/${topicId}.json`);
-  if (!res.ok) throw new Error("Baralho não encontrado.");
-  const raw = (await res.json()) as {
+
+  type CardCru = Omit<
+    DeckCard,
+    "subjectName" | "topicName" | "stability" | "difficulty" | "scheduledDays" | "reps" | "lapses" | "state" | "mode"
+  >;
+  type BaralhoCru = {
     topicId: number;
     topicName: string;
     subjectId: number;
     subjectName: string;
-    cards: Omit<DeckCard, "subjectName" | "topicName" | "stability" | "difficulty" | "scheduledDays" | "reps" | "lapses" | "state" | "mode">[];
+    cards: CardCru[];
   };
+
+  // O arquivo estático pode não existir: uma gaveta "Meus cards" nasce só com
+  // cards criados no app e nunca passou por `content:sync`.
+  const res = await fetch(`/data/decks/${topicId}.json`);
+  const gaveta = await get<UserTopic>("userTopics", topicId);
+
+  let raw: BaralhoCru;
+  if (res.ok) {
+    raw = (await res.json()) as BaralhoCru;
+  } else if (gaveta) {
+    raw = {
+      topicId,
+      topicName: gaveta.topicName,
+      subjectId: gaveta.subjectId,
+      subjectName: gaveta.subjectName,
+      cards: [],
+    };
+  } else {
+    throw new Error("Baralho não encontrado.");
+  }
+
+  // Cards criados no app entram no fim, junto dos importados.
+  const meus = await getAllByIndex<UserCard>("userCards", "topicId", topicId);
+  if (meus.length > 0) {
+    const jaTem = new Set(raw.cards.map((c) => c.id));
+    raw = {
+      ...raw,
+      cards: [
+        ...raw.cards,
+        ...meus
+          .filter((c) => !jaTem.has(c.id))
+          .map((c) => ({
+            id: c.id,
+            question: c.question,
+            answer: c.answer,
+            bizu: c.bizu,
+            source: c.source,
+            tags: c.tags,
+            cardType: c.cardType,
+          }) as unknown as CardCru),
+      ],
+    };
+  }
 
   const states = await getAllByIndex<StoredState>("states", "topicId", topicId);
   const byCard = new Map(states.map((s) => [s.cardId, s]));
@@ -255,13 +422,41 @@ type RawDeck = {
 };
 
 async function fetchDeck(topicId: number): Promise<RawDeck | null> {
+  let base: RawDeck | null = null;
   try {
     const res = await fetch(`/data/decks/${topicId}.json`);
-    if (!res.ok) return null;
-    return (await res.json()) as RawDeck;
+    if (res.ok) base = (await res.json()) as RawDeck;
   } catch {
-    return null;
+    base = null;
   }
+
+  // Cards criados no app precisam entrar na revisão como qualquer outro. E uma
+  // gaveta "Meus cards" só existe aqui — não tem arquivo estático nenhum.
+  let meus: UserCard[] = [];
+  try {
+    meus = await getAllByIndex<UserCard>("userCards", "topicId", topicId);
+  } catch {
+    meus = [];
+  }
+  if (meus.length === 0) return base;
+
+  if (!base) {
+    const gaveta = await get<UserTopic>("userTopics", topicId);
+    if (!gaveta) return null;
+    base = {
+      topicId,
+      topicName: gaveta.topicName,
+      subjectId: gaveta.subjectId,
+      subjectName: gaveta.subjectName,
+      cards: [],
+    } as RawDeck;
+  }
+
+  const jaTem = new Set((base.cards as { id: number }[]).map((c) => c.id));
+  return {
+    ...base,
+    cards: [...base.cards, ...meus.filter((c) => !jaTem.has(c.id))],
+  } as RawDeck;
 }
 
 function toDeckCard(
@@ -346,9 +541,13 @@ export async function loadReviewCards(opts: {
     scope = new Set(subj.topics.map((t) => t.id));
   }
 
+  // Assunto suspenso no ciclo não pode aparecer na revisão: senão o botão de
+  // suspender é decorativo e o usuário segue vendo o que decidiu pausar.
+  const fora = await suspendedDeckIds();
+
   const states = await getAll<StoredState>("states");
   const active = states.filter(
-    (s) => s.suspended === 0 && (!scope || scope.has(s.topicId))
+    (s) => s.suspended === 0 && !fora.has(s.topicId) && (!scope || scope.has(s.topicId))
   );
 
   // Cards com estado: vencidos ("due") ou todos os tocados ("all").
@@ -397,6 +596,10 @@ export async function loadReviewCards(opts: {
       if (cards.length >= limit) break;
       for (const t of subj.topics) {
         if (cards.length >= limit) break;
+        // Cards NOVOS vêm por este caminho, que não passa pelo filtro de
+        // `states` — sem repetir a exclusão aqui, pausar um assunto continuava
+        // servindo os cards dele que nunca foram vistos.
+        if (fora.has(t.id)) continue;
         if (scope && !scope.has(t.id)) continue;
         const deck = deckMap.get(t.id) ?? (await fetchDeck(t.id));
         if (!deck) continue;
@@ -1429,6 +1632,47 @@ async function runSyncWithNeon(): Promise<boolean> {
   return true;
 }
 
+/**
+ * Baralhos que estão fora de escopo porque o assunto do ciclo correspondente
+ * foi suspenso.
+ *
+ * Um mesmo baralho pode ser reivindicado por mais de um assunto; ele só sai se
+ * NENHUM assunto ativo o entrega. Filtro na consulta, não escrita em massa:
+ * suspender e reativar 3.000 cards é instantâneo e não toca no estado FSRS.
+ */
+export async function suspendedDeckIds(): Promise<Set<number>> {
+  let db;
+  try {
+    db = getCycleDb();
+  } catch {
+    return new Set();
+  }
+  const suspensos = db.topics.filter((t) => t.status === "suspended");
+  if (suspensos.length === 0) return new Set();
+
+  const index = await getIndex();
+  const nomes = index.subjects.map((s) => s.name);
+
+  const decksDe = (t: (typeof db.topics)[number]): number[] => {
+    const disciplina = db.subjects.find((s) => s.id === t.subject_id);
+    if (!disciplina) return [];
+    const deckName = resolveSubjectName(disciplina.name, nomes);
+    const deck = deckName ? index.subjects.find((s) => s.name === deckName) : null;
+    if (!deck) return [];
+    return matchTopicDecks(t.name, deck.topics).map((d) => d.id);
+  };
+
+  const fora = new Set<number>();
+  for (const t of suspensos) for (const id of decksDe(t)) fora.add(id);
+
+  // Um baralho compartilhado com assunto ativo continua no jogo.
+  for (const t of db.topics) {
+    if (t.status !== "active") continue;
+    for (const id of decksDe(t)) fora.delete(id);
+  }
+  return fora;
+}
+
 /** Quantas revisões locais ainda não chegaram ao Neon. */
 export async function pendingSyncCount(): Promise<number> {
   return count("queue");
@@ -1487,6 +1731,8 @@ export type CycleTopicDecks = {
   novos: number;
   /** Por onde começar: o baralho com mais vencidos; sem vencidos, o com novos. */
   entryDeck: SubjectTopicOut | null;
+  /** Nome do ancestral de quem os baralhos foram herdados, se for o caso. */
+  inheritedFrom?: string | null;
 };
 
 const EMPTY_MATCH: CycleTopicDecks = {
@@ -1496,6 +1742,7 @@ const EMPTY_MATCH: CycleTopicDecks = {
   dueNow: 0,
   novos: 0,
   entryDeck: null,
+  inheritedFrom: null,
 };
 
 /**
@@ -1506,12 +1753,29 @@ const EMPTY_MATCH: CycleTopicDecks = {
  */
 export async function getCycleTopicDecks(
   cycleSubject: string,
-  cycleTopic: string
+  cycleTopic: string,
+  /**
+   * Ancestrais do assunto, do mais próximo ao mais distante. Um subassunto como
+   * "Crase · Casos especiais" normalmente não casa baralho nenhum sozinho —
+   * herdar os cards do pai é o comportamento que o usuário espera ao estudar
+   * um recorte de um tema maior.
+   */
+  ancestors: string[] = []
 ): Promise<CycleTopicDecks> {
   const data = await getSubjectTopics(cycleSubject);
   if (!data) return EMPTY_MATCH;
 
-  const decks = matchTopicDecks(cycleTopic, data.topics);
+  let decks = matchTopicDecks(cycleTopic, data.topics);
+  let herdadoDe: string | null = null;
+  for (const ancestral of ancestors) {
+    if (decks.length > 0) break;
+    const doAncestral = matchTopicDecks(ancestral, data.topics);
+    if (doAncestral.length > 0) {
+      decks = doAncestral;
+      herdadoDe = ancestral;
+    }
+  }
+
   if (decks.length === 0) {
     return { ...EMPTY_MATCH, subjectName: data.subject.name };
   }
@@ -1526,7 +1790,15 @@ export async function getCycleTopicDecks(
       ? byDue[0]
       : [...decks].sort((a, b) => b.novos - a.novos)[0] ?? decks[0];
 
-  return { subjectName: data.subject.name, decks, cardCount, dueNow, novos, entryDeck };
+  return {
+    subjectName: data.subject.name,
+    decks,
+    cardCount,
+    dueNow,
+    novos,
+    entryDeck,
+    inheritedFrom: herdadoDe,
+  };
 }
 
 /**
@@ -1583,4 +1855,93 @@ export async function importLocalProgress(dados: {
   await putMany("topics", dados.topics ?? []);
   await put("meta", true, "seeded");
   return true;
+}
+
+export type ImportPreview = {
+  previa: true;
+  lidos: number;
+  aImportar: number;
+  repetidosNoArquivo: number;
+  gaveta: string;
+  amostra: { question: string; answer: string; bizu: string; tags: string[] }[];
+};
+
+export type ImportResult = {
+  topicId: number;
+  topicName: string;
+  subjectId: number;
+  subjectName: string;
+  lidos: number;
+  importados: number;
+  jaExistiam: number;
+  repetidosNoArquivo: number;
+};
+
+/** Lê o arquivo sem gravar nada — a prévia antes de confirmar. */
+export async function previewImport(input: {
+  subjectName: string;
+  topicName: string;
+  content: string;
+}): Promise<ImportPreview> {
+  const res = await fetch("/api/cards/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, dryRun: true }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error || `Falha ao ler o arquivo (HTTP ${res.status})`);
+  return body as ImportPreview;
+}
+
+/** Importa de verdade e espelha os cards neste navegador. */
+export async function importCards(input: {
+  subjectName: string;
+  topicName: string;
+  content: string;
+}): Promise<ImportResult> {
+  const res = await fetch("/api/cards/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error || `Falha ao importar (HTTP ${res.status})`);
+
+  const criados = (body.cards ?? []) as {
+    id: number; question: string; answer: string; bizu: string; tags: string; cardType: string;
+  }[];
+
+  if (criados.length > 0) {
+    await putMany(
+      "userCards",
+      criados.map((c) => ({
+        id: c.id,
+        topicId: body.topicId as number,
+        question: c.question,
+        answer: c.answer,
+        bizu: c.bizu ?? "",
+        source: "app",
+        tags: c.tags ?? "",
+        cardType: c.cardType ?? "normal",
+      }))
+    );
+    await put("userTopics", {
+      topicId: body.topicId,
+      topicName: body.topicName,
+      subjectId: body.subjectId,
+      subjectName: body.subjectName,
+    });
+    indexCache = null;
+  }
+
+  return {
+    topicId: body.topicId,
+    topicName: body.topicName,
+    subjectId: body.subjectId,
+    subjectName: body.subjectName,
+    lidos: body.lidos,
+    importados: body.importados,
+    jaExistiam: body.jaExistiam,
+    repetidosNoArquivo: body.repetidosNoArquivo,
+  };
 }

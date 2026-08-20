@@ -24,7 +24,16 @@ const TAG_RE = /^\[([^\]]+)\]\s*/;
 const Q_TAG_RE = /^\[Q\d+/i;
 
 export function parseFile(filePath: string): ParsedCard[] {
-  const content = fs.readFileSync(filePath, "utf-8");
+  return parseContent(fs.readFileSync(filePath, "utf-8"));
+}
+
+/**
+ * O mesmo parser, a partir de texto em vez de caminho de arquivo.
+ *
+ * Existe para que a importação pelo app e a importação por script usem
+ * EXATAMENTE a mesma regra: um formato só, um lugar só para consertar.
+ */
+export function parseContent(content: string): ParsedCard[] {
   const cards: ParsedCard[] = [];
   const lines = content.split("\n").filter((l) => l.trim());
 

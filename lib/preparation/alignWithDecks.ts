@@ -114,11 +114,12 @@ export function planAlignment(
     // Cópia por valor: o rename abaixo alterava o objeto do chamador, então um
     // ensaio a seco já deixava o estado renomeado mesmo sem aplicar nada.
     subjects: db.subjects.map((s) => ({ ...s })),
-    topics: [...db.topics],
+    topics: db.topics.map((t) => ({ ...t })),
     topicProgresses: [...db.topicProgresses],
     materials: [...db.materials],
     subjectLayerStates: [...db.subjectLayerStates],
     subjectRoundStates: [...db.subjectRoundStates],
+    topicTombstones: [...(db.topicTombstones ?? [])],
   };
 
   const deckNames = index.subjects.map((s) => s.name);
@@ -193,9 +194,32 @@ export function planAlignment(
     const existing = next.topics.filter((t) => t.subject_id === subject.id);
     let order = existing.reduce((max, t) => Math.max(max, t.order), 0) + 1;
 
+    const lapides = new Set(
+      next.topicTombstones
+        .filter((l) => l.subject_name === subject.name)
+        .map((l) => l.deck_unit_key)
+    );
+
     for (const unit of unitsOf(deck.topics)) {
       const name = label(unit);
-      if (unitIsCovered(unit, existing, deck.topics)) continue;
+      const chave = normalize(unit);
+
+      // O usuário já disse que não quer esta unidade. A decisão dele vence a
+      // derivação — é a razão de a lápide existir.
+      if (lapides.has(chave)) continue;
+
+      if (unitIsCovered(unit, existing, deck.topics)) {
+        // Aproveita a passagem para carimbar a procedência nos assuntos que
+        // nasceram antes de o campo existir: sem isso, excluí-los não deixaria
+        // lápide e eles voltariam.
+        for (const t of existing) {
+          if (!t.deck_unit_key && normalize(t.name) === chave) {
+            t.deck_unit_key = chave;
+            report.changed = true;
+          }
+        }
+        continue;
+      }
 
       const topic: Topic = {
         id: `topic_${slug(subject.name)}_${slug(name)}`,
@@ -205,7 +229,9 @@ export function planAlignment(
         // Não inventamos peso de edital: o que veio do baralho entra como
         // secundário até o usuário dizer o contrário.
         importance_tier: "SECONDARY",
-        active: true,
+        status: "active",
+        origin: "deck",
+        deck_unit_key: normalize(unit),
       };
       // Colisão de slug (truncado em 40 chars) descartava o assunto em silêncio,
       // levando os cards dele junto. Melhor sufixar do que sumir.

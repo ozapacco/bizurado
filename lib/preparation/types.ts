@@ -91,13 +91,52 @@ export interface QuestionLog {
 
 export type ImportanceTier = 'CORE' | 'SECONDARY' | 'TERTIARY';
 
+/**
+ * `active`   — no ciclo, entra na rotação.
+ * `suspended` — fora de escopo agora. Sai da rotação, some da fila de revisão
+ *               e sai do denominador do progresso. Volta com um clique.
+ * Excluir não é status: o assunto é apagado de verdade e fica só uma lápide
+ * (`TopicTombstone`) para o alinhamento não recriá-lo.
+ */
+export type TopicStatus = 'active' | 'suspended';
+
 export interface Topic {
   id: string;
   subject_id: string;
   name: string;
   order: number;
   importance_tier: ImportanceTier;
-  active: boolean;
+  status: TopicStatus;
+  /** De onde veio: derivado de baralho, ou criado à mão pelo usuário. */
+  origin: 'deck' | 'user';
+  /** Unidade de baralho que originou o assunto. Sobrevive ao renomeio. */
+  deck_unit_key?: string;
+  /** Motivo da suspensão, para o usuário lembrar por que pausou. */
+  status_reason?: string;
+  status_changed_at?: string;
+  /**
+   * Assunto-pai. Sem pai, é raiz. Profundidade livre.
+   *
+   * Regra que governa a árvore: **só folha conta**. Um assunto que ganha filho
+   * vira pasta — sai da rotação e do denominador do progresso, e quem trabalha
+   * são os filhos. Sem isso o mesmo estudo contaria duas vezes.
+   */
+  parent_id?: string;
+}
+
+/**
+ * Lápide: "esta unidade de baralho eu não quero no ciclo".
+ *
+ * Existe porque os assuntos são DERIVADOS dos baralhos. Sem ela, apagar um
+ * assunto só limpa o caminho para o alinhamento recriá-lo no próximo boot.
+ * É a memória de uma decisão, e ocupa três campos.
+ */
+export interface TopicTombstone {
+  subject_name: string;
+  deck_unit_key: string;
+  /** Guardado só para a interface poder dizer o que foi removido. */
+  last_name: string;
+  at: string;
 }
 
 export interface TopicProgress {
@@ -292,6 +331,7 @@ export interface DatabaseState {
   studySessions: StudySession[];
   questionLogs: QuestionLog[];
   topics: Topic[];
+  topicTombstones: TopicTombstone[];
   topicProgresses: TopicProgress[];
   reviewMaterials: ReviewMaterial[];
   layerStates: LayerState[];

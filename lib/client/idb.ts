@@ -5,7 +5,7 @@
 // recomputável a partir do `log` (append-only) — garantia de migração.
 
 const DB_NAME = "bizurado";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export type StoredState = {
   cardId: number;
@@ -32,6 +32,26 @@ export type LogEvent = {
   reviewDate: string;
 };
 
+/** Card criado dentro do app (não veio dos arquivos .txt). */
+export type UserCard = {
+  id: number;
+  topicId: number;
+  question: string;
+  answer: string;
+  bizu: string;
+  source: string;
+  tags: string;
+  cardType: string;
+};
+
+/** Gaveta de cards do usuário, para o índice de conteúdo enxergá-la. */
+export type UserTopic = {
+  topicId: number;
+  topicName: string;
+  subjectId: number;
+  subjectName: string;
+};
+
 export type TopicStudy = {
   topicId: number;
   priority: number;
@@ -50,15 +70,30 @@ export function openDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
+    req.onupgradeneeded = (event) => {
       const db = req.result;
-      const states = db.createObjectStore("states", { keyPath: "cardId" });
-      states.createIndex("topicId", "topicId");
-      const log = db.createObjectStore("log", { autoIncrement: true });
-      log.createIndex("reviewDate", "reviewDate");
-      db.createObjectStore("topics", { keyPath: "topicId" });
-      db.createObjectStore("meta");
-      db.createObjectStore("queue", { autoIncrement: true });
+      const anterior = (event as IDBVersionChangeEvent).oldVersion;
+
+      // v1: estrutura original. Cada bloco só roda no upgrade em que foi
+      // introduzido, então atualizar nunca destrói o que já existe.
+      if (anterior < 1) {
+        const states = db.createObjectStore("states", { keyPath: "cardId" });
+        states.createIndex("topicId", "topicId");
+        const log = db.createObjectStore("log", { autoIncrement: true });
+        log.createIndex("reviewDate", "reviewDate");
+        db.createObjectStore("topics", { keyPath: "topicId" });
+        db.createObjectStore("meta");
+        db.createObjectStore("queue", { autoIncrement: true });
+      }
+
+      // v2: cards criados dentro do app. Os 575 baralhos importados continuam
+      // vindo de public/data/decks (arquivo estático); estes vivem aqui e são
+      // mesclados na hora de abrir o baralho.
+      if (anterior < 2) {
+        const userCards = db.createObjectStore("userCards", { keyPath: "id" });
+        userCards.createIndex("topicId", "topicId");
+        db.createObjectStore("userTopics", { keyPath: "topicId" });
+      }
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
