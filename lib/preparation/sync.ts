@@ -15,7 +15,9 @@ import { getDb, getMeta, replaceDb, setMeta } from "./db";
 import type { DatabaseState } from "./types";
 import { setChannelStatus } from "@/lib/client/syncStatus";
 
-const PUSH_DEBOUNCE_MS = 2000;
+// Curto de propósito: o requisito é que todo avanço esteja no banco, não que o
+// navegador economize requisições. Ainda agrupa uma rajada de cliques.
+const PUSH_DEBOUNCE_MS = 600;
 
 let hydrated = false;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -34,6 +36,15 @@ function refreshPending() {
  * Só depois disso os envios são liberados, para não empurrar o seed por cima
  * de meses de progresso.
  */
+export function isCycleHydrated(): boolean {
+  return hydrated;
+}
+
+/** Reabre a janela de hidratação (usado pelo reset, que zera a revisão local). */
+export function resetHydration(): void {
+  hydrated = false;
+}
+
 export async function hydrateCycleFromCloud(): Promise<void> {
   if (hydrated) return;
 
@@ -57,7 +68,19 @@ export async function hydrateCycleFromCloud(): Promise<void> {
     const cloudIsAhead = remote.revision > meta.revision;
 
     if (cloudHasData && (localIsUntouched || (cloudIsAhead && !meta.dirty))) {
-      // A nuvem vence e não há nada local em risco.
+      // A nuvem vence. Quando o local não é mais o seed de fábrica, guardamos a
+      // cópia antes de sobrepor: o sinal `dirty` pode ter se perdido (quota
+      // estourada, aba fechada no meio de um envio) e o que está aqui pode ser
+      // a única cópia de uma edição.
+      if (!meta.seeded && !(await parkCurrentCycle("local-substituido"))) {
+        // Não conseguimos guardar a cópia local: melhor conviver com a
+        // divergência do que destruí-la sem rede de segurança.
+        setChannelStatus("cycle", {
+          error: "Não deu para guardar a cópia local — a versão da nuvem não foi aplicada",
+        });
+        hydrated = true;
+        return;
+      }
       replaceDb(remote.data as DatabaseState, remote.revision);
     } else if (cloudHasData && cloudIsAhead && meta.dirty) {
       // Divergência real: os dois lados têm mudanças. Guardamos a cópia local
@@ -94,11 +117,18 @@ export async function parkCurrentCycle(origin: string): Promise<boolean> {
 
 /** Estaciona uma cópia na nuvem sem tocar no estado corrente. */
 async function parkLocalCopy(data: DatabaseState, revision: number, origin: string) {
-  await fetch("/api/cycle-state/snapshots", {
+  const res = await fetch("/api/cycle-state/snapshots", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ data, revision, origin }),
   });
+  // `fetch` só rejeita em erro de rede: sem esta checagem um 500 (tabela
+  // ausente, Neon fora do ar) devolvia "guardado com sucesso" sem ter guardado
+  // nada — e quem chama usa isso para liberar uma ação destrutiva.
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error || `Não foi possível guardar a cópia (HTTP ${res.status})`);
+  }
 }
 
 /** Envia o estado local agora, se houver algo pendente. */
@@ -115,6 +145,10 @@ export async function pushCycleNow(): Promise<boolean> {
   inFlight = (async () => {
     setChannelStatus("cycle", { busy: true, error: null });
     const data = getDb();
+    // Impressão do documento que está subindo. Se ele mudar enquanto o PUT está
+    // em voo, limpar `dirty` no fim apagaria o sinal da edição nova — ela ficaria
+    // só neste navegador e morreria na próxima hidratação.
+    const enviado = JSON.stringify(data);
     try {
       let res = await fetch("/api/cycle-state", {
         method: "PUT",
@@ -123,8 +157,20 @@ export async function pushCycleNow(): Promise<boolean> {
       });
 
       if (res.status === 409) {
-        // A nuvem avançou desde o carregamento. A versão de lá já foi para o
-        // histórico pela própria rota, então sobrepor é seguro e reversível.
+        // A nuvem avançou desde o carregamento. Forçar é aceitável quando este
+        // navegador tem progresso real (a versão de lá vai para o histórico),
+        // mas NUNCA quando o que temos aqui é o seed de fábrica ou uma cópia
+        // sem revisão conhecida — seria o demo apagando meses de estudo.
+        const podeForcar = !meta.seeded && meta.revision > 0;
+        if (!podeForcar) {
+          setChannelStatus("cycle", {
+            busy: false,
+            pending: 1,
+            error:
+              "A nuvem tem uma versão mais nova — recarregue a página para trazê-la antes de editar",
+          });
+          return false;
+        }
         res = await fetch("/api/cycle-state", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -138,18 +184,22 @@ export async function pushCycleNow(): Promise<boolean> {
       }
 
       const out = (await res.json()) as { revision: number; updatedAt: string };
+      const mudouDurante = JSON.stringify(getDb()) !== enviado;
+
       setMeta({
         revision: out.revision,
-        dirty: false,
+        dirty: mudouDurante,
         seeded: false,
         lastSyncedAt: out.updatedAt,
       });
       setChannelStatus("cycle", {
         busy: false,
         error: null,
-        pending: 0,
+        pending: mudouDurante ? 1 : 0,
         lastSyncedAt: out.updatedAt,
       });
+
+      if (mudouDurante) scheduleCyclePush();
       return true;
     } catch (err) {
       // `dirty` continua ligado: nada é descartado, tentamos de novo depois.

@@ -140,6 +140,30 @@ export async function deleteKeys(store: string, keys: IDBValidKey[]): Promise<vo
   });
 }
 
+/**
+ * Escreve em várias stores dentro de UMA transação. Registrar uma revisão toca
+ * `states`, `log` e `queue`: em transações separadas, fechar a aba no meio
+ * gravava o novo agendamento sem enfileirar o envio — a revisão passava a
+ * existir só neste navegador e sumia no primeiro restore.
+ */
+export async function putAtomic(
+  writes: { store: string; value: unknown; key?: IDBValidKey }[]
+): Promise<void> {
+  if (writes.length === 0) return;
+  const db = await openDb();
+  const stores = Array.from(new Set(writes.map((w) => w.store)));
+  const tx = db.transaction(stores, "readwrite");
+  for (const w of writes) {
+    if (w.key === undefined) tx.objectStore(w.store).put(w.value);
+    else tx.objectStore(w.store).put(w.value, w.key);
+  }
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error("transação abortada"));
+  });
+}
+
 export async function clearStore(storeName: string): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

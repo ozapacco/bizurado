@@ -1,3 +1,8 @@
 {
-  "name": "bizurado"
+  "name": "bizurado",
+  "functions": {
+    "app/api/**/route.ts": {
+      "maxDuration": 60
+    }
+  }
 }

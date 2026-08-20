@@ -311,12 +311,28 @@ export default function Home() {
                   )}
                 </div>
                 {flashcards.entryDeck && (
-                  <Link
-                    href={`/study?topicId=${flashcards.entryDeck.id}`}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto"
-                  >
-                    ESTUDAR CARDS
-                  </Link>
+                  <div className="flex flex-col items-start sm:items-end gap-1.5 shrink-0">
+                    <Link
+                      href={`/study?topicId=${flashcards.entryDeck.id}&disciplina=${encodeURIComponent(
+                        subjectName ?? ""
+                      )}&assunto=${encodeURIComponent(topicName ?? "")}`}
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap"
+                    >
+                      ESTUDAR CARDS
+                    </Link>
+                    {flashcards.decks.length > 1 && (
+                      // Sem esta porta, os outros baralhos do assunto não têm
+                      // nenhum ponto de entrada na interface.
+                      <Link
+                        href={`/subjects?name=${encodeURIComponent(
+                          flashcards.subjectName ?? ""
+                        )}&assunto=${encodeURIComponent(topicName ?? "")}`}
+                        className="text-[11px] text-amber-800 hover:underline whitespace-nowrap"
+                      >
+                        ver os {flashcards.decks.length} baralhos
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
             )}

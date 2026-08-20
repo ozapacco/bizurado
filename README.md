@@ -47,6 +47,8 @@ Scripts úteis:
 | `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` | Build de produção |
 | `npm run lint` | ESLint (config em `.eslintrc.json`) |
+| `npm run reset` | **Destrutivo.** Zera todo o progresso (revisões, estados FSRS, voltas, ciclo) preservando o conteúdo. Exige `-- --confirmo`. Faça backup antes. |
+| `npm run cobertura` | Mede o encaixe ciclo ↔ baralhos nas duas direções: quantos assuntos do ciclo alcançam cards e quantos cards são alcançáveis pelo ciclo. `-- --ci` sai com erro se algum card ficar inalcançável. |
 | `npm run db:init` | **Aplica o schema** no banco apontado por `DATABASE_URL` (idempotente — `scripts/db-init.ts`). Roda manualmente, nunca a cada request. |
 | `npm run seed` | Importa os `.txt` das disciplinas para o Postgres (`lib/seed.ts`) |
 | `npm run content:sync` | `seed` + `export:static`: roda **só quando o conteúdo dos cards muda**. O `build` não faz mais isso — deploy não escreve no banco. |
@@ -88,7 +90,16 @@ Garantias do lado do ciclo (`lib/preparation/sync.ts` + `app/api/cycle-state`):
 - **Navegador novo nunca sobrepõe a nuvem**: enquanto o estado local for o seed de fábrica (`meta.seeded`), a nuvem sempre vence.
 - **Ações destrutivas guardam antes**: reset, import e restauração estacionam a cópia atual em `cycle_snapshots` primeiro.
 
-Do lado dos flashcards, `syncWithNeon()` apaga da fila **apenas as chaves que enviou** (`getAllWithKeys` + `deleteKeys`) — um `clearStore` descartaria em silêncio as revisões feitas durante o POST.
+Proteções adicionais na fila de flashcards:
+
+- **Lotes de 100.** A fila inteira num POST só era uma bomba-relógio: quanto mais progresso represado, mais garantido o estouro do limite de tempo da função — e aí toda tentativa futura falhava igual. Cada lote que confirma sai da fila, então o progresso é monotônico.
+- **Idempotência por `(card_id, review_date)`.** Reenviar um lote cuja resposta se perdeu não duplica mais. (Foi esse mecanismo que gerou 48 linhas duplicadas em `review_log` em julho/2026.)
+- **Mutex de envio.** `visibilitychange` + `online` + intervalo + botão manual podiam disparar quase juntos e subir o mesmo lote duas vezes.
+- **Sem veneno na fila.** Um `cardId` que não existe mais violava a FK e derrubava a transação inteira, travando o backup para sempre. Agora ids desconhecidos são ignorados e o resto passa.
+- **Escrita atômica.** `states`, `log` e `queue` entram na mesma transação IndexedDB: fechar a aba no meio não deixa mais uma revisão registrada e não enfileirada.
+- **Nuvem antes do seed estático.** Um dispositivo novo busca `/api/sync/down` primeiro; `progress-seed.json` é só o plano B offline. Antes ele começava semanas atrasado e subia agendamentos velhos por cima dos atuais.
+
+`syncWithNeon()` apaga da fila **apenas as chaves que enviou** (`getAllWithKeys` + `deleteKeys`) — um `clearStore` descartaria em silêncio as revisões feitas durante o POST.
 
 O estado dos dois canais fica visível no `SyncManager` (barra lateral no desktop, aviso no topo do conteúdo no mobile). Falha de rede não é engolida: aparece como "Backup pendente" e a fila é preservada.
 

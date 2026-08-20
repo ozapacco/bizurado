@@ -6,12 +6,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CardScreenSkeleton, Kbd, RatingBar } from "@/components/card-screen";
 import {
   finishVolta as engineFinishVolta,
+  getCycleTopicDecks,
   loadDeck,
   nextDeck as engineNextDeck,
   rateCard,
   suspendCard,
 } from "@/lib/client/engine";
 import type { Rating } from "@/lib/fsrs";
+import { setChannelStatus } from "@/lib/client/syncStatus";
 
 type StudyCard = {
   id: number;
@@ -53,6 +55,10 @@ function StudyContent() {
   const params = useSearchParams();
   const router = useRouter();
   const topicId = params.get("topicId");
+  // Contexto do ciclo, quando o usuário chegou por um assunto do plano. Serve
+  // para emendar nos baralhos IRMÃOS antes de sair da disciplina.
+  const cicloDisciplina = params.get("disciplina");
+  const cicloAssunto = params.get("assunto");
 
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<StudyCard[]>([]);
@@ -100,20 +106,55 @@ function StudyContent() {
   // Close the volta locally (graduates the cycle, +1 volta) and ask the Trilha
   // rotation for the next topic — fair round-robin across disciplines
   // (least-recently-studied first), excluding the one just finished.
+  // Preserva o contexto do ciclo ao pular de baralho.
+  const comContexto = useCallback(
+    (id: number) => {
+      const qs = new URLSearchParams({ topicId: String(id) });
+      if (cicloDisciplina) qs.set("disciplina", cicloDisciplina);
+      if (cicloAssunto) qs.set("assunto", cicloAssunto);
+      return `/study?${qs.toString()}`;
+    },
+    [cicloDisciplina, cicloAssunto]
+  );
+
   const finishVolta = useCallback(async () => {
     setDone(true);
     try {
       await engineFinishVolta(Number(topicId));
-    } catch {
-      // ignore — the pass still counts visually
+    } catch (err) {
+      // A volta conta visualmente, mas o usuário precisa saber que ela não foi
+      // registrada — antes isto era engolido com um comentário.
+      setChannelStatus("cards", {
+        error: `A volta não foi registrada: ${err instanceof Error ? err.message : String(err)}`,
+      });
     }
     try {
+      // Primeiro os IRMÃOS do mesmo assunto do ciclo. Sem isto, a rotação
+      // global mandava o usuário para outra disciplina — e como a matéria
+      // recém-estudada é empurrada para o fim da fila, os outros 16 baralhos
+      // de "Inquérito Policial" ficavam inalcançáveis pela corrente.
+      if (cicloDisciplina && cicloAssunto) {
+        const match = await getCycleTopicDecks(cicloDisciplina, cicloAssunto);
+        const irmao = match.decks
+          .filter((d) => d.id !== Number(topicId) && (d.dueNow > 0 || d.novos > 0))
+          .sort((a, b) => b.dueNow - a.dueNow || b.novos - a.novos)[0];
+        if (irmao) {
+          setNextDeck({
+            topicId: irmao.id,
+            topicName: irmao.name,
+            subjectName: match.subjectName ?? cicloDisciplina,
+            priority: 0,
+            novos: irmao.novos,
+          });
+          return;
+        }
+      }
       const next = await engineNextDeck(Number(topicId));
       setNextDeck(next);
     } catch {
       setNextDeck(null);
     }
-  }, [topicId]);
+  }, [topicId, cicloDisciplina, cicloAssunto]);
 
   const advance = useCallback(() => {
     if (index + 1 < cards.length) {
@@ -137,10 +178,16 @@ function StudyContent() {
   const handleRating = useCallback(
     (rating: number) => {
       if (!current || !deck) return;
+      // Falha de escrita local (cota, aba privada, VersionError) fazia a
+      // revisão evaporar com o contador subindo na tela. Agora ela aparece.
       rateCard(
         { id: current.id, topicId: deck.topicId, subjectId: deck.subjectId },
         rating as Rating
-      ).catch(() => {});
+      ).catch((err: unknown) => {
+        setChannelStatus("cards", {
+          error: `Revisão não salva: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      });
       setReviewed((n) => n + 1);
       advance();
     },
@@ -152,7 +199,11 @@ function StudyContent() {
 
   const handleMarkMastered = useCallback(() => {
     if (!current || !deck) return;
-    suspendCard(current.id, deck.topicId).catch(() => {});
+    suspendCard(current.id, deck.topicId).catch((err: unknown) => {
+      setChannelStatus("cards", {
+        error: `Card não suspenso: ${err instanceof Error ? err.message : String(err)}`,
+      });
+    });
     advance();
   }, [current, deck, advance]);
 
@@ -224,12 +275,12 @@ function StudyContent() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        router.push(`/study?topicId=${nextDeck.topicId}`);
+        router.push(comContexto(nextDeck.topicId));
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [done, nextDeck, router]);
+  }, [done, nextDeck, router, comContexto]);
 
   if (!topicId) {
     return (
@@ -274,7 +325,7 @@ function StudyContent() {
             </p>
             <button
               onClick={() => {
-                router.push(`/study?topicId=${nextDeck.topicId}`);
+                router.push(comContexto(nextDeck.topicId));
               }}
               className="px-6 py-3 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
             >

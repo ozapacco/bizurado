@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { resolveSubjectName } from "@/lib/subjectMatch";
 import Link from "next/link";
 import { useDb } from "@/lib/preparation/useDb";
 import { getPlanId, getCurrentSubject, getActiveCycleSubjects } from "@/lib/preparation/cycle";
@@ -132,11 +133,12 @@ export default function CyclePage() {
               const isDoneInRound = !isCompleted && rs && rs.remaining_minutes === 0;
 
               // Consolidated discipline info
+              // O nome do ciclo e o do edital divergem ("Português" x "Língua
+              // Portuguesa"). A ponte já sabe resolver isso; comparar à mão aqui
+              // fazia 4 das 11 disciplinas caírem no rótulo genérico "MÉDIA".
               const discInfo = plan.disciplines.find(
                 (d) =>
-                  d.name.toLowerCase() === subject.name.toLowerCase() ||
-                  d.name.toLowerCase().includes(subject.name.toLowerCase()) ||
-                  subject.name.toLowerCase().includes(d.name.toLowerCase())
+                  d.name === resolveSubjectName(subject.name, plan.disciplines.map((x) => x.name))
               );
               const sug = suggestions.find((s) => s.subject_id === subject.id || s.name === subject.name);
 

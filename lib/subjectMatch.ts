@@ -26,14 +26,24 @@ export function moduleOf(topicName: string): string {
 // Palavras que não distinguem nada em edital de concurso.
 const STOP = new Set([
   "de", "da", "do", "das", "dos", "e", "o", "a", "os", "as", "em", "no", "na",
-  "nos", "nas", "para", "por", "com", "sem", "ao", "aos", "direito", "direitos",
+  "nos", "nas", "para", "por", "com", "sem", "ao", "aos",
   "noções", "nocoes", "introducao", "introdução", "geral", "gerais", "parte",
+  // "direito"/"direitos" NÃO entram aqui: em Direito Constitucional eles são o
+  // termo discriminante. Com eles na lista, "Direitos Políticos" virava o token
+  // único [politic] e reivindicava "Organização Político-administrativa" —
+  // 339 cards do assunto errado. Medido: tirá-los zera as 8 ambiguidades.
+  // "contra" também não entra: medido, adicioná-lo faz "Crimes contra a pessoa"
+  // empatar com "Concurso de pessoas e concurso de crimes".
 ]);
 
 function tokens(value: string): string[] {
+  // Sem piso de tamanho. O antigo `length > 2` era assimétrico e caro: descartava
+  // "I" e "II" mas mantinha "III", então "Classes de palavras I" reivindicava os
+  // três módulos (1.934 cards). Mesma coisa com "1º" e "2º" grau, que eram
+  // literalmente indistinguíveis. Os monossílabos inúteis já saem pelo STOP.
   return normalize(value)
     .split(" ")
-    .filter((t) => t.length > 2 && !STOP.has(t));
+    .filter((t) => t.length > 0 && !STOP.has(t));
 }
 
 /**
@@ -41,9 +51,12 @@ function tokens(value: string): string[] {
  * ("administrativo"/"administracao", "licitacao"/"licitacoes").
  */
 function stem(token: string): string {
-  return token
+  const podado = token
     .replace(/(coes|cao|çoes|mentos|mento|ivos|ivas|ivo|iva|ais|eis|ores|ora|or|es|s)$/, "")
-    .slice(0, 7);
+    .replace(/e$/, "");
+  // Piso: sem ele "ação" virava "a" e "mais" virava "m", radicais que colidem
+  // com qualquer coisa. Abaixo de 4 caracteres o token vale mais inteiro.
+  return (podado.length >= 4 ? podado : token).slice(0, 7);
 }
 
 /**
@@ -59,7 +72,41 @@ export function similarity(cycleName: string, deckName: string): number {
   return hits / a.length;
 }
 
+// Medido: entre 0,55 e 1,00 o resultado é IDÊNTICO — o corpus não tem nada
+// entre 0,68 e 1,00, então este número não é a alavanca que parece ser. Em 0,50
+// ele abre 87 pares de lixo de uma vez. Fica em 0,6 e não é aqui que se mexe.
 const MIN_SCORE = 0.6;
+
+// Margem abaixo do melhor módulo que ainda conta como o mesmo assunto. Existe
+// porque Matemática tem dois blocos paralelos de estatística (05.xx e 07.xx)
+// cobrindo o mesmo conteúdo, e o ciclo tem um assunto só para cada par.
+// NÃO passar de 0,30: medido, em 0,35 voltam 11 pares de falso positivo e
+// 12.039 cards de conteúdo errado.
+const BAND = 0.25;
+
+/**
+ * Sinônimos no nível do assunto, para os casos em que os dois vocabulários
+ * simplesmente usam palavras diferentes para a mesma coisa. Quatro entradas
+ * resolvem tudo que sobrou e é resolúvel — é honestamente melhor que qualquer
+ * ajuste de algoritmo, porque não é padrão, é vocabulário.
+ */
+const TOPIC_SYNONYMS: { topic: string; matches: string[] }[] = [
+  { topic: "compreensao de textos", matches: ["interpretacao"] },
+  { topic: "direitos politicos", matches: ["direitos politicos", "partidos politicos"] },
+  { topic: "direitos fundamentais", matches: ["direitos e deveres individuais e coletivos"] },
+  { topic: "teoria do crime", matches: ["conceito de crime"] },
+];
+
+function synonymsFor(cycleTopic: string): string[] | null {
+  const alvo = normalize(cycleTopic);
+  return TOPIC_SYNONYMS.find((e) => e.topic === alvo)?.matches ?? null;
+}
+
+/** O nome da aula: só o trecho depois do último ">". */
+function lessonOf(topicName: string): string {
+  const partes = topicName.split(">");
+  return partes[partes.length - 1].trim();
+}
 
 /** Apelidos entre o nome da disciplina no ciclo e o nome no índice de cards. */
 const SUBJECT_ALIASES: Record<string, string[]> = {
@@ -112,13 +159,39 @@ export type DeckLike = { id: number; name: string };
  * interface diz isso em vez de esconder.
  */
 export function matchTopicDecks<T extends DeckLike>(cycleTopic: string, decks: T[]): T[] {
-  const scored = decks
+  // 1. Sinônimo explícito vence tudo: é conhecimento que o algoritmo não tem.
+  const sinonimos = synonymsFor(cycleTopic);
+  if (sinonimos) {
+    const porSinonimo = decks.filter((deck) => {
+      const modulo = normalize(moduleOf(deck.name));
+      return sinonimos.some((alvo) => modulo.includes(alvo) || alvo.includes(modulo));
+    });
+    if (porSinonimo.length > 0) return porSinonimo;
+  }
+
+  // 2. Casamento no nível do MÓDULO — a granularidade em que o edital é escrito.
+  const porModulo = decks
     .map((deck) => ({ deck, score: similarity(cycleTopic, moduleOf(deck.name)) }))
     .filter((entry) => entry.score >= MIN_SCORE);
 
-  if (scored.length === 0) return [];
+  if (porModulo.length > 0) {
+    const best = Math.max(...porModulo.map((s) => s.score));
+    return porModulo.filter((s) => s.score >= best - BAND).map((s) => s.deck);
+  }
 
-  // Só o módulo mais aderente — nunca uma mistura de módulos diferentes.
-  const best = Math.max(...scored.map((s) => s.score));
-  return scored.filter((s) => s.score >= best - 0.01).map((s) => s.deck);
+  // 3. Nenhum módulo serve: tentar a AULA isolada. Compara só o texto depois do
+  // último ">" — usar o nome completo arrastaria o prefixo do módulo e produziria
+  // o falso positivo clássico ("Atos Administrativos" casando com uma aula de TCU
+  // que cita "sustação de atos"). Exige 2 termos, para um assunto de uma palavra
+  // não varrer o baralho inteiro.
+  if (tokens(cycleTopic).length < 2) return [];
+
+  const porAula = decks
+    .map((deck) => ({ deck, score: similarity(cycleTopic, lessonOf(deck.name)) }))
+    .filter((entry) => entry.score >= MIN_SCORE);
+
+  if (porAula.length === 0) return [];
+
+  const best = Math.max(...porAula.map((s) => s.score));
+  return porAula.filter((s) => s.score >= best - BAND).map((s) => s.deck);
 }

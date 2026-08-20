@@ -10,7 +10,12 @@ import {
   setChannelStatus,
   subscribeSync,
 } from "@/lib/client/syncStatus";
-import { hydrateCycleFromCloud, pushCycleNow, scheduleCyclePush } from "@/lib/preparation/sync";
+import {
+  hydrateCycleFromCloud,
+  isCycleHydrated,
+  pushCycleNow,
+  scheduleCyclePush,
+} from "@/lib/preparation/sync";
 import { applyDeckAlignment } from "@/lib/preparation/alignWithDecks";
 import { getMeta } from "@/lib/preparation/db";
 
@@ -25,6 +30,11 @@ export default function SyncManager() {
   const status = useSyncExternalStore(subscribeSync, getSyncSnapshot, getServerSyncSnapshot);
 
   const syncAll = useCallback(async () => {
+    // Uma hidratação que falhou (offline no boot, cold start do Neon) travava o
+    // backup do ciclo pela sessão inteira: `pushCycleNow` desiste enquanto
+    // `hydrated` for falso, e ninguém tentava de novo. Agora toda rodada de
+    // sincronia reabre a tentativa.
+    if (!isCycleHydrated()) await hydrateCycleFromCloud();
     await Promise.allSettled([syncWithNeon(), pushCycleNow()]);
   }, []);
 
@@ -43,8 +53,18 @@ export default function SyncManager() {
   // Toda edição do ciclo agenda um backup (rajadas viram uma escrita só).
   useEffect(() => {
     const onDbUpdated = () => scheduleCyclePush();
+    // Falha ao gravar no localStorage (cota, aba privada) não pode ficar muda:
+    // sem isso a barra continuaria dizendo "Tudo salvo".
+    const onWriteError = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      setChannelStatus("cycle", { error: detail, pending: 1, busy: false });
+    };
     window.addEventListener("db-updated", onDbUpdated);
-    return () => window.removeEventListener("db-updated", onDbUpdated);
+    window.addEventListener("cycle-write-error", onWriteError);
+    return () => {
+      window.removeEventListener("db-updated", onDbUpdated);
+      window.removeEventListener("cycle-write-error", onWriteError);
+    };
   }, []);
 
   useEffect(() => {

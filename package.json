@@ -9,6 +9,8 @@
     "export:static": "tsx scripts/export-static.ts",
     "start": "next start",
     "lint": "next lint",
+    "cobertura": "tsx scripts/coverage-report.ts",
+    "reset": "tsx scripts/reset-progress.ts",
     "seed": "tsx lib/seed.ts",
     "db:init": "tsx scripts/db-init.ts"
   },

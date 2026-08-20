@@ -10,6 +10,7 @@
 
 # Banco de dados e backups locais — progresso pessoal, binário e regenerável
 /data
+/backups
 
 # Variáveis de ambiente com segredos (DATABASE_URL, APP_PASSWORD) — NUNCA commitar
 .env*.local

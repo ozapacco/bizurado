@@ -63,92 +63,65 @@ const defaultSeed: DatabaseState = {
     { id: 'goal_1', user_id: 'user_1', study_plan_id: 'plan_1', name: 'Polícia Federal — Agente', active: true },
     { id: 'goal_2', user_id: 'user_1', study_plan_id: 'plan_1', name: 'Polícia Penal', active: true },
   ],
+  // Disciplinas com o nome CANÔNICO dos baralhos. Este é o vocabulário único
+  // do sistema: o mesmo nome no ciclo, no índice de cards e no banco.
+  // Os assuntos NÃO são semeados à mão — `alignWithDecks` os deriva das
+  // unidades reais dos baralhos na primeira carga, o que garante cobertura de
+  // 100% desde o minuto zero. Semear assunto inventado aqui foi o que criou o
+  // descolamento entre o plano e os cards.
   subjects: [
-    { id: 'sub_1', study_plan_id: 'plan_1', name: 'Português', active: true, cycle_order: 1, block_minutes: 60, emphasis: 1.0 },
-    { id: 'sub_2', study_plan_id: 'plan_1', name: 'Direito Constitucional', active: true, cycle_order: 2, block_minutes: 60, emphasis: 1.0 },
-    { id: 'sub_3', study_plan_id: 'plan_1', name: 'Direito Administrativo', active: true, cycle_order: 3, block_minutes: 60, emphasis: 1.0 },
-    { id: 'sub_4', study_plan_id: 'plan_1', name: 'Processo Penal', active: true, cycle_order: 4, block_minutes: 70, emphasis: 1.0 },
-    { id: 'sub_5', study_plan_id: 'plan_1', name: 'Informática', active: true, cycle_order: 5, block_minutes: 90, emphasis: 1.0 },
-    { id: 'sub_6', study_plan_id: 'plan_1', name: 'Contabilidade', active: true, cycle_order: 6, block_minutes: 90, emphasis: 1.0 },
-    { id: 'sub_7', study_plan_id: 'plan_1', name: 'Direito Penal', active: true, cycle_order: 7, block_minutes: 70, emphasis: 1.0 },
-    { id: 'sub_8', study_plan_id: 'plan_1', name: 'Execução Penal', active: true, cycle_order: 8, block_minutes: 80, emphasis: 1.0 },
+    { id: 'sub_portugues', study_plan_id: 'plan_1', name: 'Português', active: true, cycle_order: 1, block_minutes: 60, emphasis: 1.0 },
+    { id: 'sub_direito_constitucional', study_plan_id: 'plan_1', name: 'Direito Constitucional', active: true, cycle_order: 2, block_minutes: 60, emphasis: 1.0 },
+    { id: 'sub_direito_administrativo', study_plan_id: 'plan_1', name: 'Direito Administrativo', active: true, cycle_order: 3, block_minutes: 60, emphasis: 1.0 },
+    { id: 'sub_direito_processual_penal', study_plan_id: 'plan_1', name: 'Direito Processual Penal', active: true, cycle_order: 4, block_minutes: 60, emphasis: 1.0 },
+    { id: 'sub_direito_penal', study_plan_id: 'plan_1', name: 'Direito Penal', active: true, cycle_order: 5, block_minutes: 60, emphasis: 1.0 },
+    { id: 'sub_legislacao_penal_especial', study_plan_id: 'plan_1', name: 'Legislação Penal Especial', active: true, cycle_order: 6, block_minutes: 60, emphasis: 1.0 },
+    { id: 'sub_direitos_humanos', study_plan_id: 'plan_1', name: 'Direitos Humanos', active: true, cycle_order: 7, block_minutes: 45, emphasis: 1.0 },
+    { id: 'sub_matematica', study_plan_id: 'plan_1', name: 'Matemática', active: true, cycle_order: 8, block_minutes: 60, emphasis: 1.0 },
   ],
-  goalSubjects: [
-    { exam_goal_id: 'goal_1', subject_id: 'sub_1', importance: 1 },
-    { exam_goal_id: 'goal_2', subject_id: 'sub_1', importance: 1 },
-    // and so on... skipping comprehensive list for simplicity
-  ],
+  // Vazio de propósito: o mapa meta -> disciplina é derivado do edital pelo
+  // `consolidatedPlanEngine`. A versão anterior era uma lista pela metade, com
+  // um `// and so on... skipping` no meio.
+  goalSubjects: [],
   materials: [
-    { subject_id: 'sub_1', name: 'Curso Completo PF', type: 'curso', total_units: 20, current_unit: '06', current_page: '', checkpoint_note: '' },
-    { subject_id: 'sub_2', name: 'Curso PF', type: 'curso', total_units: 15, current_unit: '04', current_page: '', checkpoint_note: '' },
-    { subject_id: 'sub_3', name: 'Curso PF', type: 'curso', total_units: 15, current_unit: '07', current_page: '', checkpoint_note: '' },
-    { subject_id: 'sub_4', name: 'Curso PF', type: 'curso', total_units: 18, current_unit: '05', current_page: '17', checkpoint_note: '' },
-    { subject_id: 'sub_5', name: 'Curso PF', type: 'curso', total_units: 30, current_unit: '03', current_page: '', checkpoint_note: '' },
-    { subject_id: 'sub_6', name: 'Curso PF', type: 'curso', total_units: 35, current_unit: '02', current_page: '', checkpoint_note: '' },
-    { subject_id: 'sub_7', name: 'Curso PF', type: 'curso', total_units: 15, current_unit: '01', current_page: '', checkpoint_note: '' },
-    { subject_id: 'sub_8', name: 'Curso PP', type: 'curso', total_units: 10, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_portugues', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_direito_constitucional', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_direito_administrativo', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_direito_processual_penal', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_direito_penal', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_legislacao_penal_especial', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_direitos_humanos', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
+    { subject_id: 'sub_matematica', name: 'Baralho de flashcards', type: 'outro', total_units: 0, current_unit: '01', current_page: '', checkpoint_note: '' },
   ],
+  // Zero em tudo. Os percentuais de antes (30%, 26%, 46%...) eram de
+  // demonstração e apareciam na interface como se fossem progresso real.
   subjectLayerStates: [
-    { subject_id: 'sub_1', layer: 1, completed_in_layer: false, material_progress: 30 },
-    { subject_id: 'sub_2', layer: 1, completed_in_layer: false, material_progress: 26 },
-    { subject_id: 'sub_3', layer: 1, completed_in_layer: false, material_progress: 46 },
-    { subject_id: 'sub_4', layer: 1, completed_in_layer: false, material_progress: 27 },
-    { subject_id: 'sub_5', layer: 1, completed_in_layer: false, material_progress: 10 },
-    { subject_id: 'sub_6', layer: 1, completed_in_layer: false, material_progress: 5 },
-    { subject_id: 'sub_7', layer: 1, completed_in_layer: false, material_progress: 0 },
-    { subject_id: 'sub_8', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_portugues', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_direito_constitucional', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_direito_administrativo', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_direito_processual_penal', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_direito_penal', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_legislacao_penal_especial', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_direitos_humanos', layer: 1, completed_in_layer: false, material_progress: 0 },
+    { subject_id: 'sub_matematica', layer: 1, completed_in_layer: false, material_progress: 0 },
   ],
   cycleStates: [
-    { study_plan_id: 'plan_1', current_subject_id: 'sub_4' }, // Matéria atual: Processo Penal
+    { study_plan_id: 'plan_1', current_subject_id: 'sub_portugues' },
   ],
   subjectRoundStates: [
-    { subject_id: 'sub_1', planned_minutes: 60, consumed_minutes: 60, remaining_minutes: 0 },
-    { subject_id: 'sub_2', planned_minutes: 60, consumed_minutes: 60, remaining_minutes: 0 },
-    { subject_id: 'sub_3', planned_minutes: 60, consumed_minutes: 60, remaining_minutes: 0 },
-    { subject_id: 'sub_4', planned_minutes: 70, consumed_minutes: 50, remaining_minutes: 20 },
-    { subject_id: 'sub_5', planned_minutes: 90, consumed_minutes: 0, remaining_minutes: 90 },
-    { subject_id: 'sub_6', planned_minutes: 90, consumed_minutes: 0, remaining_minutes: 90 },
-    { subject_id: 'sub_7', planned_minutes: 70, consumed_minutes: 0, remaining_minutes: 70 },
-    { subject_id: 'sub_8', planned_minutes: 80, consumed_minutes: 0, remaining_minutes: 80 },
+    { subject_id: 'sub_portugues', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
+    { subject_id: 'sub_direito_constitucional', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
+    { subject_id: 'sub_direito_administrativo', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
+    { subject_id: 'sub_direito_processual_penal', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
+    { subject_id: 'sub_direito_penal', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
+    { subject_id: 'sub_legislacao_penal_especial', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
+    { subject_id: 'sub_direitos_humanos', planned_minutes: 45, consumed_minutes: 0, remaining_minutes: 45 },
+    { subject_id: 'sub_matematica', planned_minutes: 60, consumed_minutes: 0, remaining_minutes: 60 },
   ],
   studySessions: [],
   questionLogs: [],
-  topics: [
-    // Administrativo
-    { id: 't_adm_1', subject_id: 'sub_3', name: 'Atos Administrativos', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_adm_2', subject_id: 'sub_3', name: 'Poderes Administrativos', order: 2, importance_tier: 'CORE', active: true },
-    { id: 't_adm_3', subject_id: 'sub_3', name: 'Agentes Públicos', order: 3, importance_tier: 'CORE', active: true },
-    { id: 't_adm_4', subject_id: 'sub_3', name: 'Licitações', order: 4, importance_tier: 'CORE', active: true },
-    { id: 't_adm_5', subject_id: 'sub_3', name: 'Responsabilidade Civil', order: 5, importance_tier: 'SECONDARY', active: true },
-    { id: 't_adm_6', subject_id: 'sub_3', name: 'Controle Administrativo', order: 6, importance_tier: 'SECONDARY', active: true },
-    // Processo Penal
-    { id: 't_pp_1', subject_id: 'sub_4', name: 'Inquérito Policial', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_pp_2', subject_id: 'sub_4', name: 'Ação Penal', order: 2, importance_tier: 'CORE', active: true },
-    { id: 't_pp_3', subject_id: 'sub_4', name: 'Provas', order: 3, importance_tier: 'CORE', active: true },
-    { id: 't_pp_4', subject_id: 'sub_4', name: 'Prisão e Liberdade Provisória', order: 4, importance_tier: 'CORE', active: true },
-    // Constitucional
-    { id: 't_con_1', subject_id: 'sub_2', name: 'Direitos Fundamentais', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_con_2', subject_id: 'sub_2', name: 'Poder Constituinte', order: 2, importance_tier: 'CORE', active: true },
-    { id: 't_con_3', subject_id: 'sub_2', name: 'Organização do Estado', order: 3, importance_tier: 'SECONDARY', active: true },
-    // Portugues
-    { id: 't_pt_1', subject_id: 'sub_1', name: 'Compreensão de Textos', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_pt_2', subject_id: 'sub_1', name: 'Sintaxe', order: 2, importance_tier: 'CORE', active: true },
-    { id: 't_pt_3', subject_id: 'sub_1', name: 'Crase', order: 3, importance_tier: 'SECONDARY', active: true },
-    // Informática
-    { id: 't_inf_1', subject_id: 'sub_5', name: 'Redes de Computadores', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_inf_2', subject_id: 'sub_5', name: 'Segurança da Informação', order: 2, importance_tier: 'CORE', active: true },
-    // Contabilidade
-    { id: 't_cont_1', subject_id: 'sub_6', name: 'Patrimônio', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_cont_2', subject_id: 'sub_6', name: 'Fatos Contábeis', order: 2, importance_tier: 'CORE', active: true },
-    // Penal
-    { id: 't_pen_1', subject_id: 'sub_7', name: 'Teoria do Crime', order: 1, importance_tier: 'CORE', active: true },
-    { id: 't_pen_2', subject_id: 'sub_7', name: 'Concurso de Pessoas', order: 2, importance_tier: 'SECONDARY', active: true },
-    // Execução Penal
-    { id: 't_ep_1', subject_id: 'sub_8', name: 'Lei de Execução Penal', order: 1, importance_tier: 'CORE', active: true }
-  ],
-  topicProgresses: [
-    { user_id: 'user_1', topic_id: 't_pp_1', contact_count: 0, first_seen_at: null, last_seen_at: null, layer_1_completed: false, layer_2_completed: false, layer_3_completed: false, layer_4_completed: false, question_count: 0, correct_count: 0, difficulty_flag: 'NONE' }
-  ],
+  topics: [],
+  topicProgresses: [],
   reviewMaterials: [],
   layerStates: [],
   layerMetrics: [],
@@ -362,7 +335,14 @@ export function getDb(): DatabaseState {
     // Nunca descartar dados do usuário: a cópia ilegível fica guardada com
     // carimbo de hora para inspeção/recuperação manual antes do fallback.
     try {
-      localStorage.setItem(`${DB_KEY}__corrompido_${Date.now()}`, data);
+      // UMA cópia só. Antes a chave levava Date.now(), e como `getDb()` é
+      // chamada dezenas de vezes por navegação, uma corrupção gerava uma cópia
+      // nova a cada chamada até estourar a cota — a corrupção virava paralisia
+      // total de escrita.
+      const CORROMPIDO = `${DB_KEY}__corrompido`;
+      if (localStorage.getItem(CORROMPIDO) === null) {
+        localStorage.setItem(CORROMPIDO, data);
+      }
     } catch {
       /* cota estourada: seguimos com o seed, o original continua na chave viva */
     }
@@ -395,11 +375,32 @@ export function getDb(): DatabaseState {
 
 export function saveDb(state: DatabaseState) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(DB_KEY, JSON.stringify(state));
-  // A partir daqui esta cópia deixa de ser o seed de fábrica e passa a ter
-  // progresso real esperando backup.
-  setMeta({ dirty: true, seeded: false });
-  window.dispatchEvent(new Event('db-updated'));
+  try {
+    // `dirty` PRIMEIRO: se a escrita do documento passar e a do meta falhar por
+    // cota, ficaríamos com progresso novo marcado como "salvo" — a barra diria
+    // "Tudo salvo" e a hidratação seguinte apagaria a alteração.
+    setMeta({ dirty: true, seeded: false });
+    localStorage.setItem(DB_KEY, JSON.stringify(state));
+    window.dispatchEvent(new Event('db-updated'));
+  } catch (err) {
+    // Nenhum call site tinha catch: a exceção subia crua para o handler de
+    // clique e a alteração sumia sem ninguém saber.
+    reportCycleWriteError(err);
+    throw err;
+  }
+}
+
+/** Publicado no canal do ciclo para a falha aparecer na barra de sincronia. */
+function reportCycleWriteError(err: unknown) {
+  const detalhe = err instanceof Error ? err.message : String(err);
+  const cheio = /quota|exceeded|NS_ERROR_DOM_QUOTA/i.test(detalhe);
+  window.dispatchEvent(
+    new CustomEvent('cycle-write-error', {
+      detail: cheio
+        ? 'Armazenamento do navegador cheio — a alteração do ciclo não foi salva'
+        : `A alteração do ciclo não foi salva: ${detalhe}`,
+    })
+  );
 }
 
 /**

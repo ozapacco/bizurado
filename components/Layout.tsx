@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, RefreshCw, BookOpen, ListChecks, TrendingUp, Settings, Layers } from "lucide-react";
 import SyncManager, { SyncBanner } from "./SyncManager";
+import ClientOnly from "./ClientOnly";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -89,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="md:hidden">
           <SyncBanner />
         </div>
-        {children}
+        <ClientOnly>{children}</ClientOnly>
       </main>
     </div>
   );

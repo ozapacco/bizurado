@@ -17,6 +17,7 @@ import {
   getAllByIndex,
   getAllWithKeys,
   put,
+  putAtomic,
   putMany,
   clearStore,
   deleteKeys,
@@ -116,9 +117,18 @@ function cardStateToStored(cardId: number, topicId: number, c: CardState, suspen
 // Só marca "seeded" após importar com sucesso — falha de rede ou seed ainda
 // não publicado tentam de novo na próxima visita, nunca queimam a flag.
 // O seed apenas preenche lacunas: progresso local existente nunca é sobrescrito.
+//
+// A NUVEM VEM PRIMEIRO. O `progress-seed.json` é um arquivo estático congelado
+// no último `npm run content:sync` — num dispositivo novo ele pode estar semanas
+// atrasado, e o primeiro sync subiria agendamentos velhos por cima dos atuais
+// (o ON CONFLICT da rota é last-writer-wins). Buscar o estado real antes elimina
+// essa janela; o arquivo estático fica como plano B para o primeiro uso offline.
 export async function ensureSeeded(): Promise<void> {
   const done = await get<boolean>("meta", "seeded");
   if (done) return;
+
+  if (await seedFromCloud()) return;
+
   let res: Response;
   try {
     res = await fetch("/data/progress-seed.json");
@@ -146,6 +156,35 @@ export async function ensureSeeded(): Promise<void> {
     await put("meta", true, "seeded");
   } catch {
     /* seed inválido: não marca, tenta de novo */
+  }
+}
+
+/**
+ * Primeira carga de um dispositivo: traz o progresso vivo do Neon. Só preenche
+ * lacunas, igual ao seed estático — nunca sobrescreve o que já existe aqui.
+ * Devolve false (silenciosamente) se a rede falhar, para o chamador cair no
+ * arquivo estático.
+ */
+async function seedFromCloud(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/sync/down", { cache: "no-store" });
+    if (!res.ok) return false;
+    const nuvem = (await res.json()) as {
+      states: StoredState[];
+      log: LogEvent[];
+      voltas: TopicStudy[];
+    };
+    if (!Array.isArray(nuvem.states) || !Array.isArray(nuvem.log)) return false;
+
+    const existentes = new Set((await getAll<StoredState>("states")).map((s) => s.cardId));
+    await putMany("states", nuvem.states.filter((s) => !existentes.has(s.cardId)));
+    if ((await count("log")) === 0) await putMany("log", nuvem.log);
+    const topicos = new Set((await getAll<TopicStudy>("topics")).map((t) => t.topicId));
+    await putMany("topics", (nuvem.voltas ?? []).filter((t) => !topicos.has(t.topicId)));
+    await put("meta", true, "seeded");
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -265,7 +304,7 @@ export async function loadReviewCards(opts: {
   mode?: string; // "due" | "all" | "new"
   limit?: number;
   cardId?: string;
-}): Promise<{ cards: DeckCard[] }> {
+}): Promise<{ cards: DeckCard[]; unknownSubject?: boolean }> {
   await ensureSeeded();
   const boundary = startOfNextDayISO();
   const mode = opts.mode || "due";
@@ -286,10 +325,25 @@ export async function loadReviewCards(opts: {
   if (opts.topicId) {
     scope = new Set([Number(opts.topicId)]);
   } else if (opts.subjectId) {
-    const subj =
-      index.subjects.find((s) => String(s.id) === opts.subjectId) ||
-      index.subjects.find((s) => s.name === opts.subjectId);
-    scope = new Set(subj ? subj.topics.map((t) => t.id) : []);
+    // O nome vem do CICLO ("Processo Penal"), o índice usa o canônico ("Direito
+    // Processual Penal"). Comparar por igualdade exata deixava o escopo vazio e
+    // a tela anunciava "Revisão concluída — nenhum card pendente" com 19 cards
+    // vencidos esperando. Passar pela ponte é obrigatório.
+    const porId = index.subjects.find((s) => String(s.id) === opts.subjectId);
+    const nomeCanonico = porId
+      ? porId.name
+      : resolveSubjectName(
+          opts.subjectId,
+          index.subjects.map((s) => s.name)
+        );
+    const subj = nomeCanonico
+      ? index.subjects.find((s) => s.name === nomeCanonico)
+      : undefined;
+
+    // Sem disciplina resolvida não há o que revisar, e a fila vazia seria lida
+    // como "acabou". Sinalizamos para a tela distinguir os dois casos.
+    if (!subj) return { cards: [], unknownSubject: true };
+    scope = new Set(subj.topics.map((t) => t.id));
   }
 
   const states = await getAll<StoredState>("states");
@@ -369,7 +423,6 @@ export async function rateCard(
   const stored = await get<StoredState>("states", card.id);
   const prev = stored ? storedToCardState(stored) : createInitialState(now);
   const next = schedule(prev, rating, now);
-  await put("states", cardStateToStored(card.id, card.topicId, next, stored?.suspended ?? 0));
   const event: LogEvent = {
     cardId: card.id,
     topicId: card.topicId,
@@ -377,15 +430,29 @@ export async function rateCard(
     rating,
     reviewDate: now.toISOString(),
   };
-  await put("log", event);
-  await put("queue", { type: "review", ...event, state: next });
+
+  // Tudo ou nada: o agendamento novo, o log e a entrada da fila entram juntos.
+  await putAtomic([
+    {
+      store: "states",
+      value: cardStateToStored(card.id, card.topicId, next, stored?.suspended ?? 0),
+    },
+    { store: "log", value: event },
+    { store: "queue", value: { type: "review", ...event, state: next } },
+  ]);
+  await refreshPendingBadge();
+  scheduleCardSync();
 }
 
 export async function suspendCard(cardId: number, topicId: number): Promise<void> {
   const stored = await get<StoredState>("states", cardId);
   const base = stored ?? cardStateToStored(cardId, topicId, createInitialState());
-  await put("states", { ...base, suspended: 1 });
-  await put("queue", { type: "suspend", cardId, topicId });
+  await putAtomic([
+    { store: "states", value: { ...base, suspended: 1 } },
+    { store: "queue", value: { type: "suspend", cardId, topicId } },
+  ]);
+  await refreshPendingBadge();
+  scheduleCardSync();
 }
 
 // Fecha a volta: study_count+1, janela expansiva, status. (port de session/finish)
@@ -418,6 +485,8 @@ export async function finishVolta(topicId: number): Promise<TopicStudy> {
   };
   await put("topics", next);
   await put("queue", { type: "volta", ...next });
+  await refreshPendingBadge();
+  scheduleCardSync();
   return next;
 }
 
@@ -738,6 +807,8 @@ export async function setTopicPriorityLocal(topicId: number, priority: number): 
   const next = { ...ts, priority };
   await put("topics", next);
   await put("queue", { type: "topicPriority", topicId, priority });
+  await refreshPendingBadge();
+  scheduleCardSync();
 }
 
 export async function setSubjectPriorityLocal(subjectId: number, priority: number): Promise<void> {
@@ -1234,66 +1305,128 @@ export async function getSubjectTopics(subjectName: string): Promise<{ subject: 
 
 // ==============================================================================
 
+/**
+ * Publica o tamanho real da fila. Sem isto o contador só era atualizado dentro
+ * do `syncWithNeon`, então nos 60s entre um envio e o próximo a barra dizia
+ * "Tudo salvo" com dezenas de revisões esperando — e o aviso de fechar a aba
+ * (que lê esse número) não disparava.
+ */
+async function refreshPendingBadge(): Promise<void> {
+  try {
+    setChannelStatus("cards", { pending: await count("queue") });
+  } catch {
+    /* contador é informativo: nunca derrubar a revisão por causa dele */
+  }
+}
+
+// Toda revisão vai para o banco em segundos, não no próximo ciclo de 60s.
+// A janela curta agrupa uma rajada de notas num POST só, sem deixar progresso
+// parado no navegador: se a aba morrer, o que se perde é no máximo o último
+// segundo e meio.
+const FLUSH_MS = 1500;
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleCardSync(): void {
+  if (typeof window === "undefined") return;
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    void syncWithNeon();
+  }, FLUSH_MS);
+}
+
+// Envio em voo do canal de flashcards. `visibilitychange`, `online`, o intervalo
+// de 60s e o botão manual podem disparar quase juntos; sem este mutex o mesmo
+// lote sobe duas vezes e o Neon fica com revisões duplicadas — foi exatamente
+// o que produziu as duplicatas históricas em `review_log`.
+let cardSyncInFlight: Promise<boolean> | null = null;
+
 export async function syncWithNeon(): Promise<boolean> {
+  if (cardSyncInFlight) return cardSyncInFlight;
+  cardSyncInFlight = runSyncWithNeon().finally(() => {
+    cardSyncInFlight = null;
+  });
+  return cardSyncInFlight;
+}
+
+async function runSyncWithNeon(): Promise<boolean> {
   // Lê valores COM as chaves: no fim apagamos só o que foi enviado. Um
   // `clearStore` aqui descartaria em silêncio as revisões que o usuário fizer
   // durante o POST — o sync roda a cada minuto, exatamente enquanto ele estuda.
-  const q = await getAllWithKeys<any>("queue");
-  setChannelStatus("cards", { pending: q.length });
-  if (q.length === 0) {
+  const fila = await getAllWithKeys<any>("queue");
+  setChannelStatus("cards", { pending: fila.length });
+  if (fila.length === 0) {
     setChannelStatus("cards", { busy: false, error: null });
     return true;
   }
 
-  const payload = {
-    reviews: [] as any[],
-    suspensions: [] as any[],
-    voltas: [] as any[],
-    priorities: [] as any[],
-  };
-
-  for (const { value: item } of q) {
-    if (item.type === "review") payload.reviews.push(item);
-    else if (item.type === "suspend") payload.suspensions.push(item);
-    else if (item.type === "volta") payload.voltas.push(item);
-    else if (item.type === "topicPriority") payload.priorities.push(item);
-  }
-
   setChannelStatus("cards", { busy: true, error: null });
-  try {
-    const res = await fetch("/api/sync/up", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
 
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
+  // Em LOTES. A fila inteira num POST só era uma bomba-relógio: 500 revisões
+  // represadas viram ~1000 round-trips sequenciais no servidor, estouram o
+  // limite de tempo da função, e aí TODA tentativa futura falha igual — quanto
+  // mais progresso acumulado, mais garantida a falha. Com lotes, cada pedaço
+  // que confirma sai da fila e o progresso é monotônico.
+  const TAMANHO_LOTE = 100;
+  let enviados = 0;
+
+  for (let i = 0; i < fila.length; i += TAMANHO_LOTE) {
+    const lote = fila.slice(i, i + TAMANHO_LOTE);
+    const payload = {
+      reviews: [] as any[],
+      suspensions: [] as any[],
+      voltas: [] as any[],
+      priorities: [] as any[],
+    };
+
+    for (const { value: item } of lote) {
+      if (item.type === "review") payload.reviews.push(item);
+      else if (item.type === "suspend") payload.suspensions.push(item);
+      else if (item.type === "volta") payload.voltas.push(item);
+      else if (item.type === "topicPriority") payload.priorities.push(item);
+    }
+
+    try {
+      const res = await fetch("/api/sync/up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setChannelStatus("cards", {
+          busy: false,
+          pending: fila.length - enviados,
+          error: body.error || `Backup recusado (HTTP ${res.status})`,
+        });
+        return false;
+      }
+
+      // Só as chaves deste lote: o que entrou na fila durante o envio fica.
+      await deleteKeys("queue", lote.map((item) => item.key));
+      enviados += lote.length;
+      setChannelStatus("cards", { pending: Math.max(0, fila.length - enviados) });
+    } catch (err) {
       setChannelStatus("cards", {
         busy: false,
-        error: body.error || `Backup recusado (HTTP ${res.status})`,
+        pending: fila.length - enviados,
+        error: /failed to fetch|networkerror/i.test(String(err))
+          ? "Sem conexão — as revisões continuam na fila"
+          : String(err instanceof Error ? err.message : err),
       });
       return false;
     }
-
-    await deleteKeys("queue", q.map((item) => item.key));
-    const remaining = await count("queue");
-    setChannelStatus("cards", {
-      busy: false,
-      error: null,
-      pending: remaining,
-      lastSyncedAt: new Date().toISOString(),
-    });
-    return true;
-  } catch (err) {
-    setChannelStatus("cards", {
-      busy: false,
-      error: /failed to fetch|networkerror/i.test(String(err))
-        ? "Sem conexão — as revisões continuam na fila"
-        : String(err instanceof Error ? err.message : err),
-    });
-    return false;
   }
+
+  const restantes = await count("queue");
+  setChannelStatus("cards", {
+    busy: false,
+    error: null,
+    pending: restantes,
+    lastSyncedAt: new Date().toISOString(),
+  });
+  return true;
 }
 
 /** Quantas revisões locais ainda não chegaram ao Neon. */
@@ -1307,7 +1440,16 @@ export async function pendingSyncCount(): Promise<number> {
 // A API /api/sync/down já responde no formato das stores (camelCase).
 export async function restoreFromNeon(): Promise<boolean> {
   try {
-    await syncWithNeon();
+    // A fila PRECISA subir antes: logo abaixo destruímos states/log/topics e a
+    // própria fila. Se o envio falhou (offline, lote recusado), o que está aqui
+    // e não está lá deixa de existir em qualquer lugar. Abortar é obrigatório.
+    if (!(await syncWithNeon())) {
+      setChannelStatus("cards", {
+        error: "Não dá para restaurar com revisões pendentes — sincronize primeiro",
+      });
+      return false;
+    }
+
     const res = await fetch("/api/sync/down");
     if (!res.ok) return false;
     const data = (await res.json()) as {
@@ -1407,4 +1549,38 @@ export async function exportLocalProgress(): Promise<{
     count("queue"),
   ]);
   return { exportedAt: new Date().toISOString(), states, log, topics, pending };
+}
+
+/**
+ * Restaura o progresso de flashcards a partir de um arquivo de backup.
+ *
+ * O `exportLocalProgress` sempre gravou `states`/`log`/`topics` no arquivo, mas
+ * a importação só lia a parte do ciclo — o arquivo prometia ser "a garantia que
+ * não depende nem do navegador nem da nuvem" e, na hora de precisar, não
+ * devolvia flashcard nenhum.
+ */
+export async function importLocalProgress(dados: {
+  states?: StoredState[];
+  log?: LogEvent[];
+  topics?: TopicStudy[];
+}): Promise<boolean> {
+  if (!Array.isArray(dados.states) || !Array.isArray(dados.log)) return false;
+
+  // Mesma regra do restore da nuvem: o que está na fila precisa subir antes de
+  // destruirmos as stores, senão deixa de existir em qualquer lugar.
+  if (!(await syncWithNeon())) {
+    setChannelStatus("cards", {
+      error: "Não dá para importar com revisões pendentes — sincronize primeiro",
+    });
+    return false;
+  }
+
+  await clearStore("states");
+  await clearStore("log");
+  await clearStore("topics");
+  await putMany("states", dados.states);
+  await putMany("log", dados.log);
+  await putMany("topics", dados.topics ?? []);
+  await put("meta", true, "seeded");
+  return true;
 }

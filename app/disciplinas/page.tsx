@@ -7,7 +7,8 @@ import { getCurrentSubject, getNextSubjects, getPlanId, getCurrentLayer } from "
 import { evaluateLayer, getOrCreateTopicProgress } from "@/lib/preparation/layerEngine";
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
 import { getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
-import { matchTopicDecks } from "@/lib/subjectMatch";
+import { matchTopicDecks, resolveSubjectName } from "@/lib/subjectMatch";
+import { pickEntryDeck } from "@/lib/deckEntry";
 import { ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock, Target, Play } from "lucide-react";
 
 export default function Disciplinas() {
@@ -68,10 +69,7 @@ export default function Disciplinas() {
 
     // Consolidated info
     const discConsolidated = consolidated.disciplines.find(
-      (d) =>
-        d.name.toLowerCase() === subject.name.toLowerCase() ||
-        d.name.toLowerCase().includes(subject.name.toLowerCase()) ||
-        subject.name.toLowerCase().includes(d.name.toLowerCase())
+      (d) => d.name === resolveSubjectName(subject.name, consolidated.disciplines.map((x) => x.name))
     );
 
     const emphasisLabel = discConsolidated ? discConsolidated.emphasis_label : "MÉDIA";
@@ -364,6 +362,10 @@ export default function Disciplinas() {
                               <AlertCircle className="w-5 h-5 text-teal-600 flex-shrink-0" />
                               <span>{item.discreteAlert}</span>
                             </div>
+                            {/* Só oferecer revisão quando existe baralho: antes o
+                                link aparecia até para Informática, que não tem
+                                card nenhum, e levava a um falso "acabou". */}
+                            {flashcardTopics[item.subject.name.toLowerCase()] && (
                             <Link
                               href={`/review?subjectId=${encodeURIComponent(item.subject.name)}`}
                               className="text-xs font-bold text-amber-600 hover:text-amber-700 hover:underline flex items-center space-x-1"
@@ -371,6 +373,7 @@ export default function Disciplinas() {
                               <span>Revisar flashcards desta disciplina</span>
                               <ChevronRight className="w-3.5 h-3.5" />
                             </Link>
+                            )}
                           </div>
 
                           {/* 4 SUMMARY INDICATORS */}
@@ -440,7 +443,7 @@ export default function Disciplinas() {
                                     <th className="p-3 text-right">QUESTÕES</th>
                                     <th className="p-3 text-right">ACERTOS</th>
                                     <th className="p-3">STATUS</th>
-                                    <th className="p-3 text-center">FALSHCARDS</th>
+                                    <th className="p-3 text-center">FLASHCARDS</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -502,8 +505,7 @@ export default function Disciplinas() {
                                       : [];
                                     const deckDue = matchedDecks.reduce((a, d) => a + d.dueNow, 0);
                                     const deckCards = matchedDecks.reduce((a, d) => a + d.cardCount, 0);
-                                    const entryDeck =
-                                      [...matchedDecks].sort((a, b) => b.dueNow - a.dueNow)[0] ?? null;
+                                    const entryDeck = pickEntryDeck(matchedDecks);
 
                                     return (
                                       <tr key={topic.id} className="hover:bg-slate-50">
@@ -543,7 +545,9 @@ export default function Disciplinas() {
                                         <td className="p-3 text-center">
                                           {entryDeck ? (
                                             <Link
-                                              href={`/study?topicId=${entryDeck.id}`}
+                                              href={`/study?topicId=${entryDeck.id}&disciplina=${encodeURIComponent(
+                                                item.subject.name
+                                              )}&assunto=${encodeURIComponent(topic.name)}`}
                                               title={`${deckCards} cards em ${matchedDecks.length} ${
                                                 matchedDecks.length === 1 ? "baralho" : "baralhos"
                                               }`}
@@ -556,7 +560,19 @@ export default function Disciplinas() {
                                               </span>
                                             </Link>
                                           ) : (
-                                            <span className="text-xs text-slate-300">—</span>
+                                            // Dois vazios diferentes: a disciplina
+                                            // não tem baralho, ou tem e nenhum
+                                            // módulo cobre este assunto.
+                                            <span
+                                              className="text-xs text-slate-400"
+                                              title={
+                                                matchSub
+                                                  ? "Nenhum baralho cobre este assunto"
+                                                  : "Esta disciplina ainda não tem baralho"
+                                              }
+                                            >
+                                              {matchSub ? "sem cobertura" : "sem baralho"}
+                                            </span>
                                           )}
                                         </td>
                                       </tr>
@@ -623,12 +639,14 @@ export default function Disciplinas() {
                 <div className="pt-3 border-t border-slate-200 space-y-4 text-sm">
                   <div className="text-xs text-slate-600 bg-teal-50 p-2.5 rounded border border-teal-100 font-medium flex justify-between items-center">
                     <span>{item.discreteAlert}</span>
-                    <Link
-                      href={`/review?subjectId=${encodeURIComponent(item.subject.name)}`}
-                      className="text-xs font-bold text-amber-700 underline shrink-0 ml-2"
-                    >
-                      Revisar Cards
-                    </Link>
+                    {flashcardTopics[item.subject.name.toLowerCase()] && (
+                      <Link
+                        href={`/review?subjectId=${encodeURIComponent(item.subject.name)}`}
+                        className="text-xs font-bold text-amber-700 underline shrink-0 ml-2"
+                      >
+                        Revisar Cards
+                      </Link>
+                    )}
                   </div>
 
                   <div>

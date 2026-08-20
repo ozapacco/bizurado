@@ -15,6 +15,8 @@ function ReviewContent() {
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(false);
+  // Disciplina pedida não existe no índice de cards — diferente de "nada vencido".
+  const [unknownSubject, setUnknownSubject] = useState(false);
   const [filterSubject, setFilterSubject] = useState(params.get("subjectId") || "");
   const [filterTopic, setFilterTopic] = useState(params.get("topicId") || "");
   const [filterType, setFilterType] = useState(params.get("mode") || "due");
@@ -45,6 +47,7 @@ function ReviewContent() {
     setCards(data.cards);
     setIndex(0);
     setFlipped(false);
+    setUnknownSubject(Boolean(data.unknownSubject));
     setDone(data.cards.length === 0);
     setLoading(false);
     setStats((s) => ({ ...s, total: data.cards.length }));
@@ -170,12 +173,14 @@ function ReviewContent() {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center bg-paper text-ink">
         <h2 className="font-serif text-3xl font-semibold mb-2 text-balance">
-          Revisão concluída
+          {unknownSubject ? "Sem baralho para esta disciplina" : "Revisão concluída"}
         </h2>
-        <p className="text-ink-soft mb-8">
-          {stats.reviewed > 0
-            ? `${stats.reviewed} cards revisados nessa sessão.`
-            : "Nenhum card pendente no momento."}
+        <p className="text-ink-soft mb-8 max-w-md text-pretty">
+          {unknownSubject
+            ? `Não existe baralho de flashcards para ${filterSubject}. Nada foi revisado porque não há o que revisar.`
+            : stats.reviewed > 0
+              ? `${stats.reviewed} cards revisados nessa sessão.`
+              : "Nenhum card pendente no momento."}
         </p>
         <div className="flex gap-3">
           <button

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { parkCurrentCycle } from "@/lib/preparation/sync";
+import { parkCurrentCycle, resetHydration } from "@/lib/preparation/sync";
 import AlignPanel from "@/components/AlignPanel";
 import BackupPanel from "@/components/BackupPanel";
 import { useDb } from "@/lib/preparation/useDb";
@@ -32,10 +32,20 @@ export default function Settings() {
         "Tem certeza? Todos os seus dados de preparação serão apagados e os dados de demonstração serão recarregados."
       )
     ) {
-      // Guarda o estado atual na nuvem antes de apagar: o reset vira uma ação
-      // reversível pelo histórico de versões, em vez de um caminho sem volta.
-      void parkCurrentCycle("pre-reset").then(() => {
+      // Guarda o estado atual na nuvem antes de apagar. Se não der para
+      // guardar, o reset NÃO acontece — sem cópia não há volta.
+      void parkCurrentCycle("pre-reset").then((guardado) => {
+        if (!guardado) {
+          window.alert(
+            "Não foi possível guardar uma cópia do seu ciclo na nuvem. O reset foi cancelado."
+          );
+          return;
+        }
         resetDb();
+        // O módulo de sincronia continua vivo numa navegação client-side: sem
+        // reabrir a hidratação, a primeira edição empurraria o seed de fábrica
+        // por cima do ciclo real na nuvem.
+        resetHydration();
         router.push("/");
       });
     }

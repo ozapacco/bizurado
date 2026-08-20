@@ -17,15 +17,25 @@ function handleUpdate() {
   listeners.forEach((l) => l());
 }
 
+// Só dispara para mudanças da MESMA chave feitas em OUTRA aba.
+function handleStorage(e: StorageEvent) {
+  if (e.key === null || e.key === 'study_cycle_db') handleUpdate();
+}
+
 function subscribe(listener: () => void): () => void {
   if (listeners.size === 0 && typeof window !== 'undefined') {
     window.addEventListener('db-updated', handleUpdate);
+    // Sem isto, uma segunda aba seguia renderizando um snapshot velho e o
+    // primeiro `saveDb` dela gravava esse documento por cima do que a outra aba
+    // acabara de salvar — sem 409, sem aviso, edição perdida.
+    window.addEventListener('storage', handleStorage);
   }
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0 && typeof window !== 'undefined') {
       window.removeEventListener('db-updated', handleUpdate);
+      window.removeEventListener('storage', handleStorage);
     }
   };
 }

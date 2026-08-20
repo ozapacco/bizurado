@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, History, Loader2, RotateCcw, Upload } from "lucide-react";
-import { exportLocalProgress, restoreFromNeon } from "@/lib/client/engine";
-import { getDb, getMeta, replaceDb, type CycleMeta } from "@/lib/preparation/db";
+import { exportLocalProgress, importLocalProgress, restoreFromNeon } from "@/lib/client/engine";
+import { getDb, getMeta, replaceDb, setMeta, type CycleMeta } from "@/lib/preparation/db";
 import type { DatabaseState } from "@/lib/preparation/types";
-import { pushCycleNow, restoreCycleSnapshot } from "@/lib/preparation/sync";
+import { parkCurrentCycle, pushCycleNow, restoreCycleSnapshot } from "@/lib/preparation/sync";
 import { relativeTime } from "@/lib/client/syncStatus";
 
 type CloudVersion = {
@@ -96,17 +96,64 @@ export default function BackupPanel() {
     setBusy("import");
     setMessage(null);
     try {
-      const parsed = JSON.parse(await file.text()) as { ciclo?: { db?: DatabaseState } };
+      const parsed = JSON.parse(await file.text()) as {
+        formato?: string;
+        ciclo?: { db?: DatabaseState };
+        flashcards?: Parameters<typeof importLocalProgress>[0];
+      };
       const db = parsed?.ciclo?.db;
-      if (!db || !Array.isArray(db.subjects)) {
+      if (parsed?.formato !== "bizurado-backup" || !db) {
         throw new Error("Arquivo não parece um backup do Bizurado.");
       }
-      // A cópia atual sobe para a nuvem antes de ser trocada — o histórico
-      // guarda o que estava aqui, então importar continua reversível.
-      await pushCycleNow();
+      // Um documento incompleto é pior que nenhum: `getDb()` não tem fallback
+      // para estas chaves, e a interface quebra em todas as telas do ciclo.
+      const obrigatorias = [
+        "studyPlans",
+        "subjects",
+        "topics",
+        "materials",
+        "cycleStates",
+        "subjectRoundStates",
+        "subjectLayerStates",
+      ] as const;
+      const faltando = obrigatorias.filter(
+        (k) => !Array.isArray((db as unknown as Record<string, unknown>)[k])
+      );
+      if (faltando.length > 0) {
+        throw new Error(`Backup incompleto — faltam: ${faltando.join(", ")}.`);
+      }
+      if (db.studyPlans.length === 0 || db.subjects.length === 0) {
+        throw new Error("Backup sem plano ou sem disciplinas — importação cancelada.");
+      }
+
+      // Guarda o que está aqui antes de trocar; importar continua reversível.
+      await parkCurrentCycle("pre-importacao");
       replaceDb(db, getMeta().revision);
-      await pushCycleNow();
-      setMessage({ kind: "ok", text: "Ciclo restaurado do arquivo e re-enviado para a nuvem." });
+      // `replaceDb` marca dirty:false (o que vem da nuvem já está salvo lá).
+      // Aqui a origem é um ARQUIVO, então a nuvem ainda não conhece isto —
+      // sem marcar sujo, o push seguinte retornava na hora e a mensagem
+      // "re-enviado para a nuvem" era falsa.
+      setMeta({ dirty: true });
+      const subiu = await pushCycleNow();
+
+      // O arquivo também carrega o progresso dos flashcards; ignorá-lo era o
+      // que fazia o backup "completo" não devolver nenhuma revisão.
+      let cards = "";
+      if (parsed.flashcards) {
+        const ok = await importLocalProgress(parsed.flashcards);
+        cards = ok
+          ? ` ${parsed.flashcards.log?.length ?? 0} revisões de flashcards restauradas.`
+          : " O progresso dos flashcards NÃO foi restaurado (havia revisões pendentes na fila).";
+      }
+
+      setMessage({
+        kind: subiu ? "ok" : "erro",
+        text:
+          (subiu
+            ? "Ciclo restaurado do arquivo e enviado para a nuvem."
+            : "Ciclo restaurado neste navegador, mas o envio para a nuvem falhou — ele continua na fila.") +
+          cards,
+      });
     } catch (err) {
       setMessage({ kind: "erro", text: describe(err) });
     } finally {

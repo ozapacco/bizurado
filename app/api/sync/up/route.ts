@@ -19,17 +19,40 @@ export async function POST(request: NextRequest) {
     await tx(async (client) => {
       // 1. Process Reviews
       if (reviews && reviews.length > 0) {
+        // Um `cardId` que não existe mais (baralho republicado, banco
+        // reinicializado) violava a FK e derrubava a transação INTEIRA — a fila
+        // travava para sempre, inclusive para as revisões boas. Filtrar antes
+        // transforma "veneno permanente" em "item ignorado".
+        const ids = Array.from(new Set(reviews.map((r) => r.cardId)));
+        const existentes = await client.query<{ id: number }>(
+          `SELECT id FROM cards WHERE id = ANY($1::int[])`,
+          [ids]
+        );
+        const conhecidos = new Set(existentes.rows.map((r) => r.id));
+
         for (const rev of reviews) {
+          if (!conhecidos.has(rev.cardId)) continue;
+
+          // Idempotente por (card_id, review_date): reenviar um lote cuja
+          // resposta se perdeu não duplica mais. É o mecanismo que produziu as
+          // 48 duplicatas históricas em review_log.
           await client.query(
-            `INSERT INTO review_log (card_id, rating, review_date) VALUES ($1, $2, $3)`,
+            `INSERT INTO review_log (card_id, rating, review_date)
+             SELECT $1, $2, $3
+             WHERE NOT EXISTS (
+               SELECT 1 FROM review_log WHERE card_id = $1 AND review_date = $3
+             )`,
             [rev.cardId, rev.rating, rev.reviewDate]
           );
 
           if (rev.state) {
             await client.query(
+              // `learning_step` faltava aqui: o /api/sync/down lê a coluna e o
+              // FSRS depende dela para a escada de aprendizado, então todo card
+              // em learning voltava da nuvem com o degrau zerado.
               `INSERT INTO card_states (
-                 card_id, stability, difficulty, due, elapsed_days, scheduled_days, reps, lapses, state, last_review
-               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                 card_id, stability, difficulty, due, elapsed_days, scheduled_days, reps, lapses, state, last_review, learning_step
+               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                ON CONFLICT (card_id) DO UPDATE SET
                  stability = EXCLUDED.stability,
                  difficulty = EXCLUDED.difficulty,
@@ -39,7 +62,8 @@ export async function POST(request: NextRequest) {
                  reps = EXCLUDED.reps,
                  lapses = EXCLUDED.lapses,
                  state = EXCLUDED.state,
-                 last_review = EXCLUDED.last_review`,
+                 last_review = EXCLUDED.last_review,
+                 learning_step = EXCLUDED.learning_step`,
               [
                 rev.cardId,
                 rev.state.stability,
@@ -51,6 +75,7 @@ export async function POST(request: NextRequest) {
                 rev.state.lapses,
                 rev.state.state,
                 rev.state.last_review ?? null,
+                rev.state.learning_step ?? rev.state.learningStep ?? 0,
               ]
             );
           }
@@ -60,9 +85,12 @@ export async function POST(request: NextRequest) {
       // 2. Process Suspensions
       if (suspensions && suspensions.length > 0) {
         for (const sus of suspensions) {
-          // ensure card_states row exists before suspending
+          // ensure card_states row exists before suspending (só para card que
+          // ainda existe — senão a FK derruba a transação inteira)
           await client.query(
-            `INSERT INTO card_states (card_id, state) VALUES ($1, 'new') ON CONFLICT DO NOTHING`,
+            `INSERT INTO card_states (card_id, state)
+             SELECT $1, 'new' WHERE EXISTS (SELECT 1 FROM cards WHERE id = $1)
+             ON CONFLICT DO NOTHING`,
             [sus.cardId]
           );
           await client.query(`UPDATE card_states SET suspended = 1 WHERE card_id = $1`, [sus.cardId]);
@@ -73,7 +101,8 @@ export async function POST(request: NextRequest) {
       if (priorities && priorities.length > 0) {
         for (const p of priorities) {
           await client.query(
-            `INSERT INTO topic_study (topic_id, priority) VALUES ($1, $2)
+            `INSERT INTO topic_study (topic_id, priority)
+             SELECT $1, $2 WHERE EXISTS (SELECT 1 FROM topics WHERE id = $1)
              ON CONFLICT (topic_id) DO UPDATE SET priority = EXCLUDED.priority`,
             [p.topicId, p.priority]
           );
@@ -85,7 +114,8 @@ export async function POST(request: NextRequest) {
         for (const v of voltas) {
           await client.query(
             `INSERT INTO topic_study (topic_id, priority, study_count, interval_days, status, due, last_studied)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             SELECT $1, $2, $3, $4, $5, $6, $7
+             WHERE EXISTS (SELECT 1 FROM topics WHERE id = $1)
              ON CONFLICT (topic_id) DO UPDATE SET
                study_count = EXCLUDED.study_count,
                interval_days = EXCLUDED.interval_days,

@@ -41,11 +41,18 @@ export async function PUT(request: NextRequest) {
       origin?: string;
     };
 
-    if (!body || typeof body.data !== "object" || body.data === null) {
-      return NextResponse.json({ error: "payload sem `data`" }, { status: 400 });
+    // Um documento vazio ou truncado vira o `cycle_state` canônico e é
+    // distribuído para todos os dispositivos na próxima hidratação. Recusar
+    // aqui é mais barato que recuperar depois.
+    const invalido = validarDocumento(body?.data);
+    if (invalido) {
+      return NextResponse.json({ error: invalido }, { status: 400 });
     }
 
     const baseRevision = Number(body.revision ?? 0);
+    if (!Number.isInteger(baseRevision) || baseRevision < 0) {
+      return NextResponse.json({ error: "revisão inválida" }, { status: 400 });
+    }
     const origin = typeof body.origin === "string" ? body.origin.slice(0, 40) : "push";
 
     const result = await tx(async (client) => {
@@ -68,13 +75,21 @@ export async function PUT(request: NextRequest) {
       const updatedAt = new Date().toISOString();
       const json = JSON.stringify(body.data);
 
-      // Empilha a versão que está sendo sobreposta antes de trocá-la.
+      // Empilha a versão que está sendo sobreposta — mas só se ela já não
+      // estiver guardada. Cada PUT inserindo duas linhas gastava metade da cota
+      // do histórico com cópias byte a byte idênticas.
       if (current) {
-        await client.query(
-          `INSERT INTO cycle_snapshots (revision, origin, data, created_at)
-           VALUES ($1, $2, $3::jsonb, $4)`,
-          [currentRevision, "superseded", JSON.stringify(current.data), updatedAt]
+        const jaTem = await client.query(
+          `SELECT 1 FROM cycle_snapshots WHERE revision = $1 LIMIT 1`,
+          [currentRevision]
         );
+        if (jaTem.rows.length === 0) {
+          await client.query(
+            `INSERT INTO cycle_snapshots (revision, origin, data, created_at)
+             VALUES ($1, $2, $3::jsonb, $4)`,
+            [currentRevision, "superseded", JSON.stringify(current.data), updatedAt]
+          );
+        }
       }
 
       await client.query(
@@ -93,11 +108,18 @@ export async function PUT(request: NextRequest) {
         [nextRevision, origin, json, updatedAt]
       );
 
-      // Mantém as 200 versões mais recentes — meses de histórico, sem inchar.
+      // Poda só o histórico ROTINEIRO. As cópias estacionadas (pre-reset,
+      // pre-restauracao, pre-importacao, local-*) são, por definição, a única
+      // versão de um estado que nunca esteve no `cycle_state` — a poda cega por
+      // contagem apagava exatamente essas primeiro numa sessão de estudo longa.
       await client.query(
-        `DELETE FROM cycle_snapshots WHERE id NOT IN (
-           SELECT id FROM cycle_snapshots ORDER BY id DESC LIMIT 200
-         )`
+        `DELETE FROM cycle_snapshots
+         WHERE origin IN ('web', 'web-force', 'superseded')
+           AND id NOT IN (
+             SELECT id FROM cycle_snapshots
+             WHERE origin IN ('web', 'web-force', 'superseded')
+             ORDER BY id DESC LIMIT 200
+           )`
       );
 
       return { conflict: false as const, revision: nextRevision, updatedAt };
@@ -110,6 +132,28 @@ export async function PUT(request: NextRequest) {
   } catch (err) {
     return NextResponse.json({ error: message(err) }, { status: 500 });
   }
+}
+
+/** Devolve a mensagem do problema, ou null se o documento serve. */
+function validarDocumento(data: unknown): string | null {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return "payload sem `data`";
+  }
+  const doc = data as Record<string, unknown>;
+  const obrigatorias = [
+    "studyPlans",
+    "subjects",
+    "topics",
+    "materials",
+    "cycleStates",
+    "subjectRoundStates",
+    "subjectLayerStates",
+  ];
+  const faltando = obrigatorias.filter((k) => !Array.isArray(doc[k]));
+  if (faltando.length > 0) return `documento incompleto: faltam ${faltando.join(", ")}`;
+  if ((doc.studyPlans as unknown[]).length === 0) return "documento sem plano de estudo";
+  if ((doc.subjects as unknown[]).length === 0) return "documento sem disciplinas";
+  return null;
 }
 
 function message(err: unknown): string {

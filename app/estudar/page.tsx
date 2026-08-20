@@ -13,7 +13,7 @@ import {
 } from "@/lib/preparation/cycle";
 import { evaluateLayer, getTopicsForSubjectInLayer, getOrCreateTopicProgress } from "@/lib/preparation/layerEngine";
 import { getSessionProtocol } from "@/lib/preparation/sessionEngine";
-import { saveDb } from "@/lib/preparation/db";
+import { getDb, saveDb } from "@/lib/preparation/db";
 import { getCycleTopicDecks, type CycleTopicDecks } from "@/lib/client/engine";
 import { Play, Pause, ChevronRight, Check } from "lucide-react";
 
@@ -130,16 +130,7 @@ export default function EstudarPage() {
     material.current_unit = updateAula;
     material.current_page = updatePagina;
 
-    // 2. Add time
-    updateSubjectTime(currentSubject.id, studiedMinutesThisSession);
-
-    // Check if remaining minutes hit 0
-    const newRoundState = db.subjectRoundStates.find((rs) => rs.subject_id === currentSubject.id);
-    if (newRoundState && newRoundState.remaining_minutes <= 0) {
-      finishRound(currentSubject.id);
-    }
-
-    // 3. Questions
+    // 2. Questions
     if (qQuestions && qCorrect) {
       db.questionLogs.push({
         id: `q_${Date.now()}`,
@@ -161,7 +152,23 @@ export default function EstudarPage() {
       }
     }
 
+    // Ordem importa. `updateSubjectTime`, `finishRound` e `advanceCycle` fazem
+    // cada um o seu próprio getDb()/saveDb() a partir do localStorage. Rodando
+    // ANTES deste save, o `db` do render (que não conhece as escritas deles)
+    // sobrescrevia tudo: os minutos consumidos, o fechamento da rodada e o
+    // avanço da matéria eram revertidos a cada "Finalizar estudo".
     saveDb({ ...db });
+
+    // A partir daqui cada motor relê o estado fresco, já com o checkpoint.
+    updateSubjectTime(currentSubject.id, studiedMinutesThisSession);
+
+    const roundStateAtual = getDb().subjectRoundStates.find(
+      (rs) => rs.subject_id === currentSubject.id
+    );
+    if (roundStateAtual && roundStateAtual.remaining_minutes <= 0) {
+      finishRound(currentSubject.id);
+    }
+
     router.push("/");
   };
 
@@ -222,29 +229,45 @@ export default function EstudarPage() {
           </div>
         </div>
 
-        {flashcards?.entryDeck && (
+        {flashcards && (
           <div className="mb-6 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
             <div>
               <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block mb-1">
                 Flashcards do Assunto
               </span>
-              <p className="text-slate-800 font-medium leading-snug">
-                <strong className="text-slate-900">{flashcards.cardCount} flashcards</strong> em{" "}
-                {flashcards.decks.length}{" "}
-                {flashcards.decks.length === 1 ? "baralho" : "baralhos"} deste assunto.
-              </p>
-              {flashcards.dueNow > 0 && (
-                <span className="text-xs text-amber-700 font-bold block mt-1">
-                  {flashcards.dueNow} cards vencidos para revisar hoje
-                </span>
+              {flashcards.entryDeck ? (
+                <>
+                  <p className="text-slate-800 font-medium leading-snug">
+                    <strong className="text-slate-900">{flashcards.cardCount} flashcards</strong> em{" "}
+                    {flashcards.decks.length}{" "}
+                    {flashcards.decks.length === 1 ? "baralho" : "baralhos"} deste assunto.
+                  </p>
+                  {flashcards.dueNow > 0 && (
+                    <span className="text-xs text-amber-700 font-bold block mt-1">
+                      {flashcards.dueNow} cards vencidos para revisar hoje
+                    </span>
+                  )}
+                </>
+              ) : (
+                // No meio de um bloco cronometrado, sumir com o aviso deixa o
+                // usuário sem saber se não há cards ou se a ponte falhou.
+                <p className="text-slate-600 leading-snug">
+                  {flashcards.subjectName
+                    ? "Nenhum baralho cobre este assunto ainda."
+                    : "Esta disciplina ainda não tem baralho de flashcards."}
+                </p>
               )}
             </div>
-            <Link
-              href={`/study?topicId=${flashcards.entryDeck.id}`}
-              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto text-center"
-            >
-              ESTUDAR CARDS
-            </Link>
+            {flashcards.entryDeck && (
+              <Link
+                href={`/study?topicId=${flashcards.entryDeck.id}&disciplina=${encodeURIComponent(
+                  subjectName ?? ""
+                )}&assunto=${encodeURIComponent(topicName ?? "")}`}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto text-center"
+              >
+                ESTUDAR CARDS
+              </Link>
+            )}
           </div>
         )}
 

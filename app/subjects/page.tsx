@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import FlashcardsNav from "@/components/FlashcardsNav";
+import { matchTopicDecks } from "@/lib/subjectMatch";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -16,9 +17,13 @@ type Subject = {
 function SubjectsContent() {
   const searchParams = useSearchParams();
   const selectedName = searchParams.get("name");
+  // Filtro por assunto do ciclo: entra por aqui quem clicou em "ver todos os
+  // baralhos deste assunto" e precisa da lista recortada, não dos 39 achatados.
+  const assunto = searchParams.get("assunto");
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
+  // null = ainda carregando; [] = disciplina sem baralho.
+  const [topics, setTopics] = useState<Topic[] | null>(null);
 
   useEffect(() => {
     getStatsData().then((data) => {
@@ -27,12 +32,22 @@ function SubjectsContent() {
   }, []);
 
   useEffect(() => {
-    if (selectedName) {
-      getSubjectTopics(selectedName).then((data) => {
-        if (data?.topics) setTopics(data.topics);
-      });
-    }
+    // Limpar antes de buscar: sem isso, uma disciplina sem baralho mantinha na
+    // tela os baralhos da disciplina anterior, com links que levavam para outra
+    // matéria sob o título errado.
+    setTopics(null);
+    if (!selectedName) return;
+    let cancelled = false;
+    getSubjectTopics(selectedName).then((data) => {
+      if (!cancelled) setTopics(data?.topics ?? []);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedName]);
+
+  // Recorte pelo assunto do ciclo, usando a mesma ponte do resto do app.
+  const visibleTopics = assunto && topics ? matchTopicDecks(assunto, topics) : (topics ?? []);
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -75,12 +90,24 @@ function SubjectsContent() {
             </Link>
           </div>
 
-          {topics.length === 0 && (
-            <p className="text-ink-soft">Nenhum tópico encontrado.</p>
+          {assunto && (
+            <p className="text-sm text-ink-soft mb-4">
+              Mostrando os baralhos de <strong className="text-ink">{assunto}</strong>.{" "}
+              <Link href={`/subjects?name=${encodeURIComponent(selectedName)}`} className="text-accent hover:underline">
+                ver todos da disciplina
+              </Link>
+            </p>
+          )}
+          {topics === null && <p className="text-ink-soft">Carregando baralhos…</p>}
+          {topics?.length === 0 && (
+            <p className="text-ink-soft">Esta disciplina ainda não tem baralho de flashcards.</p>
+          )}
+          {topics !== null && topics.length > 0 && visibleTopics.length === 0 && (
+            <p className="text-ink-soft">Nenhum baralho cobre este assunto.</p>
           )}
 
           <div className="space-y-2">
-            {topics.map((t) => {
+            {visibleTopics.map((t) => {
               const memoriaPct =
                 t.cardCount > 0
                   ? Math.round((t.maduros / t.cardCount) * 100)

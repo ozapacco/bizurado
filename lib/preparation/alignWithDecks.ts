@@ -10,7 +10,7 @@
 // acertos), e disciplinas do edital que ainda não têm baralho continuam no
 // ciclo — não ter card não é motivo para parar de estudar a matéria.
 
-import { normalize, resolveSubjectName, similarity } from "@/lib/subjectMatch";
+import { matchTopicDecks, moduleOf, normalize, resolveSubjectName } from "@/lib/subjectMatch";
 import type { DatabaseState, Subject, Topic, TopicProgress } from "./types";
 
 /** Formato mínimo do índice de conteúdo (public/data/index.json). */
@@ -27,8 +27,33 @@ export type AlignReport = {
   changed: boolean;
 };
 
-/** Cobertura mínima para considerar que um assunto já existe no ciclo. */
-const COVERED = 0.6;
+/**
+ * Uma unidade está coberta quando algum assunto do ciclo REALMENTE devolve os
+ * baralhos dela — a mesma regra que a interface usa para entregar os cards.
+ *
+ * Antes isto era um teste de similaridade próprio, mais permissivo que o do
+ * consumidor: uma unidade era pulada como "já coberta" por um assunto que
+ * depois não a entregava, e os baralhos dela ficavam órfãos. Foi assim que
+ * "Crimes contra a pessoa" sequestrou quatro módulos inteiros de Direito Penal
+ * (2.183 cards) sem entregar nenhum deles. Usando a regra do consumidor, órfão
+ * deixa de ser possível por construção.
+ */
+function unitIsCovered(
+  unit: string,
+  existing: { name: string }[],
+  deckTopics: { id: number; name: string }[]
+): boolean {
+  const chave = normalize(unit);
+  const daUnidade = deckTopics
+    .filter((d) => normalize(moduleOf(d.name)) === chave)
+    .map((d) => d.id);
+  if (daUnidade.length === 0) return true;
+
+  return existing.some((t) => {
+    const entregues = new Set(matchTopicDecks(t.name, deckTopics).map((d) => d.id));
+    return daUnidade.every((id) => entregues.has(id));
+  });
+}
 
 /**
  * A unidade de estudo de um baralho: o módulo (o que vem antes de ">") quando
@@ -86,7 +111,9 @@ export function planAlignment(
 
   const next: DatabaseState = {
     ...db,
-    subjects: [...db.subjects],
+    // Cópia por valor: o rename abaixo alterava o objeto do chamador, então um
+    // ensaio a seco já deixava o estado renomeado mesmo sem aplicar nada.
+    subjects: db.subjects.map((s) => ({ ...s })),
     topics: [...db.topics],
     topicProgresses: [...db.topicProgresses],
     materials: [...db.materials],
@@ -168,10 +195,7 @@ export function planAlignment(
 
     for (const unit of unitsOf(deck.topics)) {
       const name = label(unit);
-      const covered = existing.some(
-        (t) => similarity(t.name, unit) >= COVERED || similarity(unit, t.name) >= COVERED
-      );
-      if (covered) continue;
+      if (unitIsCovered(unit, existing, deck.topics)) continue;
 
       const topic: Topic = {
         id: `topic_${slug(subject.name)}_${slug(name)}`,
@@ -183,7 +207,12 @@ export function planAlignment(
         importance_tier: "SECONDARY",
         active: true,
       };
-      if (next.topics.some((t) => t.id === topic.id)) continue;
+      // Colisão de slug (truncado em 40 chars) descartava o assunto em silêncio,
+      // levando os cards dele junto. Melhor sufixar do que sumir.
+      let sufixo = 2;
+      while (next.topics.some((t) => t.id === topic.id)) {
+        topic.id = `topic_${slug(subject.name)}_${slug(name)}_${sufixo++}`;
+      }
 
       next.topics.push(topic);
       existing.push(topic);
