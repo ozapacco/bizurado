@@ -110,6 +110,36 @@ export async function putMany(store: string, values: unknown[]): Promise<void> {
   });
 }
 
+/**
+ * Lê valores junto das chaves. Necessário para a fila de backup: só podemos
+ * apagar exatamente o que foi enviado — apagar a store inteira descartaria as
+ * revisões que entraram enquanto o envio estava em voo.
+ */
+export async function getAllWithKeys<T>(
+  store: string
+): Promise<{ key: IDBValidKey; value: T }[]> {
+  const db = await openDb();
+  const os = db.transaction(store).objectStore(store);
+  const [keys, values] = await Promise.all([
+    reqAsPromise<IDBValidKey[]>(os.getAllKeys()),
+    reqAsPromise<T[]>(os.getAll()),
+  ]);
+  return keys.map((key, i) => ({ key, value: values[i] }));
+}
+
+/** Apaga um conjunto específico de chaves numa única transação. */
+export async function deleteKeys(store: string, keys: IDBValidKey[]): Promise<void> {
+  if (keys.length === 0) return;
+  const db = await openDb();
+  const tx = db.transaction(store, "readwrite");
+  const os = tx.objectStore(store);
+  for (const k of keys) os.delete(k);
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 export async function clearStore(storeName: string): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

@@ -1,6 +1,53 @@
 import { DatabaseState, Subject, SubjectRoundState } from './types';
 
 const DB_KEY = 'study_cycle_db';
+const META_KEY = 'study_cycle_meta';
+
+/**
+ * Metadados do backup do ciclo. Ficam fora do documento para que o snapshot
+ * enviado à nuvem seja exatamente o estado do estudo, sem ruído de sincronia.
+ *
+ * - `revision`: a revisão da nuvem em que esta cópia local se baseia.
+ * - `dirty`: há mudança local ainda não enviada.
+ * - `seeded`: esta cópia é o seed de fábrica, nunca editada — nesse caso a
+ *   nuvem sempre vence, para um navegador novo não sobrepor o progresso real.
+ */
+export type CycleMeta = {
+  revision: number;
+  dirty: boolean;
+  seeded: boolean;
+  lastSyncedAt: string | null;
+  /** Quando o ciclo foi alinhado aos baralhos pela última vez. */
+  alignedAt: string | null;
+};
+
+const DEFAULT_META: CycleMeta = {
+  revision: 0,
+  dirty: false,
+  seeded: false,
+  lastSyncedAt: null,
+  alignedAt: null,
+};
+
+export function getMeta(): CycleMeta {
+  if (typeof window === 'undefined') return { ...DEFAULT_META };
+  try {
+    const raw = localStorage.getItem(META_KEY);
+    if (!raw) return { ...DEFAULT_META };
+    return { ...DEFAULT_META, ...(JSON.parse(raw) as Partial<CycleMeta>) };
+  } catch {
+    return { ...DEFAULT_META };
+  }
+}
+
+export function setMeta(patch: Partial<CycleMeta>): CycleMeta {
+  const next = { ...getMeta(), ...patch };
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(META_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event('cycle-sync-meta'));
+  }
+  return next;
+}
 
 const defaultSeed: DatabaseState = {
   studyPlans: [
@@ -292,6 +339,11 @@ const defaultSeed: DatabaseState = {
   ],
 };
 
+/** O seed de fábrica — o único estado que o servidor conhece. */
+export function getSeedDb(): DatabaseState {
+  return defaultSeed;
+}
+
 export function getDb(): DatabaseState {
   if (typeof window === 'undefined') {
     return defaultSeed;
@@ -299,9 +351,23 @@ export function getDb(): DatabaseState {
   const data = localStorage.getItem(DB_KEY);
   if (!data) {
     localStorage.setItem(DB_KEY, JSON.stringify(defaultSeed));
+    setMeta({ ...DEFAULT_META, seeded: true });
     return defaultSeed;
   }
-  const parsed = JSON.parse(data) as DatabaseState;
+
+  let parsed: DatabaseState;
+  try {
+    parsed = JSON.parse(data) as DatabaseState;
+  } catch {
+    // Nunca descartar dados do usuário: a cópia ilegível fica guardada com
+    // carimbo de hora para inspeção/recuperação manual antes do fallback.
+    try {
+      localStorage.setItem(`${DB_KEY}__corrompido_${Date.now()}`, data);
+    } catch {
+      /* cota estourada: seguimos com o seed, o original continua na chave viva */
+    }
+    return defaultSeed;
+  }
   
   // Ensure new arrays exist for users with older local storage data
   if (!parsed.topics) parsed.topics = [...defaultSeed.topics];
@@ -330,12 +396,32 @@ export function getDb(): DatabaseState {
 export function saveDb(state: DatabaseState) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(DB_KEY, JSON.stringify(state));
+  // A partir daqui esta cópia deixa de ser o seed de fábrica e passa a ter
+  // progresso real esperando backup.
+  setMeta({ dirty: true, seeded: false });
+  window.dispatchEvent(new Event('db-updated'));
+}
+
+/**
+ * Substitui o estado local pelo que veio da nuvem. Não marca `dirty`: o que
+ * acabou de chegar do servidor já está, por definição, salvo lá.
+ */
+export function replaceDb(state: DatabaseState, revision: number) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(DB_KEY, JSON.stringify(state));
+  setMeta({
+    revision,
+    dirty: false,
+    seeded: false,
+    lastSyncedAt: new Date().toISOString(),
+  });
   window.dispatchEvent(new Event('db-updated'));
 }
 
 export function resetDb() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(DB_KEY);
+  localStorage.removeItem(META_KEY);
   getDb();
   window.dispatchEvent(new Event('db-updated'));
 }

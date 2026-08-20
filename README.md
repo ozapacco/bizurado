@@ -46,8 +46,10 @@ Scripts úteis:
 |---|---|
 | `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` | Build de produção |
+| `npm run lint` | ESLint (config em `.eslintrc.json`) |
 | `npm run db:init` | **Aplica o schema** no banco apontado por `DATABASE_URL` (idempotente — `scripts/db-init.ts`). Roda manualmente, nunca a cada request. |
-| `npm run seed` | Popula dados (`lib/seed.ts`) |
+| `npm run seed` | Importa os `.txt` das disciplinas para o Postgres (`lib/seed.ts`) |
+| `npm run content:sync` | `seed` + `export:static`: roda **só quando o conteúdo dos cards muda**. O `build` não faz mais isso — deploy não escreve no banco. |
 
 ---
 
@@ -64,10 +66,39 @@ Scripts úteis:
 - Driver: `@neondatabase/serverless` (`lib/db.ts`).
 - Queries simples (`query`/`queryOne`/`execute`) vão por **HTTP fetch** (`poolQueryViaFetch`). Transações (`tx`) usam **WebSocket** (`ws`).
 - `next.config.mjs` mantém `@neondatabase/serverless` e `ws` **fora** do bundle do webpack (`serverComponentsExternalPackages`) — não remover, senão a mascara de frame do `ws` quebra.
-- Todas as rotas em `app/api/*` são `dynamic = "force-dynamic"` → leem o banco **ao vivo** (o build **não** acessa o banco).
+- A superfície de servidor é pequena de propósito — **4 rotas**, todas de sincronia: `sync/up`, `sync/down`, `cycle-state`, `cycle-state/snapshots`. Todas são `dynamic = "force-dynamic"` → falam com o banco **ao vivo** (o build **não** acessa o banco). O resto do app lê de `public/data` + IndexedDB.
+- As rotas da geração pré-local-first (`/api/plan`, `/api/stats`, `/api/study`, `/api/review`, …) e a página `/plan` foram removidas — ninguém as chamava.
 - Schema: `lib/schema.ts` (Postgres). Timestamps comparados ficam como texto ISO-8601 'Z'; busca usa `pg_trgm` + `unaccent` (substitui o FTS5 do SQLite).
 
 ---
+
+## Backup: onde cada progresso mora
+
+São dois tipos de progresso, com caminhos diferentes até o Neon:
+
+| Progresso | Fonte da verdade | Backup | Como restaurar |
+|---|---|---|---|
+| Revisões de flashcards (FSRS) | IndexedDB (`bizurado`) | Fila em `queue` → `POST /api/sync/up` a cada 60s, ao focar a aba e ao voltar a ficar online | Configurações → "Puxar flashcards da nuvem" (`/api/sync/down`) |
+| Ciclo de estudos (plano, camadas, metas, materiais) | `localStorage` (`study_cycle_db`) | Documento inteiro → `PUT /api/cycle-state`, 2s depois de cada alteração | Configurações → "Versões na nuvem" ou "Restaurar de arquivo" |
+
+Garantias do lado do ciclo (`lib/preparation/sync.ts` + `app/api/cycle-state`):
+
+- **Toda escrita empilha a versão anterior** em `cycle_snapshots` (últimas 200). Sobrescrita errada continua recuperável.
+- **Concorrência otimista** por `revision`: se outro dispositivo gravou antes, a rota responde 409; o cliente reenvia com `force` e a versão da nuvem fica no histórico.
+- **Navegador novo nunca sobrepõe a nuvem**: enquanto o estado local for o seed de fábrica (`meta.seeded`), a nuvem sempre vence.
+- **Ações destrutivas guardam antes**: reset, import e restauração estacionam a cópia atual em `cycle_snapshots` primeiro.
+
+Do lado dos flashcards, `syncWithNeon()` apaga da fila **apenas as chaves que enviou** (`getAllWithKeys` + `deleteKeys`) — um `clearStore` descartaria em silêncio as revisões feitas durante o POST.
+
+O estado dos dois canais fica visível no `SyncManager` (barra lateral no desktop, aviso no topo do conteúdo no mobile). Falha de rede não é engolida: aparece como "Backup pendente" e a fila é preservada.
+
+## Ponte entre o ciclo e os baralhos
+
+`lib/subjectMatch.ts` traduz o vocabulário do ciclo ("Processo Penal" › "Controle Administrativo") para o dos baralhos ("Direito Processual Penal" › "6. Controle da Administração Pública > 1.1 …"):
+
+- **Disciplina**: por apelido + normalização (sem acento, sem numeração), não por igualdade exata.
+- **Assunto**: casamento no nível do **módulo** (o que vem antes de `>`), nunca da aula — comparar com o nome da aula gera falso positivo fácil, e mandar o usuário para o baralho errado custa mais caro que não oferecer baralho.
+- Sem módulo à altura, a interface diz "nenhum baralho cobre este assunto" em vez de esconder o bloco.
 
 ## Diagnóstico: "está na Vercel mas não puxa do banco"
 

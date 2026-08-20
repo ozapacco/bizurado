@@ -15,7 +15,7 @@ import { evaluateLayer, getTopicsForSubjectInLayer } from "@/lib/preparation/lay
 import { getSessionProtocol, getSuggestedRebalance } from "@/lib/preparation/sessionEngine";
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
 import { saveDb } from "@/lib/preparation/db";
-import { getStatsData, getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
+import { getCycleTopicDecks, getStatsData, type CycleTopicDecks } from "@/lib/client/engine";
 import { Settings, Play, CheckCircle2, ChevronRight, Clock, Target, BookOpen, AlertTriangle } from "lucide-react";
 
 type Stats = {
@@ -35,8 +35,37 @@ export default function Home() {
   const nextSubjects = getNextSubjects(3);
   const consolidated = buildConsolidatedPlan(db);
 
+  // Derivações do ciclo: nada aqui depende de `plan`, e todas precisam existir
+  // antes do return condicional abaixo — hook depois de early return quebra a
+  // ordem dos hooks no render seguinte.
+  const currentLayer = getCurrentLayer();
+  const activeTopics = currentSubject
+    ? getTopicsForSubjectInLayer(db, currentSubject.id, currentLayer)
+    : [];
+  const activeTopic = activeTopics.length > 0 ? activeTopics[0] : null;
+
   const [isRebalanceModalOpen, setIsRebalanceModalOpen] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [flashcards, setFlashcards] = useState<CycleTopicDecks | null>(null);
+
+  // Baralhos do assunto da vez. Depende só dos nomes, então usá-los como
+  // dependência evita refetch a cada render.
+  const subjectName = currentSubject?.name ?? null;
+  const topicName = activeTopic?.name ?? null;
+
+  useEffect(() => {
+    if (!subjectName || !topicName) {
+      setFlashcards(null);
+      return;
+    }
+    let cancelled = false;
+    getCycleTopicDecks(subjectName, topicName).then((match) => {
+      if (!cancelled) setFlashcards(match);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectName, topicName]);
 
   useEffect(() => {
     getStatsData().then((res) => {
@@ -46,7 +75,6 @@ export default function Home() {
 
   if (!plan) return <div className="p-6 text-slate-500 font-sans">Carregando...</div>;
 
-  const currentLayer = getCurrentLayer();
   const layerState = evaluateLayer(db);
   const isReadyToTransition = layerState.status === "READY_TO_TRANSITION";
 
@@ -76,37 +104,15 @@ export default function Home() {
   const roundState = currentSubject
     ? db.subjectRoundStates.find((rs) => rs.subject_id === currentSubject.id)
     : null;
-  const activeTopics = currentSubject
-    ? getTopicsForSubjectInLayer(db, currentSubject.id, currentLayer)
-    : [];
   const protocol = currentSubject
     ? getSessionProtocol(db, currentSubject.id, currentLayer)
     : null;
 
-  // Find coverage count for active topic
-  const activeTopic = activeTopics.length > 0 ? activeTopics[0] : null;
   const topicConsolidated = activeTopic
     ? consolidated.topics.find(
         (t) => t.canonical_topic_id === activeTopic.id || t.name === activeTopic.name
       )
     : null;
-  const [matchedFlashcardTopic, setMatchedFlashcardTopic] = useState<SubjectTopicOut | null>(null);
-
-  useEffect(() => {
-    if (currentSubject && activeTopic) {
-      getSubjectTopics(currentSubject.name).then((data) => {
-        if (data?.topics) {
-          const match = data.topics.find(
-            (t) => t.name.toLowerCase() === activeTopic.name.toLowerCase()
-          );
-          setMatchedFlashcardTopic(match || null);
-        }
-      });
-    } else {
-      setMatchedFlashcardTopic(null);
-    }
-  }, [currentSubject, activeTopic]);
-
   return (
     <div className="max-w-xl mx-auto space-y-10 font-sans pb-12">
       <header className="flex justify-between items-center">
@@ -275,27 +281,43 @@ export default function Home() {
               </div>
             </div>
 
-            {matchedFlashcardTopic && (
+            {flashcards && (
               <div className="mb-6 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
                 <div>
                   <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block mb-1">
                     Flashcards do Assunto
                   </span>
-                  <p className="text-slate-800 font-medium leading-snug">
-                    Você tem <strong className="text-slate-900">{matchedFlashcardTopic.cardCount} flashcards</strong> para este assunto.
-                  </p>
-                  {matchedFlashcardTopic.dueNow > 0 && (
-                    <span className="text-xs text-amber-700 font-bold block mt-1">
-                      ⚠️ {matchedFlashcardTopic.dueNow} cards precisando de revisão hoje!
-                    </span>
+                  {flashcards.entryDeck ? (
+                    <>
+                      <p className="text-slate-800 font-medium leading-snug">
+                        <strong className="text-slate-900">{flashcards.cardCount} flashcards</strong>{" "}
+                        em {flashcards.decks.length}{" "}
+                        {flashcards.decks.length === 1 ? "baralho" : "baralhos"} deste assunto.
+                      </p>
+                      {flashcards.dueNow > 0 && (
+                        <span className="text-xs text-amber-700 font-bold block mt-1">
+                          {flashcards.dueNow} cards vencidos para revisar hoje
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    // Zero honesto: dizer que não há cobertura é melhor que sumir
+                    // com o bloco e deixar o usuário achando que não há cards.
+                    <p className="text-slate-600 leading-snug">
+                      {flashcards.subjectName
+                        ? "Nenhum baralho cobre este assunto ainda."
+                        : "Esta disciplina ainda não tem baralho de flashcards."}
+                    </p>
                   )}
                 </div>
-                <Link
-                  href={`/study?topicId=${matchedFlashcardTopic.id}`}
-                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto"
-                >
-                  ESTUDAR CARDS
-                </Link>
+                {flashcards.entryDeck && (
+                  <Link
+                    href={`/study?topicId=${flashcards.entryDeck.id}`}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto"
+                  >
+                    ESTUDAR CARDS
+                  </Link>
+                )}
               </div>
             )}
 

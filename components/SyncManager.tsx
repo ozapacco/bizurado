@@ -1,43 +1,161 @@
 "use client";
 
-import { useEffect } from "react";
-import { syncWithNeon } from "@/lib/client/engine";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { CloudCheck, CloudAlert, RefreshCw, Loader2 } from "lucide-react";
+import { pendingSyncCount, syncWithNeon } from "@/lib/client/engine";
+import {
+  describeChannel,
+  getServerSyncSnapshot,
+  getSyncSnapshot,
+  setChannelStatus,
+  subscribeSync,
+} from "@/lib/client/syncStatus";
+import { hydrateCycleFromCloud, pushCycleNow, scheduleCyclePush } from "@/lib/preparation/sync";
+import { applyDeckAlignment } from "@/lib/preparation/alignWithDecks";
+import { getMeta } from "@/lib/preparation/db";
 
+const SYNC_INTERVAL_MS = 60_000;
+
+/**
+ * Guardião do backup. Mantém dois canais no ar — revisões de flashcards e o
+ * documento do ciclo — e mostra o estado real: um backup que falha em silêncio
+ * é pior que backup nenhum, porque parece que está tudo salvo.
+ */
 export default function SyncManager() {
+  const status = useSyncExternalStore(subscribeSync, getSyncSnapshot, getServerSyncSnapshot);
+
+  const syncAll = useCallback(async () => {
+    await Promise.allSettled([syncWithNeon(), pushCycleNow()]);
+  }, []);
+
+  // Primeira carga: puxa o ciclo da nuvem antes de liberar qualquer envio, e
+  // conta o que já estava na fila de flashcards.
   useEffect(() => {
-    let syncing = false;
+    void hydrateCycleFromCloud().then(() => {
+      // Depois de ter o estado certo em mãos, garante que o ciclo conheça todos
+      // os baralhos. É idempotente: sem novidade, não escreve nada.
+      if (!getMeta().alignedAt) void applyDeckAlignment();
+    });
+    void pendingSyncCount().then((n) => setChannelStatus("cards", { pending: n }));
+    void syncWithNeon();
+  }, []);
 
-    const doSync = async () => {
-      if (syncing) return;
-      syncing = true;
-      try {
-        await syncWithNeon();
-      } catch {
-        // ignora falhas de rede silenciosamente
-      } finally {
-        syncing = false;
+  // Toda edição do ciclo agenda um backup (rajadas viram uma escrita só).
+  useEffect(() => {
+    const onDbUpdated = () => scheduleCyclePush();
+    window.addEventListener("db-updated", onDbUpdated);
+    return () => window.removeEventListener("db-updated", onDbUpdated);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => void syncAll(), SYNC_INTERVAL_MS);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void syncAll();
+    };
+    const onOnline = () => void syncAll();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("online", onOnline);
+
+    // Última chance de avisar: se ainda há coisa na fila ao fechar a aba, o
+    // navegador segura a saída em vez de deixar o progresso preso aqui.
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      const snap = getSyncSnapshot();
+      if (snap.cards.pending > 0 || snap.cycle.pending > 0) {
+        e.preventDefault();
+        e.returnValue = "";
       }
     };
-
-    // Sincroniza a cada 1 minuto (se a fila estiver vazia, a função retorna rápido)
-    const interval = setInterval(doSync, 60000);
-
-    // Sincroniza quando a aba volta a ficar visível
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        doSync();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    // Sincroniza na montagem inicial
-    doSync();
+    window.addEventListener("beforeunload", onBeforeUnload);
 
     return () => {
       clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("beforeunload", onBeforeUnload);
     };
-  }, []);
+  }, [syncAll]);
 
-  return null;
+  const busy = status.cards.busy || status.cycle.busy;
+  const error = status.cards.error ?? status.cycle.error;
+  const pending = status.cards.pending + status.cycle.pending;
+
+  return (
+    <div className="text-xs">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 font-medium">
+          {busy ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-ink-soft motion-reduce:animate-none" />
+          ) : error ? (
+            <CloudAlert className="w-3.5 h-3.5 text-grade-again" />
+          ) : (
+            <CloudCheck className="w-3.5 h-3.5 text-accent" />
+          )}
+          <span className={error ? "text-grade-again" : "text-ink-soft"}>
+            {error ? "Backup pendente" : pending > 0 ? "Salvando…" : "Tudo salvo"}
+          </span>
+        </span>
+
+        <button
+          type="button"
+          onClick={() => void syncAll()}
+          disabled={busy}
+          title="Sincronizar agora"
+          className="p-1 rounded text-ink-soft hover:text-ink hover:bg-surface disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span className="sr-only">Sincronizar agora</span>
+        </button>
+      </div>
+
+      <dl className="mt-2 space-y-1 text-[11px] text-ink-soft">
+        <div className="flex justify-between gap-2">
+          <dt>Flashcards</dt>
+          <dd className="text-right truncate" title={describeChannel(status.cards)}>
+            {describeChannel(status.cards)}
+          </dd>
+        </div>
+        <div className="flex justify-between gap-2">
+          <dt>Ciclo</dt>
+          <dd className="text-right truncate" title={describeChannel(status.cycle)}>
+            {describeChannel(status.cycle)}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+/**
+ * Aviso compacto para o mobile, onde não há barra lateral. Fica invisível
+ * enquanto está tudo salvo e só aparece quando há algo em risco — o usuário
+ * não deve precisar procurar essa informação.
+ */
+export function SyncBanner() {
+  const status = useSyncExternalStore(subscribeSync, getSyncSnapshot, getServerSyncSnapshot);
+  const error = status.cards.error ?? status.cycle.error;
+  const pending = status.cards.pending + status.cycle.pending;
+
+  if (!error && pending === 0) return null;
+
+  return (
+    <div
+      role="status"
+      className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+        error
+          ? "border-red-200 bg-red-50 text-red-800"
+          : "border-slate-200 bg-slate-50 text-slate-600"
+      }`}
+    >
+      {error ? (
+        <CloudAlert className="w-4 h-4 shrink-0" />
+      ) : (
+        <Loader2 className="w-4 h-4 shrink-0 animate-spin motion-reduce:animate-none" />
+      )}
+      <span className="min-w-0 flex-1">
+        {error ? `Backup pendente — ${error}` : "Salvando seu progresso…"}
+      </span>
+    </div>
+  );
 }

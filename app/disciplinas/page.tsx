@@ -7,6 +7,7 @@ import { getCurrentSubject, getNextSubjects, getPlanId, getCurrentLayer } from "
 import { evaluateLayer, getOrCreateTopicProgress } from "@/lib/preparation/layerEngine";
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
 import { getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
+import { matchTopicDecks } from "@/lib/subjectMatch";
 import { ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock, Target, Play } from "lucide-react";
 
 export default function Disciplinas() {
@@ -36,19 +37,29 @@ export default function Disciplinas() {
 
   const allSubjects = db.subjects.filter((s) => s.study_plan_id === planId);
 
-  // Pre-load flashcard topics for all subjects to map them to study links
+  // Pre-carrega os baralhos de cada disciplina para montar os links de estudo.
+  // A dependência é a lista de nomes (string estável), não o array de objetos —
+  // assim o efeito não redispara a cada render.
+  const subjectNames = allSubjects.map((s) => s.name).join("|");
+
   useEffect(() => {
-    allSubjects.forEach((s) => {
-      getSubjectTopics(s.name).then((data) => {
-        if (data?.topics) {
+    let cancelled = false;
+    subjectNames
+      .split("|")
+      .filter(Boolean)
+      .forEach((name) => {
+        getSubjectTopics(name).then((data) => {
+          if (cancelled || !data?.topics) return;
           setFlashcardTopics((prev) => ({
             ...prev,
-            [s.name.toLowerCase()]: data.topics,
+            [name.toLowerCase()]: data.topics,
           }));
-        }
+        });
       });
-    });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectNames]);
 
   // Build enhanced data model for each subject
   const subjectsData = allSubjects.map((subject) => {
@@ -483,11 +494,16 @@ export default function Disciplinas() {
                                         ? `${Math.round((prog.correct_count / prog.question_count) * 100)}%`
                                         : "—";
 
-                                    // Find matching flashcard topic ID if possible
+                                    // Baralhos que cobrem o tema (casamento por
+                                    // módulo — ver lib/subjectMatch.ts).
                                     const matchSub = flashcardTopics[item.subject.name.toLowerCase()];
-                                    const matchTopic = matchSub?.find(
-                                      (ft) => ft.name.toLowerCase() === topic.name.toLowerCase()
-                                    );
+                                    const matchedDecks = matchSub
+                                      ? matchTopicDecks(topic.name, matchSub)
+                                      : [];
+                                    const deckDue = matchedDecks.reduce((a, d) => a + d.dueNow, 0);
+                                    const deckCards = matchedDecks.reduce((a, d) => a + d.cardCount, 0);
+                                    const entryDeck =
+                                      [...matchedDecks].sort((a, b) => b.dueNow - a.dueNow)[0] ?? null;
 
                                     return (
                                       <tr key={topic.id} className="hover:bg-slate-50">
@@ -525,13 +541,19 @@ export default function Disciplinas() {
                                           </span>
                                         </td>
                                         <td className="p-3 text-center">
-                                          {matchTopic ? (
+                                          {entryDeck ? (
                                             <Link
-                                              href={`/study?topicId=${matchTopic.id}`}
+                                              href={`/study?topicId=${entryDeck.id}`}
+                                              title={`${deckCards} cards em ${matchedDecks.length} ${
+                                                matchedDecks.length === 1 ? "baralho" : "baralhos"
+                                              }`}
                                               className="inline-flex items-center space-x-1 text-xs font-bold text-teal-600 hover:text-teal-700 border border-teal-200 hover:bg-teal-50 px-2 py-1 rounded"
                                             >
                                               <Play className="w-3 h-3 fill-current" />
-                                              <span>Estudar</span>
+                                              <span>
+                                                Estudar
+                                                {deckDue > 0 ? ` (${deckDue})` : ""}
+                                              </span>
                                             </Link>
                                           ) : (
                                             <span className="text-xs text-slate-300">—</span>

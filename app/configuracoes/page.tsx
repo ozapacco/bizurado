@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { parkCurrentCycle } from "@/lib/preparation/sync";
+import AlignPanel from "@/components/AlignPanel";
+import BackupPanel from "@/components/BackupPanel";
 import { useDb } from "@/lib/preparation/useDb";
 import { evaluateLayer } from "@/lib/preparation/layerEngine";
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
@@ -29,8 +32,12 @@ export default function Settings() {
         "Tem certeza? Todos os seus dados de preparação serão apagados e os dados de demonstração serão recarregados."
       )
     ) {
-      resetDb();
-      router.push("/");
+      // Guarda o estado atual na nuvem antes de apagar: o reset vira uma ação
+      // reversível pelo histórico de versões, em vez de um caminho sem volta.
+      void parkCurrentCycle("pre-reset").then(() => {
+        resetDb();
+        router.push("/");
+      });
     }
   };
 
@@ -65,6 +72,10 @@ export default function Settings() {
         </div>
       </div>
 
+      <AlignPanel />
+
+      <BackupPanel />
+
       {/* PLANOS DE PROVA (EXAM GOALS) */}
       <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -88,7 +99,7 @@ export default function Settings() {
         <div className="space-y-3 mb-6">
           {activeGoals.length === 0 ? (
             <div className="text-center py-6 bg-slate-50 rounded-xl text-slate-500 text-sm">
-              Nenhum objetivo de prova ativo. Clique em "Adicionar Objetivo" para selecionar sua carreira.
+              Nenhum objetivo de prova ativo. Clique em &ldquo;Adicionar Objetivo&rdquo; para selecionar sua carreira.
             </div>
           ) : (
             activeGoals.map((goal) => {

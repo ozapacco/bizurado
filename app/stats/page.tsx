@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FlashcardsNav from "@/components/FlashcardsNav";
 import Link from "next/link";
 import {
   BarChart,
@@ -130,11 +131,10 @@ export default function StatsPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <header className="mb-6">
-        <Link href="/" className="text-accent hover:underline text-sm">
-          ← Dashboard
-        </Link>
-        <h1 className="text-2xl font-bold mt-2">Estatísticas</h1>
+        <h1 className="text-2xl font-bold">Estatísticas</h1>
       </header>
+
+      <FlashcardsNav />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
         <StatBox label="Total" value={stats.totalCards} />

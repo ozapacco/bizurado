@@ -14,7 +14,7 @@ import {
 import { evaluateLayer, getTopicsForSubjectInLayer, getOrCreateTopicProgress } from "@/lib/preparation/layerEngine";
 import { getSessionProtocol } from "@/lib/preparation/sessionEngine";
 import { saveDb } from "@/lib/preparation/db";
-import { getSubjectTopics, type SubjectTopicOut } from "@/lib/client/engine";
+import { getCycleTopicDecks, type CycleTopicDecks } from "@/lib/client/engine";
 import { Play, Pause, ChevronRight, Check } from "lucide-react";
 
 export default function EstudarPage() {
@@ -60,22 +60,24 @@ export default function EstudarPage() {
     return () => clearInterval(interval);
   }, [isPaused, isFinishModalOpen, isUpdateModalOpen]);
 
-  const [matchedFlashcardTopic, setMatchedFlashcardTopic] = useState<SubjectTopicOut | null>(null);
+  const [flashcards, setFlashcards] = useState<CycleTopicDecks | null>(null);
+
+  const subjectName = currentSubject?.name ?? null;
+  const topicName = currentTopic?.name ?? null;
 
   useEffect(() => {
-    if (currentSubject && currentTopic) {
-      getSubjectTopics(currentSubject.name).then((data) => {
-        if (data?.topics) {
-          const match = data.topics.find(
-            (t) => t.name.toLowerCase() === currentTopic.name.toLowerCase()
-          );
-          setMatchedFlashcardTopic(match || null);
-        }
-      });
-    } else {
-      setMatchedFlashcardTopic(null);
+    if (!subjectName || !topicName) {
+      setFlashcards(null);
+      return;
     }
-  }, [currentSubject, currentTopic]);
+    let cancelled = false;
+    getCycleTopicDecks(subjectName, topicName).then((match) => {
+      if (!cancelled) setFlashcards(match);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectName, topicName]);
 
   if (!currentSubject || !roundState || !material || !protocol) return null;
 
@@ -220,23 +222,25 @@ export default function EstudarPage() {
           </div>
         </div>
 
-        {matchedFlashcardTopic && (
-          <div className="mb-6 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-left">
+        {flashcards?.entryDeck && (
+          <div className="mb-6 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
             <div>
               <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block mb-1">
                 Flashcards do Assunto
               </span>
               <p className="text-slate-800 font-medium leading-snug">
-                Você tem <strong className="text-slate-900">{matchedFlashcardTopic.cardCount} flashcards</strong> para este assunto.
+                <strong className="text-slate-900">{flashcards.cardCount} flashcards</strong> em{" "}
+                {flashcards.decks.length}{" "}
+                {flashcards.decks.length === 1 ? "baralho" : "baralhos"} deste assunto.
               </p>
-              {matchedFlashcardTopic.dueNow > 0 && (
+              {flashcards.dueNow > 0 && (
                 <span className="text-xs text-amber-700 font-bold block mt-1">
-                  ⚠️ {matchedFlashcardTopic.dueNow} cards precisando de revisão hoje!
+                  {flashcards.dueNow} cards vencidos para revisar hoje
                 </span>
               )}
             </div>
             <Link
-              href={`/study?topicId=${matchedFlashcardTopic.id}`}
+              href={`/study?topicId=${flashcards.entryDeck.id}`}
               className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap self-start sm:self-auto text-center"
             >
               ESTUDAR CARDS

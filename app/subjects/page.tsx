@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import FlashcardsNav from "@/components/FlashcardsNav";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -36,11 +37,10 @@ function SubjectsContent() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <header className="mb-6">
-        <Link href="/" className="text-accent hover:underline text-sm">
-          ← Dashboard
-        </Link>
-        <h1 className="text-2xl font-bold mt-2">Disciplinas</h1>
+        <h1 className="text-2xl font-bold">Flashcards</h1>
       </header>
+
+      <FlashcardsNav />
 
       {!selectedName && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

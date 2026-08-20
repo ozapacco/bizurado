@@ -15,13 +15,17 @@ import {
   get,
   getAll,
   getAllByIndex,
+  getAllWithKeys,
   put,
   putMany,
   clearStore,
+  deleteKeys,
   type LogEvent,
   type StoredState,
   type TopicStudy,
 } from "./idb";
+import { setChannelStatus } from "./syncStatus";
+import { matchTopicDecks, resolveSubjectName } from "@/lib/subjectMatch";
 
 const MATURE_DAYS = 21;
 
@@ -1161,7 +1165,14 @@ export async function getSubjectTopics(subjectName: string): Promise<{ subject: 
     getAll<TopicStudy>("topics"),
   ]);
 
-  const subj = index.subjects.find((s) => s.name === subjectName);
+  // O ciclo e os baralhos usam nomes diferentes para a mesma disciplina
+  // ("Processo Penal" x "Direito Processual Penal"). Resolver por apelido em vez
+  // de igualdade exata é o que faz a ponte existir.
+  const resolvedName = resolveSubjectName(
+    subjectName,
+    index.subjects.map((s) => s.name)
+  );
+  const subj = resolvedName ? index.subjects.find((s) => s.name === resolvedName) : undefined;
   if (!subj) return null;
 
   const boundary = startOfNextDayISO();
@@ -1224,8 +1235,15 @@ export async function getSubjectTopics(subjectName: string): Promise<{ subject: 
 // ==============================================================================
 
 export async function syncWithNeon(): Promise<boolean> {
-  const q = await getAll<any>("queue");
-  if (q.length === 0) return true;
+  // Lê valores COM as chaves: no fim apagamos só o que foi enviado. Um
+  // `clearStore` aqui descartaria em silêncio as revisões que o usuário fizer
+  // durante o POST — o sync roda a cada minuto, exatamente enquanto ele estuda.
+  const q = await getAllWithKeys<any>("queue");
+  setChannelStatus("cards", { pending: q.length });
+  if (q.length === 0) {
+    setChannelStatus("cards", { busy: false, error: null });
+    return true;
+  }
 
   const payload = {
     reviews: [] as any[],
@@ -1234,13 +1252,14 @@ export async function syncWithNeon(): Promise<boolean> {
     priorities: [] as any[],
   };
 
-  for (const item of q) {
+  for (const { value: item } of q) {
     if (item.type === "review") payload.reviews.push(item);
     else if (item.type === "suspend") payload.suspensions.push(item);
     else if (item.type === "volta") payload.voltas.push(item);
     else if (item.type === "topicPriority") payload.priorities.push(item);
   }
 
+  setChannelStatus("cards", { busy: true, error: null });
   try {
     const res = await fetch("/api/sync/up", {
       method: "POST",
@@ -1248,14 +1267,38 @@ export async function syncWithNeon(): Promise<boolean> {
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) return false;
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setChannelStatus("cards", {
+        busy: false,
+        error: body.error || `Backup recusado (HTTP ${res.status})`,
+      });
+      return false;
+    }
 
-    await clearStore("queue");
+    await deleteKeys("queue", q.map((item) => item.key));
+    const remaining = await count("queue");
+    setChannelStatus("cards", {
+      busy: false,
+      error: null,
+      pending: remaining,
+      lastSyncedAt: new Date().toISOString(),
+    });
     return true;
   } catch (err) {
-    console.error("Erro no sync:", err);
+    setChannelStatus("cards", {
+      busy: false,
+      error: /failed to fetch|networkerror/i.test(String(err))
+        ? "Sem conexão — as revisões continuam na fila"
+        : String(err instanceof Error ? err.message : err),
+    });
     return false;
   }
+}
+
+/** Quantas revisões locais ainda não chegaram ao Neon. */
+export async function pendingSyncCount(): Promise<number> {
+  return count("queue");
 }
 
 // Sobrescreve o progresso local com o backup do Neon. Empurra a fila pendente
@@ -1291,3 +1334,77 @@ export async function restoreFromNeon(): Promise<boolean> {
   }
 }
 
+
+export type CycleTopicDecks = {
+  /** Disciplina de baralhos correspondente, ou null se não existe baralho. */
+  subjectName: string | null;
+  /** Baralhos que cobrem o tema do ciclo (vazio = tema sem cobertura). */
+  decks: SubjectTopicOut[];
+  cardCount: number;
+  dueNow: number;
+  novos: number;
+  /** Por onde começar: o baralho com mais vencidos; sem vencidos, o com novos. */
+  entryDeck: SubjectTopicOut | null;
+};
+
+const EMPTY_MATCH: CycleTopicDecks = {
+  subjectName: null,
+  decks: [],
+  cardCount: 0,
+  dueNow: 0,
+  novos: 0,
+  entryDeck: null,
+};
+
+/**
+ * Traduz "disciplina + tema do ciclo" para os baralhos correspondentes.
+ * Devolve sempre um objeto — `subjectName: null` significa "essa disciplina não
+ * tem baralho", e `decks: []` significa "tem disciplina, mas nenhum módulo
+ * cobre esse tema". A interface distingue os dois casos.
+ */
+export async function getCycleTopicDecks(
+  cycleSubject: string,
+  cycleTopic: string
+): Promise<CycleTopicDecks> {
+  const data = await getSubjectTopics(cycleSubject);
+  if (!data) return EMPTY_MATCH;
+
+  const decks = matchTopicDecks(cycleTopic, data.topics);
+  if (decks.length === 0) {
+    return { ...EMPTY_MATCH, subjectName: data.subject.name };
+  }
+
+  const cardCount = decks.reduce((acc, d) => acc + d.cardCount, 0);
+  const dueNow = decks.reduce((acc, d) => acc + d.dueNow, 0);
+  const novos = decks.reduce((acc, d) => acc + d.novos, 0);
+
+  const byDue = [...decks].sort((a, b) => b.dueNow - a.dueNow);
+  const entryDeck =
+    byDue[0]?.dueNow > 0
+      ? byDue[0]
+      : [...decks].sort((a, b) => b.novos - a.novos)[0] ?? decks[0];
+
+  return { subjectName: data.subject.name, decks, cardCount, dueNow, novos, entryDeck };
+}
+
+/**
+ * Cópia completa e portátil de tudo que é progresso: o log de revisões
+ * (append-only, do qual todo o estado FSRS é recomputável), os estados atuais e
+ * as voltas por tópico. Salvar isso num arquivo é a única garantia que não
+ * depende nem do navegador nem da nuvem.
+ */
+export async function exportLocalProgress(): Promise<{
+  exportedAt: string;
+  states: StoredState[];
+  log: LogEvent[];
+  topics: TopicStudy[];
+  pending: number;
+}> {
+  const [states, log, topics, pending] = await Promise.all([
+    getAll<StoredState>("states"),
+    getAll<LogEvent>("log"),
+    getAll<TopicStudy>("topics"),
+    count("queue"),
+  ]);
+  return { exportedAt: new Date().toISOString(), states, log, topics, pending };
+}

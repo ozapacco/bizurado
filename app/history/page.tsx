@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FlashcardsNav from "@/components/FlashcardsNav";
 import Link from "next/link";
 
 import { getHistoryData, type HistoryResponse } from "@/lib/client/engine";
@@ -38,10 +39,7 @@ export default function HistoryPage() {
     <div className="p-6 max-w-5xl mx-auto">
       <header className="flex items-start justify-between gap-3 mb-6">
         <div>
-          <Link href="/" className="text-accent hover:underline text-sm">
-            ← Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold mt-2">Histórico</h1>
+          <h1 className="text-2xl font-bold">Histórico</h1>
         </div>
         <div className="flex gap-1 bg-surface border border-line rounded-lg p-1">
           {WINDOWS.map((w) => (
@@ -59,6 +57,8 @@ export default function HistoryPage() {
           ))}
         </div>
       </header>
+
+      <FlashcardsNav />
 
       {error && (
         <div className="text-center py-20 text-grade-again">

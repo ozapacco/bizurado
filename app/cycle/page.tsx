@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import FlashcardsNav from "@/components/FlashcardsNav";
 import Link from "next/link";
 
 import { getCycleData, setSubjectPriorityLocal, setTopicPriorityLocal, type CycleData, type Pointer, type SubjectOut as Subject, type TopicOut as Topic } from "@/lib/client/engine";
@@ -111,6 +112,7 @@ export default function CyclePage() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-3xl mx-auto">
+      <FlashcardsNav />
       <h1 className="font-serif text-2xl font-semibold mb-1">Trilha do Aprovado</h1>
       <p className="text-sm text-ink-soft mb-5">
         Revise o vencido, avance pela disciplina menos vista, gire. Suba as camadas.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FlashcardsNav from "@/components/FlashcardsNav";
 import Link from "next/link";
 
 import { getProgressData, type SubjectProgress, type TopicProgress } from "@/lib/client/engine";
@@ -184,16 +185,15 @@ export default function ProgressPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <header className="mb-6">
-        <Link href="/" className="text-accent hover:underline text-sm">
-          ← Dashboard
-        </Link>
-        <h1 className="text-2xl font-bold mt-2">Progresso / Domínio</h1>
+        <h1 className="text-2xl font-bold">Domínio dos baralhos</h1>
         <p className="text-sm text-ink-soft mt-2">
           <span className="text-accent">Cobertura</span> = % do conteúdo já
           estudado. <span className="text-grade-easy">Domínio</span> = % de
           cards maduros (intervalo ≥ 21 dias).
         </p>
       </header>
+
+      <FlashcardsNav />
 
       {error && (
         <div className="text-center py-20 text-grade-again">
