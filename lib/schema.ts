@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS cards (
   tags         text DEFAULT '',
   card_type    text DEFAULT 'normal',
   search_text  text,
+  metadata     jsonb DEFAULT '{}',
   created_at   timestamptz DEFAULT now(),
   UNIQUE (topic_id, question)
 );
@@ -79,7 +80,9 @@ CREATE TABLE IF NOT EXISTS review_log (
   elapsed_days    double precision,
   scheduled_days  double precision,
   stability       double precision,
-  difficulty      double precision
+  difficulty      double precision,
+  erro_motivo     text,
+  tempo_resposta_ms integer
 );
 
 CREATE TABLE IF NOT EXISTS topic_study (

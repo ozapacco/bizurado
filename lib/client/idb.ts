@@ -30,6 +30,8 @@ export type LogEvent = {
   subjectId: number;
   rating: number;
   reviewDate: string;
+  erroMotivo?: string;
+  tempoRespostaMs?: number;
 };
 
 /** Card criado dentro do app (não veio dos arquivos .txt). */

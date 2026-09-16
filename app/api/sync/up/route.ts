@@ -5,7 +5,14 @@ import { CardState } from "@/lib/fsrs";
 export const dynamic = "force-dynamic";
 
 type SyncPayload = {
-  reviews: { cardId: number; rating: number; reviewDate: string; state?: any }[];
+  reviews: {
+    cardId: number;
+    rating: number;
+    reviewDate: string;
+    erroMotivo?: string;
+    tempoRespostaMs?: number;
+    state?: any;
+  }[];
   suspensions: { cardId: number }[];
   voltas: { topicId: number; priority: number; voltas: number; intervalDays: number; status: string; due: string | null; lastStudied: string | null }[];
   priorities: { topicId: number; priority: number }[];
@@ -37,12 +44,12 @@ export async function POST(request: NextRequest) {
           // resposta se perdeu não duplica mais. É o mecanismo que produziu as
           // 48 duplicatas históricas em review_log.
           await client.query(
-            `INSERT INTO review_log (card_id, rating, review_date)
-             SELECT $1, $2, $3
+            `INSERT INTO review_log (card_id, rating, review_date, erro_motivo, tempo_resposta_ms)
+             SELECT $1, $2, $3, $4, $5
              WHERE NOT EXISTS (
                SELECT 1 FROM review_log WHERE card_id = $1 AND review_date = $3
              )`,
-            [rev.cardId, rev.rating, rev.reviewDate]
+            [rev.cardId, rev.rating, rev.reviewDate, rev.erroMotivo ?? null, rev.tempoRespostaMs ?? null]
           );
 
           if (rev.state) {

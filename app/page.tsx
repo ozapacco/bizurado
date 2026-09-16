@@ -16,7 +16,7 @@ import { getSessionProtocol, getSuggestedRebalance } from "@/lib/preparation/ses
 import { buildConsolidatedPlan } from "@/lib/preparation/consolidatedPlanEngine";
 import { saveDb } from "@/lib/preparation/db";
 import { getCycleTopicDecks, getStatsData, type CycleTopicDecks } from "@/lib/client/engine";
-import { Settings, Play, CheckCircle2, ChevronRight, Clock, Target, BookOpen, AlertTriangle } from "lucide-react";
+import { Settings, Play, CheckCircle2, ChevronRight, Clock, Target, BookOpen, AlertTriangle, Swords, Flame } from "lucide-react";
 
 type Stats = {
   totalCards: number;
@@ -138,17 +138,20 @@ export default function Home() {
         </Link>
       </header>
 
-      {/* FLASHCARDS INTEGRATION SUMMARY */}
+      {/* ALTA RETENÇÃO & PRÁTICA INTERCALADA */}
       {stats && stats.totalCards > 0 && (
-        <section className="bg-slate-50 rounded-xl p-5 border border-slate-200 shadow-sm">
+        <section className="bg-slate-50 rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Revisão Espaçada</h2>
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <span>Alta Retenção Cognitiva</span>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              </h2>
               <div className="text-lg font-bold text-slate-900">
                 {stats.dueToday > 0 ? (
-                  <span className="text-amber-700 font-semibold">{stats.dueToday} flashcards aguardando hoje</span>
+                  <span className="text-amber-700 font-semibold">{stats.dueToday} cards para resgatar hoje</span>
                 ) : (
-                  <span className="text-slate-700">Tudo revisado por aqui!</span>
+                  <span className="text-slate-700">Revisão do dia zerada!</span>
                 )}
               </div>
               <p className="text-xs text-slate-500">
@@ -158,11 +161,46 @@ export default function Home() {
             {stats.dueToday > 0 && (
               <Link
                 href="/review"
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition-colors shadow-sm"
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition-colors shadow-sm"
               >
-                REVISAR AGORA
+                FILA GERAL
               </Link>
             )}
+          </div>
+
+          {/* Dificuldades Desejáveis: Modos de Treino Estratégico */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-200/70">
+            <Link
+              href="/review?mode=combat"
+              className="flex items-center gap-3 p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-colors group"
+            >
+              <div className="w-8 h-8 rounded-md bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Swords className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                  <span>Treino de Combate</span>
+                  <span className="text-[10px] uppercase font-mono px-1 py-0.2 bg-amber-200 text-amber-900 rounded font-semibold">Intercalado</span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate">Mistura matérias para quebrar a fluência</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/review?mode=warmup"
+              className="flex items-center gap-3 p-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-lg transition-colors group"
+            >
+              <div className="w-8 h-8 rounded-md bg-rose-500/20 text-rose-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Flame className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                  <span>Aquecimento Diário</span>
+                  <span className="text-[10px] uppercase font-mono px-1 py-0.2 bg-rose-200 text-rose-900 rounded font-semibold">10 min</span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate">Resgate ativo dos erros de ontem</p>
+              </div>
+            </Link>
           </div>
         </section>
       )}

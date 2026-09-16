@@ -8,6 +8,7 @@ export interface ParsedCard {
   source: string;
   tags: string[];
   cardType: string;
+  metadata?: Record<string, any>;
 }
 
 export interface ParsedTopic {
@@ -86,6 +87,14 @@ export function parseContent(content: string): ParsedCard[] {
       cleanAnswer = cleanAnswer.slice(0, cleanAnswer.indexOf("<hr>")).trim();
     }
 
+    const hashTagMatches = trimmed.match(/#[\w-]+/g);
+    if (hashTagMatches) {
+      hashTagMatches.forEach((t) => {
+        const tag = t.slice(1).toLowerCase();
+        if (!tags.includes(tag)) tags.push(tag);
+      });
+    }
+
     cards.push({
       question: rawQuestion,
       answer: cleanAnswer,
@@ -93,6 +102,7 @@ export function parseContent(content: string): ParsedCard[] {
       source,
       tags,
       cardType,
+      metadata: {},
     });
   }
 

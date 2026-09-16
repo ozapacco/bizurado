@@ -5,7 +5,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CardScreenSkeleton, Kbd, RatingBar } from "@/components/card-screen";
 
-import { loadReviewCards, rateCard, suspendCard, type DeckCard } from "@/lib/client/engine";
+import {
+  loadReviewCards,
+  getInterleavedCombatSession,
+  getDailyWarmupSession,
+  rateCard,
+  suspendCard,
+  type DeckCard,
+} from "@/lib/client/engine";
 import type { Rating } from "@/lib/fsrs";
 
 function ReviewContent() {
@@ -13,6 +20,7 @@ function ReviewContent() {
   const [cards, setCards] = useState<DeckCard[]>([]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [fluencyWarning, setFluencyWarning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(false);
   // Disciplina pedida não existe no índice de cards — diferente de "nada vencido".
@@ -28,6 +36,7 @@ function ReviewContent() {
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const busyRef = useRef(false);
+  const cardShownAtRef = useRef<number>(Date.now());
 
   // Live snapshot read by the (bind-once) keyboard handler — no stale closure.
   const kbdStateRef = useRef({ flipped, loading, done });
@@ -36,28 +45,48 @@ function ReviewContent() {
   const loadCards = useCallback(async () => {
     setLoading(true);
 
-    const data = await loadReviewCards({
-      subjectId: filterSubject || undefined,
-      topicId: filterTopic || undefined,
-      mode: filterType || undefined,
-      cardId: filterCard || undefined,
-      limit: 30,
-    });
+    let loadedCards: DeckCard[] = [];
+    let isUnknown = false;
 
-    setCards(data.cards);
+    if (filterType === "combat") {
+      loadedCards = await getInterleavedCombatSession({ limit: 50 });
+    } else if (filterType === "warmup") {
+      loadedCards = await getDailyWarmupSession();
+    } else {
+      const data = await loadReviewCards({
+        subjectId: filterSubject || undefined,
+        topicId: filterTopic || undefined,
+        mode: filterType || undefined,
+        cardId: filterCard || undefined,
+        limit: 30,
+      });
+      loadedCards = data.cards;
+      isUnknown = Boolean(data.unknownSubject);
+    }
+
+    setCards(loadedCards);
     setIndex(0);
     setFlipped(false);
-    setUnknownSubject(Boolean(data.unknownSubject));
-    setDone(data.cards.length === 0);
+    setFluencyWarning(false);
+    cardShownAtRef.current = Date.now();
+    setUnknownSubject(isUnknown);
+    setDone(loadedCards.length === 0);
     setLoading(false);
-    setStats((s) => ({ ...s, total: data.cards.length }));
+    setStats((s) => ({ ...s, total: loadedCards.length }));
   }, [filterSubject, filterTopic, filterType, filterCard]);
 
   useEffect(() => {
     loadCards();
   }, [loadCards]);
 
+  // Reseta tempo de visualização e aviso de fluência ao trocar de card
+  useEffect(() => {
+    cardShownAtRef.current = Date.now();
+    setFluencyWarning(false);
+  }, [index, cards]);
+
   const advance = useCallback(async () => {
+    setFluencyWarning(false);
     if (index + 1 < cards.length) {
       setIndex(index + 1);
       setFlipped(false);
@@ -71,18 +100,21 @@ function ReviewContent() {
 
   // Step back one card to review it again (no rating is undone).
   const goPrev = useCallback(() => {
+    setFluencyWarning(false);
     setIndex((i) => (i > 0 ? i - 1 : i));
     setFlipped(false);
   }, []);
 
   const handleRating = useCallback(
-    async (rating: number) => {
+    async (rating: number, erroMotivo?: string) => {
       if (!current || busyRef.current) return; // guard double-fire (keys/clicks)
       busyRef.current = true;
       try {
+        const elapsedMs = Date.now() - cardShownAtRef.current;
         await rateCard(
           { id: current.id, topicId: current.topicId || 0, subjectId: current.subjectId || 0 },
-          rating as Rating
+          rating as Rating,
+          { erroMotivo, tempoRespostaMs: elapsedMs }
         );
         setStats((s) => ({ ...s, reviewed: s.reviewed + 1 }));
         await advance();
@@ -107,6 +139,27 @@ function ReviewContent() {
   const handleRatingRef = useRef(handleRating);
   handleRatingRef.current = handleRating;
 
+  const handleReveal = useCallback(() => {
+    if (!flipped) {
+      const elapsed = Date.now() - cardShownAtRef.current;
+      if (elapsed < 2000) {
+        setFluencyWarning(true);
+      }
+      setFlipped(true);
+    }
+  }, [flipped]);
+
+  const handleToggleFlip = useCallback(() => {
+    if (!flipped) {
+      handleReveal();
+    } else {
+      setFlipped(false);
+    }
+  }, [flipped, handleReveal]);
+
+  const handleRevealRef = useRef(handleReveal);
+  handleRevealRef.current = handleReveal;
+
   // Keyboard navigation. Bound ONCE (deps are stable) and read through refs, so
   // there is no stale-closure window. Layout:
   //   Espaço / Enter / ↑ / ↓ ...... vira a carta
@@ -129,17 +182,18 @@ function ReviewContent() {
         case "Enter":
           e.preventDefault();
           if (isFlipped) void handleRatingRef.current(3);
-          else setFlipped(true);
+          else handleRevealRef.current();
           break;
         case "ArrowUp":
         case "ArrowDown":
           e.preventDefault();
-          setFlipped((f) => !f);
+          if (isFlipped) setFlipped(false);
+          else handleRevealRef.current();
           break;
         case "ArrowRight":
           e.preventDefault();
           if (isFlipped) void handleRatingRef.current(3);
-          else setFlipped(true);
+          else handleRevealRef.current();
           break;
         case "ArrowLeft":
           e.preventDefault();
@@ -151,7 +205,7 @@ function ReviewContent() {
         case "4":
           e.preventDefault();
           if (isFlipped) void handleRatingRef.current(Number(e.key));
-          else setFlipped(true);
+          else handleRevealRef.current();
           break;
       }
     };
@@ -170,17 +224,33 @@ function ReviewContent() {
   }
 
   if (done) {
+    let emptyTitle = "Revisão concluída";
+    let emptyMessage = stats.reviewed > 0
+      ? `${stats.reviewed} cards revisados nessa sessão.`
+      : "Nenhum card pendente no momento.";
+
+    if (unknownSubject) {
+      emptyTitle = "Sem baralho para esta disciplina";
+      emptyMessage = `Não existe baralho de flashcards para ${filterSubject}. Nada foi revisado porque não há o que revisar.`;
+    } else if (filterType === "warmup") {
+      emptyTitle = stats.reviewed > 0 ? "Aquecimento concluído" : "Sem cards para aquecimento";
+      emptyMessage = stats.reviewed > 0
+        ? `Excelente! Você aqueceu a memória com ${stats.reviewed} cards com dificuldade de ontem.`
+        : "Nenhum card com dificuldade ontem para aquecer!";
+    } else if (filterType === "combat") {
+      emptyTitle = stats.reviewed > 0 ? "Combate concluído" : "Sem cards para combate";
+      emptyMessage = stats.reviewed > 0
+        ? `Missão cumprida! ${stats.reviewed} cards intercalados revisados sob pressão de prova.`
+        : "Nenhum card pendente para o combate intercalado!";
+    }
+
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center bg-paper text-ink">
         <h2 className="font-serif text-3xl font-semibold mb-2 text-balance">
-          {unknownSubject ? "Sem baralho para esta disciplina" : "Revisão concluída"}
+          {emptyTitle}
         </h2>
         <p className="text-ink-soft mb-8 max-w-md text-pretty">
-          {unknownSubject
-            ? `Não existe baralho de flashcards para ${filterSubject}. Nada foi revisado porque não há o que revisar.`
-            : stats.reviewed > 0
-              ? `${stats.reviewed} cards revisados nessa sessão.`
-              : "Nenhum card pendente no momento."}
+          {emptyMessage}
         </p>
         <div className="flex gap-3">
           <button
@@ -226,12 +296,28 @@ function ReviewContent() {
             >
               ← Sair
             </Link>
-            <span
-              title="Modo REVISÃO — limpar os cards vencidos do dia"
-              className="font-mono text-[0.65rem] font-semibold uppercase tracking-wide px-2 py-1 rounded border border-grade-hard/40 bg-grade-hard/5 text-grade-hard shrink-0"
-            >
-              Revisão
-            </span>
+            {filterType === "combat" ? (
+              <span
+                title="Treino de Combate — cards intercalados de múltiplos temas"
+                className="font-mono text-[0.65rem] font-bold uppercase tracking-wide px-2.5 py-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0"
+              >
+                ⚔️ Treino de Combate
+              </span>
+            ) : filterType === "warmup" ? (
+              <span
+                title="Aquecimento Diário — cards difíceis ou errados de ontem"
+                className="font-mono text-[0.65rem] font-bold uppercase tracking-wide px-2.5 py-1 rounded border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 shrink-0"
+              >
+                🔥 Aquecimento Diário
+              </span>
+            ) : (
+              <span
+                title="Modo REVISÃO — limpar os cards vencidos do dia"
+                className="font-mono text-[0.65rem] font-semibold uppercase tracking-wide px-2 py-1 rounded border border-grade-hard/40 bg-grade-hard/5 text-grade-hard shrink-0"
+              >
+                Revisão
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -250,6 +336,8 @@ function ReviewContent() {
               className="bg-surface text-ink text-xs px-2 py-1.5 rounded border border-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="due">Vencidos</option>
+              <option value="combat">⚔️ Combate (Intercalado)</option>
+              <option value="warmup">🔥 Aquecimento Diário</option>
               <option value="all">Todos</option>
               <option value="new">Novos</option>
             </select>
@@ -265,55 +353,74 @@ function ReviewContent() {
 
       {/* O card ocupa toda a área livre; toque/clique vira */}
       <div
-        onClick={() => setFlipped((f) => !f)}
+        onClick={handleToggleFlip}
         className="flex-1 min-h-0 overflow-y-auto cursor-pointer px-4 py-4 flex flex-col"
       >
-        <div className="font-mono text-xs text-ink-soft mb-2 space-x-2 shrink-0">
-          <span className={difficultyColor}>
-            D: {current.difficulty.toFixed(1)}
-          </span>
-          {current.retrievability !== null && (
+        {/* Metadados cognitivos — exibidos apenas APÓS a virada para evitar muletas cognitivas */}
+        <div className="font-mono text-xs text-ink-soft mb-2 space-x-2 shrink-0 min-h-[1.25rem]">
+          {flipped ? (
             <>
-              <span>·</span>
-              <span
-                title="Probabilidade de você ainda lembrar (curva FSRS)"
-                className={
-                  current.retrievability >= 0.8
-                    ? "text-grade-easy"
-                    : current.retrievability >= 0.5
-                      ? "text-grade-hard"
-                      : "text-grade-again"
-                }
-              >
-                R: {Math.round(current.retrievability * 100)}%
+              <span className={difficultyColor}>
+                D: {current.difficulty.toFixed(1)}
               </span>
+              {current.retrievability !== null && (
+                <>
+                  <span>·</span>
+                  <span
+                    title="Probabilidade de você ainda lembrar (curva FSRS)"
+                    className={
+                      current.retrievability >= 0.8
+                        ? "text-grade-easy"
+                        : current.retrievability >= 0.5
+                          ? "text-grade-hard"
+                          : "text-grade-again"
+                    }
+                  >
+                    R: {Math.round(current.retrievability * 100)}%
+                  </span>
+                </>
+              )}
+              {current.state === "new" && (
+                <>
+                  <span>·</span>
+                  <span className="text-accent">Novo</span>
+                </>
+              )}
+              {(current.state === "learning" || current.state === "relearning") && (
+                <>
+                  <span>·</span>
+                  <span className="text-grade-hard">Aprendendo</span>
+                </>
+              )}
+              {current.cardType === "questao" && (
+                <>
+                  <span>·</span>
+                  <span>Questão</span>
+                </>
+              )}
+              {current.bizu && (
+                <>
+                  <span>·</span>
+                  <span className="text-grade-hard font-medium">Bizu</span>
+                </>
+              )}
             </>
-          )}
-          {current.state === "new" && (
-            <>
-              <span>·</span>
-              <span className="text-accent">Novo</span>
-            </>
-          )}
-          {(current.state === "learning" || current.state === "relearning") && (
-            <>
-              <span>·</span>
-              <span className="text-grade-hard">Aprendendo</span>
-            </>
-          )}
-          {current.cardType === "questao" && (
-            <>
-              <span>·</span>
-              <span>Questão</span>
-            </>
-          )}
-          {current.bizu && (
-            <>
-              <span>·</span>
-              <span className="text-grade-hard">Bizu</span>
-            </>
+          ) : (
+            <span className="text-ink-soft/40 uppercase tracking-widest text-[0.65rem]">
+              Resgate Ativo · Foco no Enunciado
+            </span>
           )}
         </div>
+
+        {/* Detecção de fluência falsa / ilusão de conhecimento */}
+        {flipped && fluencyWarning && (
+          <div className="mb-3 px-3.5 py-2 bg-amber-500/10 border border-amber-500/25 rounded-lg text-amber-900 dark:text-amber-200 text-xs flex items-center justify-center gap-2 max-w-xl mx-auto shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+            <span className="shrink-0 text-sm">⚠️</span>
+            <span>
+              <strong>Cuidado com a ilusão de fluência:</strong> você resgatou mentalmente a resposta antes de virar?
+            </span>
+          </div>
+        )}
 
         <div className="flex-1 flex flex-col items-center justify-center text-center p-2 md:p-6">
           {!flipped ? (
@@ -376,7 +483,7 @@ function ReviewContent() {
           <>
             <div className="flex gap-3 justify-center max-w-3xl mx-auto">
               <button
-                onClick={() => setFlipped(true)}
+                onClick={handleReveal}
                 className="flex-1 max-w-md px-8 py-4 bg-accent hover:bg-accent-deep text-paper font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
               >
                 Mostrar resposta

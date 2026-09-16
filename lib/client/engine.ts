@@ -620,7 +620,8 @@ export async function loadReviewCards(opts: {
 // Avalia um card: FSRS + log append-only + fila de sync.
 export async function rateCard(
   card: { id: number; topicId: number; subjectId: number },
-  rating: Rating
+  rating: Rating,
+  meta?: { erroMotivo?: string; tempoRespostaMs?: number }
 ): Promise<void> {
   const now = new Date();
   const stored = await get<StoredState>("states", card.id);
@@ -632,6 +633,8 @@ export async function rateCard(
     subjectId: card.subjectId,
     rating,
     reviewDate: now.toISOString(),
+    ...(meta?.erroMotivo ? { erroMotivo: meta.erroMotivo } : {}),
+    ...(meta?.tempoRespostaMs ? { tempoRespostaMs: meta.tempoRespostaMs } : {}),
   };
 
   // Tudo ou nada: o agendamento novo, o log e a entrada da fila entram juntos.
@@ -1944,4 +1947,91 @@ export async function importCards(input: {
     jaExistiam: body.jaExistiam,
     repetidosNoArquivo: body.repetidosNoArquivo,
   };
+}
+
+/**
+ * Interleaved Combat Session: pulls `due` cards from MULTIPLE topics/disciplines
+ * mixed together for interleaved practice.
+ */
+export async function getInterleavedCombatSession(opts: { limit?: number } = {}): Promise<DeckCard[]> {
+  const { cards } = await loadReviewCards({ mode: "due", limit: opts.limit || 50 });
+  
+  const byTopic = new Map<number, DeckCard[]>();
+  for (const c of cards) {
+    if (!byTopic.has(c.topicId)) byTopic.set(c.topicId, []);
+    byTopic.get(c.topicId)!.push(c);
+  }
+  
+  const interleaved: DeckCard[] = [];
+  let added = true;
+  while (added) {
+    added = false;
+    for (const topicCards of byTopic.values()) {
+      if (topicCards.length > 0) {
+        interleaved.push(topicCards.shift()!);
+        added = true;
+      }
+    }
+  }
+  return interleaved;
+}
+
+/**
+ * Daily Warmup: fetches cards reviewed yesterday that received Again (1) or Hard (2).
+ */
+export async function getDailyWarmupSession(): Promise<DeckCard[]> {
+  await ensureSeeded();
+  const log = await getAll<LogEvent>("log");
+  
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString();
+  
+  const yesterdayLogs = log.filter(l => l.reviewDate >= yesterdayStart && l.reviewDate < todayStart);
+  
+  const lastReviewYesterday = new Map<number, LogEvent>();
+  for (const l of yesterdayLogs) {
+    const existing = lastReviewYesterday.get(l.cardId);
+    if (!existing || l.reviewDate > existing.reviewDate) {
+      lastReviewYesterday.set(l.cardId, l);
+    }
+  }
+  
+  const targetCardIds = new Set<number>();
+  for (const [cardId, event] of lastReviewYesterday.entries()) {
+    if (event.rating === 1 || event.rating === 2) {
+      targetCardIds.add(cardId);
+    }
+  }
+  
+  if (targetCardIds.size === 0) return [];
+  
+  const states = await getAll<StoredState>("states");
+  const statesMap = new Map(states.map(s => [s.cardId, s]));
+  
+  const boundary = startOfNextDayISO();
+  const deckMap = new Map<number, RawDeck>();
+  const cards: DeckCard[] = [];
+  
+  for (const [cardId, event] of lastReviewYesterday.entries()) {
+    if (!targetCardIds.has(cardId)) continue;
+    const topicId = event.topicId;
+    let deck = deckMap.get(topicId);
+    if (!deck) {
+      const fetched = await fetchDeck(topicId);
+      if (fetched) {
+        deck = fetched;
+        deckMap.set(topicId, deck);
+      }
+    }
+    if (!deck) continue;
+    
+    const c = deck.cards.find((c: any) => c.id === cardId);
+    if (!c) continue;
+    
+    const s = statesMap.get(cardId);
+    cards.push(toDeckCard(c, deck, s, boundary));
+  }
+  
+  return cards;
 }
