@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, RefreshCw, BookOpen, ListChecks, TrendingUp, Settings, Layers } from "lucide-react";
+import { Home, RefreshCw, BookOpen, ListChecks, TrendingUp, Settings, Layers, Map } from "lucide-react";
 import SyncManager, { SyncBanner } from "./SyncManager";
 import ClientOnly from "./ClientOnly";
 
@@ -18,6 +18,7 @@ export default function Layout({ children }: LayoutProps) {
   const navItems = [
     { name: "Hoje", path: "/", icon: Home, mobile: true },
     { name: "Ciclo", path: "/ciclo", icon: RefreshCw, mobile: true },
+    { name: "Árvore (Edital)", path: "/edital", icon: Map, mobile: true },
     { name: "Disciplinas", path: "/disciplinas", icon: BookOpen, mobile: true },
     { name: "Flashcards", path: "/subjects", icon: Layers, mobile: true },
     { name: "Questões", path: "/questoes", icon: ListChecks, mobile: true },
@@ -32,7 +33,7 @@ export default function Layout({ children }: LayoutProps) {
         (p) => pathname === p || pathname.startsWith(`${p}/`)
       );
     }
-    return pathname === path;
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   return (

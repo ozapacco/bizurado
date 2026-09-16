@@ -1,0 +1,80 @@
+{
+  "disciplinas": [
+    {
+      "nome": "Direito Administrativo",
+      "macrotemas": [
+        {
+          "nome": "Princípios",
+          "assuntos": [
+            "Regime jurídico administrativo e noções gerais",
+            "Princípios de Direito Administrativo",
+            "Supremacia do interesse público",
+            "Indisponibilidade do interesse público"
+          ]
+        },
+        {
+          "nome": "Noções Iniciais de Direito Administrativo",
+          "assuntos": [
+            "Fundamentos do Direito Administrativo",
+            "Origem, Estado de Direito, Conselho de Estado francês"
+          ]
+        },
+        {
+          "nome": "Organização Administrativa",
+          "assuntos": [
+            "Base da Organização Administrativa",
+            "Centralização, Descentralização e Desconcentração"
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "Direito Constitucional",
+      "macrotemas": [
+        {
+          "nome": "Direitos e deveres individuais e coletivos",
+          "assuntos": [
+            "Caput do art. 5º, titulares dos direitos fundamentais, direito à vida",
+            "Igualdade e isonomia",
+            "Legalidade, reserva legal, tortura e algemas"
+          ]
+        },
+        {
+          "nome": "Direitos Sociais",
+          "assuntos": [
+            "início da teoria, Direitos Sociais, introdução, art. 6º",
+            "mínimo existencial, saúde, judicialização"
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "Direito Penal",
+      "macrotemas": [
+        {
+          "nome": "Introdução ao direito penal",
+          "assuntos": [
+            "Princípios constitucionais do Direito Penal",
+            "Outros princípios do Direito Penal",
+            "Conceito e fontes do Direito Penal"
+          ]
+        },
+        {
+          "nome": "Conceito de crime",
+          "assuntos": [
+            "Conceito de crime e crime x contravenção",
+            "Fato típico e conduta",
+            "Resultado e nexo causal"
+          ]
+        },
+        {
+          "nome": "Culpabilidade e punibilidade",
+          "assuntos": [
+            "Culpabilidade conceito, teorias e elementos iniciais",
+            "Erro de tipo e erro de proibição"
+          ]
+        }
+      ]
+    }
+  ]
+}
